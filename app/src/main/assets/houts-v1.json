@@ -1,0 +1,1456 @@
+{
+ "schema": "houts-content",
+ "version": 1,
+ "source": "Cuestionario Houts Modificado por Wagner (5.a ed.). Texto limpiado de una traducción automática. Ver fuentes/01. Licencia pendiente antes de publicar.",
+ "maritalStatus": [
+  {
+   "id": "soltero",
+   "label": "Soltero/a"
+  },
+  {
+   "id": "casado",
+   "label": "Casado/a"
+  },
+  {
+   "id": "viudo",
+   "label": "Viudo/a"
+  },
+  {
+   "id": "separado",
+   "label": "Separado/a o divorciado/a"
+  }
+ ],
+ "ageRanges": [
+  "Menos de 40",
+  "40 a 49",
+  "50 a 59",
+  "60 a 69",
+  "70 o más"
+ ],
+ "scale": [
+  {
+   "label": "Mucho",
+   "value": 3
+  },
+  {
+   "label": "Algo",
+   "value": 2
+  },
+  {
+   "label": "Poco",
+   "value": 1
+  },
+  {
+   "label": "Nada",
+   "value": 0
+  }
+ ],
+ "prompt": "¿Qué tan cierto es esto en tu vida?",
+ "blocks": [
+  {
+   "block": 1,
+   "items": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25
+   ]
+  },
+  {
+   "block": 2,
+   "items": [
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50
+   ]
+  },
+  {
+   "block": 3,
+   "items": [
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75
+   ]
+  },
+  {
+   "block": 4,
+   "items": [
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100
+   ]
+  },
+  {
+   "block": 5,
+   "items": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125
+   ]
+  }
+ ],
+ "scoring": {
+  "rule": "gift = 'A' + ((n-1) mod 25); score = suma de los ítems respondidos del don; pct = score / (3 * respondidos)",
+  "dominant": [
+   1,
+   3
+  ],
+  "subordinate": [
+   4,
+   6
+  ],
+  "excludeGiftWhenAllItemsHidden": true
+ },
+ "gifts": [
+  {
+   "code": "A",
+   "name": "Profecía",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para recibir y comunicar un mensaje inmediato de Dios a Su pueblo mediante una declaración ungida divinamente.",
+   "refs": [
+    "1 Co 12:10, 28",
+    "Ef 4:11-14",
+    "Ro 12:6",
+    "Lc 7:26",
+    "Hch 15:32",
+    "Hch 21:9-11"
+   ]
+  },
+  {
+   "code": "B",
+   "name": "Pastor",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para asumir una responsabilidad personal, a largo plazo, por el bienestar espiritual de un grupo de creyentes.",
+   "refs": [
+    "Ef 4:11-14",
+    "1 Ti 3:1-7",
+    "Jn 10:1-18",
+    "1 P 5:1-3"
+   ]
+  },
+  {
+   "code": "C",
+   "name": "Enseñanza",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para comunicar información relevante para la salud y el ministerio del cuerpo y sus miembros, de tal manera que otros aprendan.",
+   "refs": [
+    "1 Co 12:28",
+    "Ef 4:11-14",
+    "Ro 12:7",
+    "Hch 18:24-28",
+    "Hch 20:20-21"
+   ]
+  },
+  {
+   "code": "D",
+   "name": "Sabiduría",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para conocer la mente del Espíritu Santo de modo que se comprenda cómo aplicar el conocimiento a necesidades específicas del cuerpo de Cristo.",
+   "refs": [
+    "1 Co 2:1-13",
+    "1 Co 12:8",
+    "Hch 6:3, 10",
+    "Stg 1:5-6",
+    "2 P 3:15-16"
+   ]
+  },
+  {
+   "code": "E",
+   "name": "Conocimiento",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para descubrir, acumular, analizar y aclarar información e ideas pertinentes al bienestar del cuerpo.",
+   "refs": [
+    "1 Co 2:14",
+    "1 Co 12:8",
+    "Hch 5:1-11",
+    "Col 2:2-3",
+    "2 Co 11:6"
+   ]
+  },
+  {
+   "code": "F",
+   "name": "Exhortación",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para dar palabras de consuelo, ánimo y consejo a otros miembros, de tal manera que se sientan ayudados y sanados.",
+   "refs": [
+    "Ro 12:8",
+    "1 Ti 4:13",
+    "He 10:25",
+    "Hch 14:22"
+   ]
+  },
+  {
+   "code": "G",
+   "name": "Discernimiento de espíritus",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para saber con certeza si cierta conducta que se dice ser de Dios es en realidad divina, humana o satánica.",
+   "refs": [
+    "1 Co 12:10",
+    "Hch 5:1-11",
+    "Hch 16:16-18",
+    "1 Jn 4:1-6",
+    "Mt 16:21-23"
+   ]
+  },
+  {
+   "code": "H",
+   "name": "Dar",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para contribuir sus recursos materiales a la obra del Señor con liberalidad y alegría.",
+   "refs": [
+    "Ro 12:8",
+    "2 Co 8:1-7",
+    "2 Co 9:2-8",
+    "Mr 12:41-44"
+   ]
+  },
+  {
+   "code": "I",
+   "name": "Ayuda",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para invertir sus talentos en la vida y el ministerio de otros miembros, aumentando la efectividad de los dones de ellos.",
+   "refs": [
+    "1 Co 12:28",
+    "Ro 16:1-2",
+    "Hch 9:36",
+    "Lc 8:2-3",
+    "Mr 15:40-41"
+   ]
+  },
+  {
+   "code": "J",
+   "name": "Misericordia",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para sentir empatía y compasión genuinas por personas (cristianas o no) con problemas físicos, mentales o emocionales, y traducirla en actos alegres que alivien el sufrimiento.",
+   "refs": [
+    "Ro 12:8",
+    "Mr 9:41",
+    "Hch 16:33-34",
+    "Lc 10:33-35",
+    "Mt 20:29-34",
+    "Mt 25:34-40",
+    "Hch 11:28-30"
+   ]
+  },
+  {
+   "code": "K",
+   "name": "Misionero",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para ministrar cualquier otro don espiritual que tengan en una segunda cultura.",
+   "refs": [
+    "1 Co 9:19-23",
+    "Hch 8:4",
+    "Hch 13:2-3",
+    "Hch 22:21",
+    "Ro 10:15"
+   ]
+  },
+  {
+   "code": "L",
+   "name": "Evangelista",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para compartir el evangelio con incrédulos de tal manera que se conviertan en discípulos de Jesús y miembros responsables del cuerpo.",
+   "refs": [
+    "Ef 4:11-14",
+    "2 Ti 4:5",
+    "Hch 8:5-6, 26-40",
+    "Hch 14:21",
+    "Hch 21:8"
+   ]
+  },
+  {
+   "code": "M",
+   "name": "Hospitalidad",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para ofrecer una casa abierta y una cálida bienvenida a quienes necesitan comida y alojamiento.",
+   "refs": [
+    "1 P 4:9",
+    "Ro 12:9-13",
+    "Ro 16:23",
+    "Hch 16:14-15",
+    "He 13:1-2"
+   ]
+  },
+  {
+   "code": "N",
+   "name": "Fe",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para discernir con extraordinaria confianza la voluntad y los propósitos de Dios para Su obra.",
+   "refs": [
+    "1 Co 12:9",
+    "Hch 11:22-24",
+    "Hch 27:21-25",
+    "He 11",
+    "Ro 4:18-21"
+   ]
+  },
+  {
+   "code": "O",
+   "name": "Liderazgo",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para fijar metas de acuerdo con el propósito de Dios y comunicarlas de modo que otros trabajen juntos, voluntaria y armoniosamente, para cumplirlas.",
+   "refs": [
+    "1 Ti 5:17",
+    "Hch 7:10",
+    "Hch 15:7-11",
+    "Ro 12:8",
+    "He 13:17",
+    "Lc 9:51"
+   ]
+  },
+  {
+   "code": "P",
+   "name": "Administración",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para entender las metas inmediatas y de largo plazo de una unidad del cuerpo, y elaborar y ejecutar planes efectivos para lograrlas.",
+   "refs": [
+    "1 Co 12:28",
+    "Hch 6:1-7",
+    "Hch 27:11",
+    "Lc 14:28-30",
+    "Tit 1:5"
+   ]
+  },
+  {
+   "code": "Q",
+   "name": "Milagros",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para servir como intermediarios humanos de actos de poder que los observadores perciben como alteraciones del curso ordinario de la naturaleza.",
+   "refs": [
+    "1 Co 12:10, 28",
+    "Hch 9:36-42",
+    "Hch 19:11-20",
+    "Hch 20:7-12",
+    "Ro 15:18-19",
+    "2 Co 12:12"
+   ]
+  },
+  {
+   "code": "R",
+   "name": "Sanidad",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para servir como intermediarios humanos por medio de quienes Dios cura enfermedades y restaura la salud aparte de medios naturales.",
+   "refs": [
+    "1 Co 12:9, 28",
+    "Hch 3:1-10",
+    "Hch 5:12-16",
+    "Hch 9:32-35",
+    "Hch 28:7-10"
+   ]
+  },
+  {
+   "code": "S",
+   "name": "Lenguas",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para (a) hablar a Dios en un idioma que nunca aprendieron y/o (b) comunicar un mensaje inmediato de Dios en un idioma que nunca aprendieron.",
+   "refs": [
+    "1 Co 12:10, 28",
+    "1 Co 14:13-19",
+    "Hch 2:1-13",
+    "Hch 10:44-46",
+    "Hch 19:1-7",
+    "Mr 16:17"
+   ]
+  },
+  {
+   "code": "T",
+   "name": "Interpretación",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para dar a conocer en el idioma común el mensaje de quien habla en lenguas.",
+   "refs": [
+    "1 Co 12:10, 30",
+    "1 Co 14:13, 26-28"
+   ]
+  },
+  {
+   "code": "U",
+   "name": "Pobreza voluntaria",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para renunciar al confort material y adoptar un estilo de vida equivalente al nivel de pobreza de su sociedad, para servir a Dios más eficazmente.",
+   "refs": [
+    "1 Co 13:1-3",
+    "Hch 2:44-45",
+    "Hch 4:34-37",
+    "2 Co 6:10",
+    "2 Co 8:9"
+   ]
+  },
+  {
+   "code": "V",
+   "name": "Celibato",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para permanecer soltero(a) y disfrutarlo, sin sufrir tentaciones sexuales indebidas.",
+   "refs": [
+    "1 Co 7:7-8",
+    "Mt 19:10-12"
+   ]
+  },
+  {
+   "code": "W",
+   "name": "Intercesión",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para orar durante períodos prolongados de forma regular y ver respuestas frecuentes y específicas, en un grado muy superior al del cristiano promedio.",
+   "refs": [
+    "Stg 5:14-16",
+    "1 Ti 2:1-2",
+    "Col 1:9-12",
+    "Col 4:12-13",
+    "Hch 12:12",
+    "Lc 22:41-44"
+   ]
+  },
+  {
+   "code": "X",
+   "name": "Ministerio de liberación",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para echar fuera demonios y espíritus malignos.",
+   "refs": [
+    "Mt 12:22-32",
+    "Lc 10:12-20",
+    "Hch 8:5-8",
+    "Hch 16:16-18"
+   ]
+  },
+  {
+   "code": "Y",
+   "name": "Servicio",
+   "definition": "Habilidad especial que Dios da a ciertos miembros del cuerpo de Cristo para identificar necesidades no cubiertas en una tarea de la obra de Dios y usar los recursos disponibles para cubrirlas y lograr los resultados deseados.",
+   "refs": [
+    "2 Ti 1:16-18",
+    "Ro 12:7",
+    "Hch 6:1-7",
+    "Tit 3:14",
+    "Gá 6:2, 10"
+   ]
+  }
+ ],
+ "items": [
+  {
+   "n": 1,
+   "text": "Tengo el deseo de comunicar mensajes directos de Dios que edifiquen, exhorten o consuelen a otros.",
+   "gift": "A",
+   "block": 1
+  },
+  {
+   "n": 2,
+   "text": "He disfrutado relacionarme con un mismo grupo de personas durante un largo período, compartiendo personalmente sus éxitos y fracasos.",
+   "gift": "B",
+   "block": 1
+  },
+  {
+   "n": 3,
+   "text": "La gente me ha dicho que la he ayudado a aprender alguna verdad bíblica de manera significativa.",
+   "gift": "C",
+   "block": 1
+  },
+  {
+   "n": 4,
+   "text": "He aplicado la verdad espiritual de manera efectiva a situaciones de mi propia vida.",
+   "gift": "D",
+   "block": 1
+  },
+  {
+   "n": 5,
+   "text": "Otros me han dicho que los he ayudado a distinguir hechos clave e importantes de las Escrituras.",
+   "gift": "E",
+   "block": 1
+  },
+  {
+   "n": 6,
+   "text": "He animado verbalmente a los indecisos, los afligidos o los desanimados.",
+   "gift": "F",
+   "block": 1
+  },
+  {
+   "n": 7,
+   "text": "Otros en la iglesia han notado que pude ver a través de la falsedad antes de que fuera evidente para los demás.",
+   "gift": "G",
+   "block": 1
+  },
+  {
+   "n": 8,
+   "text": "Administro bien mi dinero para poder dar con generosidad a la obra del Señor.",
+   "gift": "H",
+   "block": 1
+  },
+  {
+   "n": 9,
+   "text": "He ayudado a líderes cristianos liberándolos de tareas para que se enfoquen en su trabajo esencial.",
+   "gift": "I",
+   "block": 1
+  },
+  {
+   "n": 10,
+   "text": "Tengo el deseo de trabajar con quienes tienen problemas físicos o mentales, para aliviar su sufrimiento.",
+   "gift": "J",
+   "block": 1
+  },
+  {
+   "n": 11,
+   "text": "Me siento cómodo(a) relacionándome con grupos étnicos y minorías, y ellos parecen aceptarme.",
+   "gift": "K",
+   "block": 1
+  },
+  {
+   "n": 12,
+   "text": "He guiado a otros a una decisión de salvación por medio de la fe en Cristo.",
+   "gift": "L",
+   "block": 1
+  },
+  {
+   "n": 13,
+   "text": "Mi casa siempre está abierta a personas de paso que necesitan un lugar donde quedarse.",
+   "gift": "M",
+   "block": 1
+  },
+  {
+   "n": 14,
+   "text": "Cuando estoy en un grupo, a menudo soy a quien los demás buscan para obtener visión y dirección.",
+   "gift": "N",
+   "block": 1
+  },
+  {
+   "n": 15,
+   "text": "Cuando hablo, la gente parece escuchar y estar de acuerdo.",
+   "gift": "O",
+   "block": 1
+  },
+  {
+   "n": 16,
+   "text": "Cuando a un grupo en el que estoy le falta organización, tiendo a intervenir y llenar ese vacío.",
+   "gift": "P",
+   "block": 1
+  },
+  {
+   "n": 17,
+   "text": "Otros pueden señalar casos específicos en que mis oraciones resultaron en milagros visibles.",
+   "gift": "Q",
+   "block": 1
+  },
+  {
+   "n": 18,
+   "text": "En el nombre del Señor, he sido usado(a) para sanar enfermedades instantáneamente.",
+   "gift": "R",
+   "block": 1
+  },
+  {
+   "n": 19,
+   "text": "He hablado en lenguas.",
+   "gift": "S",
+   "block": 1
+  },
+  {
+   "n": 20,
+   "text": "A veces, cuando una persona habla en lenguas, tengo una idea de lo que Dios está diciendo.",
+   "gift": "T",
+   "block": 1
+  },
+  {
+   "n": 21,
+   "text": "Podría vivir más cómodamente, pero elijo no hacerlo para vivir con los pobres.",
+   "gift": "U",
+   "block": 1
+  },
+  {
+   "n": 22,
+   "text": "Soy soltero(a) y lo disfruto.",
+   "gift": "V",
+   "block": 1,
+   "showIfMaritalStatus": [
+    "soltero",
+    "viudo",
+    "separado"
+   ]
+  },
+  {
+   "n": 23,
+   "text": "Paso al menos una hora al día en oración.",
+   "gift": "W",
+   "block": 1
+  },
+  {
+   "n": 24,
+   "text": "He hablado con espíritus malignos y me han obedecido.",
+   "gift": "X",
+   "block": 1
+  },
+  {
+   "n": 25,
+   "text": "Disfruto que me llamen para hacer trabajos especiales en la iglesia.",
+   "gift": "Y",
+   "block": 1
+  },
+  {
+   "n": 26,
+   "text": "Por medio de Dios he revelado cosas específicas que sucederán en el futuro.",
+   "gift": "A",
+   "block": 2
+  },
+  {
+   "n": 27,
+   "text": "He disfrutado asumir la responsabilidad del bienestar espiritual de un grupo particular de cristianos.",
+   "gift": "B",
+   "block": 2
+  },
+  {
+   "n": 28,
+   "text": "Siento que puedo explicar de manera relevante la enseñanza del Nuevo Testamento sobre la salud y el ministerio del cuerpo de Cristo.",
+   "gift": "C",
+   "block": 2
+  },
+  {
+   "n": 29,
+   "text": "Puedo llegar intuitivamente a soluciones de problemas bastante complicados.",
+   "gift": "D",
+   "block": 2
+  },
+  {
+   "n": 30,
+   "text": "He tenido vislumbres de verdad espiritual que, según otros, los ayudaron a acercarse a Dios.",
+   "gift": "E",
+   "block": 2
+  },
+  {
+   "n": 31,
+   "text": "Puedo motivar eficazmente a las personas a involucrarse en el ministerio cuando se necesita.",
+   "gift": "F",
+   "block": 2
+  },
+  {
+   "n": 32,
+   "text": "A veces puedo \"ver\" al Espíritu de Dios reposando sobre ciertas personas.",
+   "gift": "G",
+   "block": 2
+  },
+  {
+   "n": 33,
+   "text": "Mis registros de donaciones muestran que doy considerablemente más del 10 % de mis ingresos a la obra del Señor.",
+   "gift": "H",
+   "block": 2
+  },
+  {
+   "n": 34,
+   "text": "Otras personas me han dicho que las ayudé a ser más efectivas en sus ministerios.",
+   "gift": "I",
+   "block": 2
+  },
+  {
+   "n": 35,
+   "text": "He cuidado de otros cuando han tenido necesidades materiales o físicas.",
+   "gift": "J",
+   "block": 2
+  },
+  {
+   "n": 36,
+   "text": "Siento que podría aprender bien otro idioma para ministrar a personas de una cultura diferente.",
+   "gift": "K",
+   "block": 2
+  },
+  {
+   "n": 37,
+   "text": "He compartido con alegría cómo Cristo me trajo a Él, de una manera significativa para los no creyentes.",
+   "gift": "L",
+   "block": 2
+  },
+  {
+   "n": 38,
+   "text": "Disfruto encargarme de las cenas de la iglesia o de reuniones sociales.",
+   "gift": "M",
+   "block": 2
+  },
+  {
+   "n": 39,
+   "text": "He creído a Dios por lo imposible y lo he visto suceder de manera tangible.",
+   "gift": "N",
+   "block": 2
+  },
+  {
+   "n": 40,
+   "text": "Otros cristianos han seguido mi liderazgo porque creían en mí.",
+   "gift": "O",
+   "block": 2
+  },
+  {
+   "n": 41,
+   "text": "Disfruto los detalles de organizar ideas, personas, recursos y tiempo para un ministerio más efectivo.",
+   "gift": "P",
+   "block": 2
+  },
+  {
+   "n": 42,
+   "text": "Dios me ha usado personalmente para realizar señales y maravillas sobrenaturales.",
+   "gift": "Q",
+   "block": 2
+  },
+  {
+   "n": 43,
+   "text": "Disfruto orar por los enfermos porque sé que muchos de ellos serán sanados como resultado.",
+   "gift": "R",
+   "block": 2
+  },
+  {
+   "n": 44,
+   "text": "He comunicado un mensaje inmediato de Dios a Su pueblo en un idioma que nunca aprendí.",
+   "gift": "S",
+   "block": 2
+  },
+  {
+   "n": 45,
+   "text": "He interpretado lenguas con el resultado de que el cuerpo de Cristo fue edificado, exhortado o consolado.",
+   "gift": "T",
+   "block": 2
+  },
+  {
+   "n": 46,
+   "text": "Llevar un estilo de vida sencillo es un desafío emocionante para mí.",
+   "gift": "U",
+   "block": 2
+  },
+  {
+   "n": 47,
+   "text": "Otras personas han notado que me afecta menos que a la mayoría no estar casado(a).",
+   "gift": "V",
+   "block": 2,
+   "showIfMaritalStatus": [
+    "soltero",
+    "viudo",
+    "separado"
+   ]
+  },
+  {
+   "n": 48,
+   "text": "Cuando escucho una petición de oración, oro por esa necesidad durante varios días, al menos.",
+   "gift": "W",
+   "block": 2
+  },
+  {
+   "n": 49,
+   "text": "He escuchado de hecho a un demonio hablar en voz audible.",
+   "gift": "X",
+   "block": 2
+  },
+  {
+   "n": 50,
+   "text": "No tengo muchas habilidades especiales, pero hago lo que se necesita hacer en la iglesia.",
+   "gift": "Y",
+   "block": 2
+  },
+  {
+   "n": 51,
+   "text": "La gente me ha dicho que he comunicado mensajes urgentes y oportunos que vinieron directamente del Señor.",
+   "gift": "A",
+   "block": 3
+  },
+  {
+   "n": 52,
+   "text": "No tengo miedo de dar orientación y dirección espiritual en un grupo de cristianos.",
+   "gift": "B",
+   "block": 3
+  },
+  {
+   "n": 53,
+   "text": "Puedo dedicar un tiempo considerable a aprender nuevas verdades bíblicas para comunicarlas a otros.",
+   "gift": "C",
+   "block": 3
+  },
+  {
+   "n": 54,
+   "text": "Cuando una persona tiene un problema, con frecuencia puedo guiarla hacia la mejor solución bíblica.",
+   "gift": "D",
+   "block": 3
+  },
+  {
+   "n": 55,
+   "text": "Por estudio o experiencia he discernido estrategias o técnicas importantes que Dios parece usar para el avance de Su reino.",
+   "gift": "E",
+   "block": 3
+  },
+  {
+   "n": 56,
+   "text": "La gente acude a mí en sus aflicciones o sufrimientos, y me han dicho que se sintieron ayudados, aliviados y sanados.",
+   "gift": "F",
+   "block": 3
+  },
+  {
+   "n": 57,
+   "text": "Puedo saber con bastante seguridad cuándo una persona está afligida por un espíritu maligno.",
+   "gift": "G",
+   "block": 3
+  },
+  {
+   "n": 58,
+   "text": "Cuando me siento movido(a) a dar para la obra de Dios, normalmente encuentro el dinero que necesito para hacerlo.",
+   "gift": "H",
+   "block": 3
+  },
+  {
+   "n": 59,
+   "text": "He disfrutado hacer tareas rutinarias que llevaron a un ministerio más efectivo de otros.",
+   "gift": "I",
+   "block": 3
+  },
+  {
+   "n": 60,
+   "text": "Disfruto visitar hospitales y/o casas de reposo, y siento que lo hago bien.",
+   "gift": "J",
+   "block": 3
+  },
+  {
+   "n": 61,
+   "text": "Personas de otra raza o cultura se han sentido atraídas hacia mí y nos hemos relacionado bien.",
+   "gift": "K",
+   "block": 3
+  },
+  {
+   "n": 62,
+   "text": "Los no cristianos han dicho que se sienten cómodos a mi alrededor y que tengo un efecto positivo en ellos hacia desarrollar fe en Cristo.",
+   "gift": "L",
+   "block": 3
+  },
+  {
+   "n": 63,
+   "text": "Cuando las personas vienen a nuestra casa, dicen que se \"sienten como en casa\".",
+   "gift": "M",
+   "block": 3
+  },
+  {
+   "n": 64,
+   "text": "Otras personas me han dicho que tuve fe para lograr lo que a ellos les parecía imposible.",
+   "gift": "N",
+   "block": 3
+  },
+  {
+   "n": 65,
+   "text": "Cuando establezco metas, otros parecen aceptarlas fácilmente.",
+   "gift": "O",
+   "block": 3
+  },
+  {
+   "n": 66,
+   "text": "He podido hacer planes eficaces y eficientes para lograr las metas de un grupo.",
+   "gift": "P",
+   "block": 3
+  },
+  {
+   "n": 67,
+   "text": "Dios parece hacer regularmente cosas imposibles a lo largo de mi vida.",
+   "gift": "Q",
+   "block": 3
+  },
+  {
+   "n": 68,
+   "text": "Otros me han dicho que Dios los sanó de un problema emocional cuando les ministré.",
+   "gift": "R",
+   "block": 3
+  },
+  {
+   "n": 69,
+   "text": "Puedo hablar con Dios en un idioma que nunca aprendí.",
+   "gift": "S",
+   "block": 3
+  },
+  {
+   "n": 70,
+   "text": "He orado para poder interpretar si alguien comienza a hablar en lenguas.",
+   "gift": "T",
+   "block": 3
+  },
+  {
+   "n": 71,
+   "text": "No soy pobre, pero puedo identificarme con las personas pobres.",
+   "gift": "U",
+   "block": 3
+  },
+  {
+   "n": 72,
+   "text": "Me alegra tener más tiempo para servir al Señor porque soy soltero(a).",
+   "gift": "V",
+   "block": 3,
+   "showIfMaritalStatus": [
+    "soltero",
+    "viudo",
+    "separado"
+   ]
+  },
+  {
+   "n": 73,
+   "text": "La oración intercesora es una de mis formas favoritas de pasar el tiempo.",
+   "gift": "W",
+   "block": 3
+  },
+  {
+   "n": 74,
+   "text": "Otros me llaman cuando sospechan que alguien está endemoniado.",
+   "gift": "X",
+   "block": 3
+  },
+  {
+   "n": 75,
+   "text": "Otros han comentado que parezco disfrutar las tareas rutinarias y que las hago bien.",
+   "gift": "Y",
+   "block": 3
+  },
+  {
+   "n": 76,
+   "text": "A veces tengo un fuerte sentido de lo que Dios quiere decirle a las personas en respuesta a una situación particular.",
+   "gift": "A",
+   "block": 4
+  },
+  {
+   "n": 77,
+   "text": "He ayudado a otros creyentes guiándolos a pasajes bíblicos relevantes y orando con ellos.",
+   "gift": "B",
+   "block": 4
+  },
+  {
+   "n": 78,
+   "text": "Siento que puedo comunicar verdades bíblicas a otros y ver los cambios resultantes en su conocimiento, actitudes, valores o conducta.",
+   "gift": "C",
+   "block": 4
+  },
+  {
+   "n": 79,
+   "text": "Algunas personas indican que he percibido y aplicado la verdad bíblica a las necesidades específicas de otros creyentes.",
+   "gift": "D",
+   "block": 4
+  },
+  {
+   "n": 80,
+   "text": "Estudio y leo bastante para aprender nuevas verdades bíblicas.",
+   "gift": "E",
+   "block": 4
+  },
+  {
+   "n": 81,
+   "text": "Tengo el deseo de aconsejar eficazmente a los perplejos, los culpables o los adictos.",
+   "gift": "F",
+   "block": 4
+  },
+  {
+   "n": 82,
+   "text": "Puedo reconocer si la enseñanza de una persona proviene de Dios, de Satanás o de origen humano.",
+   "gift": "G",
+   "block": 4
+  },
+  {
+   "n": 83,
+   "text": "Estoy tan seguro(a) de que Dios suplirá mis necesidades que le doy sacrificialmente y de forma constante.",
+   "gift": "H",
+   "block": 4
+  },
+  {
+   "n": 84,
+   "text": "Cuando hago cosas tras bambalinas y otros son ayudados, me alegro.",
+   "gift": "I",
+   "block": 4
+  },
+  {
+   "n": 85,
+   "text": "La gente me llama para ayudar a los menos afortunados.",
+   "gift": "J",
+   "block": 4
+  },
+  {
+   "n": 86,
+   "text": "Estaría dispuesto(a) a dejar un entorno cómodo si eso me permitiera compartir a Cristo con más personas.",
+   "gift": "K",
+   "block": 4
+  },
+  {
+   "n": 87,
+   "text": "Me frustra cuando otros no parecen compartir su fe con los incrédulos tanto como yo.",
+   "gift": "L",
+   "block": 4
+  },
+  {
+   "n": 88,
+   "text": "Otros me han dicho que soy una persona muy acogedora.",
+   "gift": "M",
+   "block": 4
+  },
+  {
+   "n": 89,
+   "text": "Ha habido momentos en que sentí con claridad la voluntad específica de Dios para el crecimiento futuro de Su obra, aun cuando otros no estaban tan seguros.",
+   "gift": "N",
+   "block": 4
+  },
+  {
+   "n": 90,
+   "text": "Cuando me uno a un grupo, los demás parecen hacerse a un lado y esperar que yo tome el liderazgo.",
+   "gift": "O",
+   "block": 4
+  },
+  {
+   "n": 91,
+   "text": "Puedo dar instrucciones a otros para que cumplan una tarea sin necesidad de persuadirlos.",
+   "gift": "P",
+   "block": 4
+  },
+  {
+   "n": 92,
+   "text": "La gente me ha dicho que fui el instrumento de Dios que trajo cambios sobrenaturales en vidas o circunstancias.",
+   "gift": "Q",
+   "block": 4
+  },
+  {
+   "n": 93,
+   "text": "He orado por otros y ha ocurrido sanidad física.",
+   "gift": "R",
+   "block": 4
+  },
+  {
+   "n": 94,
+   "text": "Cuando doy un mensaje público en lenguas, espero que sea interpretado.",
+   "gift": "S",
+   "block": 4
+  },
+  {
+   "n": 95,
+   "text": "He interpretado lenguas de una manera que pareció bendecir a otros.",
+   "gift": "T",
+   "block": 4
+  },
+  {
+   "n": 96,
+   "text": "Otros me dicen que sacrifico mucho materialmente para ministrar.",
+   "gift": "U",
+   "block": 4
+  },
+  {
+   "n": 97,
+   "text": "Soy soltero(a) y tengo poca dificultad para controlar mis deseos sexuales.",
+   "gift": "V",
+   "block": 4,
+   "showIfMaritalStatus": [
+    "soltero",
+    "viudo",
+    "separado"
+   ]
+  },
+  {
+   "n": 98,
+   "text": "Otros me han dicho que mis oraciones por ellos han sido respondidas de maneras tangibles.",
+   "gift": "W",
+   "block": 4
+  },
+  {
+   "n": 99,
+   "text": "Otras personas han sido liberadas instantáneamente de opresión demoníaca cuando he orado.",
+   "gift": "X",
+   "block": 4
+  },
+  {
+   "n": 100,
+   "text": "Prefiero estar activo(a) y hacer algo en lugar de solo estar sentado(a) conversando, leyendo o escuchando a un orador.",
+   "gift": "Y",
+   "block": 4
+  },
+  {
+   "n": 101,
+   "text": "A veces siento que sé exactamente lo que Dios quiere que haga en el ministerio en un momento específico.",
+   "gift": "A",
+   "block": 5
+  },
+  {
+   "n": 102,
+   "text": "La gente me ha dicho que los ayudé a ser restaurados a la comunidad cristiana.",
+   "gift": "B",
+   "block": 5
+  },
+  {
+   "n": 103,
+   "text": "Estudiar la Biblia y compartir mis ideas con otros me resulta muy satisfactorio.",
+   "gift": "C",
+   "block": 5
+  },
+  {
+   "n": 104,
+   "text": "He sentido una presencia inusual de Dios y confianza personal cuando se necesitaba tomar decisiones importantes.",
+   "gift": "D",
+   "block": 5
+  },
+  {
+   "n": 105,
+   "text": "Tengo la capacidad de descubrir nuevas verdades por mí mismo(a) leyendo u observando situaciones de primera mano.",
+   "gift": "E",
+   "block": 5
+  },
+  {
+   "n": 106,
+   "text": "He animado a otros a buscar una solución bíblica a su aflicción o sufrimiento.",
+   "gift": "F",
+   "block": 5
+  },
+  {
+   "n": 107,
+   "text": "Puedo saber si una persona que habla en lenguas es genuina.",
+   "gift": "G",
+   "block": 5
+  },
+  {
+   "n": 108,
+   "text": "He estado dispuesto(a) a mantener un nivel de vida más bajo para beneficiar la obra de Dios.",
+   "gift": "H",
+   "block": 5
+  },
+  {
+   "n": 109,
+   "text": "Cuando sirvo al Señor, realmente no me importa quién recibe el crédito.",
+   "gift": "I",
+   "block": 5
+  },
+  {
+   "n": 110,
+   "text": "Disfrutaría pasar tiempo con una persona solitaria y aislada, o con alguien en prisión.",
+   "gift": "J",
+   "block": 5
+  },
+  {
+   "n": 111,
+   "text": "Más que la mayoría, he tenido un fuerte deseo de ver a personas de otros países ganadas para el Señor.",
+   "gift": "K",
+   "block": 5
+  },
+  {
+   "n": 112,
+   "text": "Me siento atraído(a) hacia los no creyentes por mi deseo de ganarlos para Cristo.",
+   "gift": "L",
+   "block": 5
+  },
+  {
+   "n": 113,
+   "text": "He deseado poner mi hogar a disposición de quienes están en el servicio del Señor cuando lo necesiten.",
+   "gift": "M",
+   "block": 5
+  },
+  {
+   "n": 114,
+   "text": "Otros me han dicho que soy una persona de visión inusual, y estoy de acuerdo.",
+   "gift": "N",
+   "block": 5
+  },
+  {
+   "n": 115,
+   "text": "Cuando estoy a cargo, las cosas parecen funcionar sin problemas.",
+   "gift": "O",
+   "block": 5
+  },
+  {
+   "n": 116,
+   "text": "He disfrutado asumir la responsabilidad del éxito de una tarea particular dentro de mi iglesia.",
+   "gift": "P",
+   "block": 5
+  },
+  {
+   "n": 117,
+   "text": "En el nombre del Señor, he podido devolver la vista a ciegos.",
+   "gift": "Q",
+   "block": 5
+  },
+  {
+   "n": 118,
+   "text": "Cuando oro por los enfermos, ellos o yo sentimos hormigueo o calor.",
+   "gift": "R",
+   "block": 5
+  },
+  {
+   "n": 119,
+   "text": "Cuando hablo en lenguas, creo que edifica al cuerpo del Señor.",
+   "gift": "S",
+   "block": 5
+  },
+  {
+   "n": 120,
+   "text": "He interpretado lenguas de tal manera que el mensaje pareció venir directamente de Dios.",
+   "gift": "T",
+   "block": 5
+  },
+  {
+   "n": 121,
+   "text": "Las personas pobres me aceptan porque elijo vivir a su nivel.",
+   "gift": "U",
+   "block": 5
+  },
+  {
+   "n": 122,
+   "text": "Me identifico fácilmente con el deseo de Pablo de que otros fueran solteros como él.",
+   "gift": "V",
+   "block": 5,
+   "showIfMaritalStatus": [
+    "soltero",
+    "viudo",
+    "separado"
+   ]
+  },
+  {
+   "n": 123,
+   "text": "Cuando oro, Dios con frecuencia me habla y reconozco Su voz.",
+   "gift": "W",
+   "block": 5
+  },
+  {
+   "n": 124,
+   "text": "Echo fuera demonios en el nombre de Jesús.",
+   "gift": "X",
+   "block": 5
+  },
+  {
+   "n": 125,
+   "text": "Respondo con alegría cuando me piden hacer un trabajo, aunque parezca insignificante.",
+   "gift": "Y",
+   "block": 5
+  }
+ ],
+ "ministries": [
+  {
+   "name": "Ujieres",
+   "gifts": [
+    "M",
+    "Y",
+    "I"
+   ]
+  },
+  {
+   "name": "Equipo de bienvenida",
+   "gifts": [
+    "M",
+    "Y",
+    "I"
+   ]
+  },
+  {
+   "name": "Música (tocar, cantar, sonido, proyector, diapositivas, adoración)",
+   "gifts": [
+    "Y",
+    "I",
+    "F"
+   ]
+  },
+  {
+   "name": "Lector laico",
+   "gifts": [
+    "C",
+    "F"
+   ]
+  },
+  {
+   "name": "Escuela dominical",
+   "gifts": [
+    "C",
+    "B",
+    "F"
+   ]
+  },
+  {
+   "name": "Grupo de jóvenes",
+   "gifts": [
+    "C",
+    "B",
+    "F"
+   ]
+  },
+  {
+   "name": "Grupo de adolescentes",
+   "gifts": [
+    "C",
+    "B",
+    "F"
+   ]
+  },
+  {
+   "name": "Sala cuna",
+   "gifts": [
+    "Y",
+    "I",
+    "J"
+   ]
+  },
+  {
+   "name": "Cuidar a los niños",
+   "gifts": [
+    "Y",
+    "I",
+    "J"
+   ]
+  },
+  {
+   "name": "Grupo del altar",
+   "gifts": [
+    "Y",
+    "I"
+   ]
+  },
+  {
+   "name": "Flores",
+   "gifts": [
+    "Y",
+    "I"
+   ]
+  },
+  {
+   "name": "Poner las mesas",
+   "gifts": [
+    "Y",
+    "I"
+   ]
+  },
+  {
+   "name": "Equipo de limpieza",
+   "gifts": [
+    "Y",
+    "I"
+   ]
+  },
+  {
+   "name": "Equipo de refrigerio",
+   "gifts": [
+    "M",
+    "Y"
+   ]
+  },
+  {
+   "name": "Cocineros/as",
+   "gifts": [
+    "M",
+    "Y"
+   ]
+  },
+  {
+   "name": "Contar la ofrenda",
+   "gifts": [
+    "P",
+    "H",
+    "Y"
+   ]
+  },
+  {
+   "name": "Líderes de mesa para Alfa",
+   "gifts": [
+    "L",
+    "M",
+    "B"
+   ]
+  },
+  {
+   "name": "Visitas a los visitantes",
+   "gifts": [
+    "L",
+    "M",
+    "F"
+   ]
+  },
+  {
+   "name": "Visitas a hospitales y personas con discapacidad",
+   "gifts": [
+    "J",
+    "F",
+    "R",
+    "W"
+   ]
+  },
+  {
+   "name": "Equipos de oración para liberación espiritual",
+   "gifts": [
+    "W",
+    "G",
+    "X",
+    "N"
+   ]
+  },
+  {
+   "name": "Líderes de grupos de estudio bíblico",
+   "gifts": [
+    "C",
+    "B",
+    "E",
+    "D"
+   ]
+  }
+ ],
+ "ministryRule": "Sugerir los 3 ministerios con más coincidencias entre sus dones y los 6 primeros dones de la persona; los 3 dominantes cuentan doble. Mapa a validar con el pastor."
+}
