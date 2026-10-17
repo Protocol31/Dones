@@ -100,6 +100,7 @@ class CoreTest {
         assertEquals(content.blocks.map { it.block }, lesson.pages.mapNotNull { it.houtsBlock })
         lesson.pages.forEachIndexed { i, page ->
             assertEquals(page.blanks.size, page.text.split(Blanks.MARK).size - 1, "página $i: ${page.title}")
+            assertTrue(page.pick in 0..page.choices.size, "página $i: ${page.title}")
         }
         assertTrue(pageOf(1) > 10) // primero la enseñanza, después las preguntas
     }

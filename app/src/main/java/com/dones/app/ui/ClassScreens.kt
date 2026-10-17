@@ -26,6 +26,9 @@ fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
     val values = remember(key) {
         mutableStateListOf(*Array(fields) { i -> vm.participant.notes["$key.$i"].orEmpty() })
     }
+    val selected = remember(key) {
+        mutableStateListOf(*vm.participant.notes["$key.0"].orEmpty().lines().filter { it in page.choices }.toTypedArray())
+    }
     // Una página de espacios ya revisada se muestra con sus respuestas al volver a ella.
     var checked by remember(key) { mutableStateOf(page.blanks.isNotEmpty() && "$key.0" in vm.participant.notes) }
     val mustCheck = page.blanks.isNotEmpty() && !checked
@@ -42,6 +45,7 @@ fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
             } else {
                 PrimaryButton("Siguiente ›", onClick = {
                     if (page.write) vm.saveNotes(key, values.toList())
+                    if (page.choices.isNotEmpty()) vm.saveNotes(key, listOf(selected.joinToString("\n")))
                     vm.nextPage()
                 })
             }
@@ -71,6 +75,17 @@ fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
             }
         }
         if (mustCheck) Hint("Escribe lo que crees y toca Revisar. Si no sabes, déjalo en blanco.")
+
+        page.choices.forEach { choice ->
+            ChoiceButton(choice, selected = choice in selected, onClick = {
+                when {
+                    choice in selected -> selected.remove(choice)
+                    page.pick == 1 -> { selected.clear(); selected.add(choice) }
+                    page.pick == 0 || selected.size < page.pick -> selected.add(choice)
+                }
+            })
+        }
+        if (page.pick > 1 && selected.size == page.pick) Hint("Ya elegiste ${page.pick}. Toca uno para quitarlo.")
 
         if (page.write) {
             OutlinedTextField(

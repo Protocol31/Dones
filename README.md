@@ -12,7 +12,7 @@ Flujo del demo:
 
 1. **Escribe el código** que ves en la pantalla (o léelo con la cámara). Usa `000000`.
 2. Conectado → para qué pedimos tus datos → **nombre, edad, estado civil, WhatsApp** (uno por pantalla) → revisar → **consentimiento**.
-3. **La enseñanza**, una idea por página (secciones I a IV del manual): texto, versículos, **completar espacios** (toca *Revisar* y ve la respuesta) y preguntas abiertas. Botones *Siguiente ›* y *‹ Anterior*.
+3. **La enseñanza**, una idea por página (secciones I a V del manual: bienvenida, la Biblia, preparación personal, cómo me formó Dios y el CORTE): texto, versículos, **completar espacios** (toca *Revisar* y ve la respuesta), preguntas abiertas y opciones para marcar (latidos del corazón, rasgos, talentos, áreas de ministerio). Botones *Siguiente ›* y *‹ Anterior*.
 4. Al llegar a su lugar en la enseñanza aparece cada **bloque de 25 afirmaciones**, una por pantalla (Mucho / Algo / Poco / Nada). Si la persona está casada, no ve los 5 ítems de celibato (120 en total).
 5. Después del último bloque: **Resultados** (top 3 de dones, curva completa, detalle de cada don, ministerios sugeridos) y el **certificado de participación**.
 6. **Mis documentos**: PDF "Mis dones" y PDF "Certificado", guardados en el teléfono, con el botón **Enviarme por WhatsApp**.
@@ -57,7 +57,8 @@ Para probar el lector de QR, genera un QR con el texto `000000` (cualquier gener
 ## Lo que falta (siguientes fases del plan)
 
 - Clase en vivo real: consola web del maestro + Firebase (reemplaza al maestro simulado).
-- Enseñanza de las secciones V en adelante (Corazón, Obsequios, Rasgos, Talentos, Experiencias) entre los bloques 3, 4 y 5.
+- Confirmar con el maestro las respuestas de "10 verdades de los dones" (el manual del alumno las trae en blanco).
+- Llevar lo que la persona marca y escribe en el CORTE a la hoja "Mi Perfil Personal" del PDF.
 - Envío automático por WhatsApp con la API oficial de WhatsApp Business.
 - Guardar copia de los PDFs en la carpeta Descargas del teléfono.
 - Diseño gráfico definitivo (por ahora es solo funcional, con letra grande).

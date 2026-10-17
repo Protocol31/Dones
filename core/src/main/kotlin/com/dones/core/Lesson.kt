@@ -23,6 +23,10 @@ data class LessonPage(
     val blanks: List<String> = emptyList(),
     /** Pregunta abierta: la persona escribe lo que quiera (opcional). */
     val write: Boolean = false,
+    /** Opciones para marcar (latidos del corazón, rasgos, talentos…). */
+    val choices: List<String> = emptyList(),
+    /** Cuántas opciones puede marcar: 1 = solo una, 0 = sin límite. */
+    val pick: Int = 0,
     /** Si no es nulo, esta página son las afirmaciones de ese bloque del cuestionario. */
     val houtsBlock: Int? = null,
 )
