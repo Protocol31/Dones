@@ -3,7 +3,6 @@ package com.dones.app.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -156,19 +155,5 @@ fun CenteredMessage(title: String, body: String) {
     ) {
         Text(title, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
         Body(body, center = true)
-    }
-}
-
-/** Barra del "maestro simulado": solo existe en el demo, para avanzar la clase sin la PC del maestro. */
-@Composable
-fun SimulatedTeacherBar(stepLabel: String, onPrevious: () -> Unit, onNext: () -> Unit, canPrevious: Boolean, canNext: Boolean) {
-    Surface(color = MaterialTheme.colorScheme.tertiaryContainer, modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-            Text("DEMO · Maestro simulado: $stepLabel", style = MaterialTheme.typography.labelMedium)
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(onClick = onPrevious, enabled = canPrevious, modifier = Modifier.weight(1f)) { Text("◄ Anterior") }
-                Button(onClick = onNext, enabled = canNext, modifier = Modifier.weight(1f)) { Text("Siguiente ►") }
-            }
-        }
     }
 }

@@ -2,6 +2,7 @@ package com.dones.app.data
 
 import android.content.Context
 import com.dones.core.HoutsContent
+import com.dones.core.Lesson
 import com.dones.core.ParticipantState
 import java.io.File
 
@@ -12,6 +13,9 @@ class Storage(private val context: Context) {
 
     fun loadContent(): HoutsContent =
         context.assets.open("houts-v1.json").bufferedReader().use { HoutsContent.parse(it.readText()) }
+
+    fun loadLesson(): Lesson =
+        context.assets.open("leccion-v1.json").bufferedReader().use { Lesson.parse(it.readText()) }
 
     fun loadState(): ParticipantState =
         runCatching { ParticipantState.fromJson(stateFile.readText()) }.getOrElse { ParticipantState() }

@@ -11,11 +11,11 @@ import com.dones.app.data.Storage
 import com.dones.app.pdf.PdfDocuments
 import com.dones.core.CertificateCode
 import com.dones.core.ClassState
-import com.dones.core.ClassStep
 import com.dones.core.HoutsContent
 import com.dones.core.HoutsResult
 import com.dones.core.HoutsScorer
 import com.dones.core.JoinResult
+import com.dones.core.Lesson
 import com.dones.core.ParticipantFlow
 import com.dones.core.ParticipantState
 import com.dones.core.ParticipantView
@@ -41,15 +41,12 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
 
     private val storage = Storage(app)
     val content: HoutsContent = storage.loadContent()
+    val lesson: Lesson = storage.loadLesson()
 
     var participant by mutableStateOf(storage.loadState())
         private set
 
-    private val session = SimulatedClassSession(
-        blocks = content.blocks.map { it.block },
-        initialStepIndex = if (participant.classCode != null) participant.simulatedStepIndex else 0,
-        onStepChanged = { index -> update { it.copy(simulatedStepIndex = index) } },
-    )
+    private val session = SimulatedClassSession()
 
     var classState by mutableStateOf<ClassState?>(null)
         private set
@@ -139,7 +136,24 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
     // ---------- Clase ----------
 
     val view: ParticipantView?
-        get() = classState?.let { ParticipantFlow.view(content, it.current, participant, reviewItem) }
+        get() = classState?.let { ParticipantFlow.view(content, lesson, participant, reviewItem) }
+
+    /** Cada persona avanza sola por la enseñanza. */
+    fun nextPage() {
+        update { it.copy(page = (it.page + 1).coerceAtMost(lesson.pages.size)) }
+        reviewItem = null
+        questionShownAt = SystemClock.elapsedRealtime()
+    }
+
+    fun previousPage() {
+        update { it.copy(page = (it.page - 1).coerceAtLeast(0)) }
+        reviewItem = null
+    }
+
+    /** Guarda lo escrito en una página: espacios para completar o pregunta abierta. */
+    fun saveNotes(page: Int, values: List<String>) {
+        update { p -> p.copy(notes = p.notes + values.mapIndexed { i, v -> "$page.$i" to v.trim() }) }
+    }
 
     fun answer(item: Int, value: Int) {
         val now = SystemClock.elapsedRealtime()
@@ -151,14 +165,9 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
 
     fun goBackTo(item: Int) { reviewItem = item }
 
-    fun backFromBlockDone() {
-        val open = (classState?.current as? ClassStep.HoutsBlock)?.block ?: content.blocks.size
-        reviewItem = ParticipantFlow.lastAnswered(content, participant, open)
+    fun backFromBlockDone(block: Int) {
+        reviewItem = ParticipantFlow.lastInBlock(content, participant, block)
     }
-
-    // Maestro simulado (solo demo)
-    fun teacherNext() { session.teacherNext(); reviewItem = null }
-    fun teacherPrevious() { session.teacherPrevious(); reviewItem = null }
 
     /** Borra todo y vuelve a la pantalla del código (para repetir la prueba). */
     fun resetDemo() {
@@ -179,8 +188,9 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
     val quality: QualityReport
         get() = QualityChecker.check(participant.answerLog)
 
+    /** Al terminar la última página el curso queda cerrado para esa persona y recibe su certificado. */
     val courseClosed: Boolean
-        get() = classState?.current == ClassStep.Closed
+        get() = view == ParticipantView.Results
 
     fun open(o: Overlay) { overlay = o }
     fun closeOverlay() {

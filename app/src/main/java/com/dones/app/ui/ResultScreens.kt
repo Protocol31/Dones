@@ -40,6 +40,8 @@ fun ResultsScreen(vm: DonesViewModel) {
             } else {
                 SecondaryButton("Mis documentos", onClick = { vm.open(Overlay.Documents) })
             }
+            BackLink("‹ Volver al curso", onClick = vm::previousPage)
+            BackLink("Reiniciar demo (borra todo)", onClick = vm::resetDemo)
         },
     ) {
         Title("${firstName(vm.participant.name)}, estos son tus dones principales")

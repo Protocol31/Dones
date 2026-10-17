@@ -17,8 +17,10 @@ data class ParticipantState(
     val answers: Map<Int, Int> = emptyMap(),
     /** Orden en que se respondió y cuánto tardó cada respuesta (para los indicadores de calidad). */
     val answerLog: List<AnswerEvent> = emptyList(),
-    /** Paso del maestro simulado, para retomar si se cierra la app. */
-    val simulatedStepIndex: Int = 0,
+    /** Página de la enseñanza en la que va (índice en Lesson.pages); al pasar la última, ve su resultado. */
+    val page: Int = 0,
+    /** Lo que escribió en la enseñanza: "página.espacio" → texto. */
+    val notes: Map<String, String> = emptyMap(),
     val certificateCode: String? = null,
 ) {
     val onboardingDone: Boolean get() = consentAtMillis != null
@@ -40,9 +42,16 @@ data class ParticipantState(
 @Serializable
 data class AnswerEvent(val item: Int, val value: Int, val elapsedMillis: Long)
 
-/** Qué debe ver el participante, según el paso del maestro y lo que ya respondió. */
+/** Qué debe ver el participante, según la página en la que va y lo que ya respondió. */
 sealed interface ParticipantView {
-    data object Waiting : ParticipantView
+    /** Página de la enseñanza: texto, completar espacios o pregunta abierta. */
+    data class LessonStep(
+        val page: LessonPage,
+        val index: Int,
+        /** Posición dentro de su sección, desde 1. */
+        val positionInSection: Int,
+        val sectionSize: Int,
+    ) : ParticipantView
 
     data class Question(
         val item: Item,
@@ -52,72 +61,55 @@ sealed interface ParticipantView {
         val block: Int,
         val totalBlocks: Int,
         val currentAnswer: Int?,
-        /** Ítem anterior al que puede volver con "‹ Anterior", si existe. */
+        /** Ítem anterior del bloque al que puede volver con "‹ Anterior"; si es nulo, vuelve a la página anterior. */
         val previousItem: Int?,
     ) : ParticipantView
 
     data class BlockDone(val block: Int, val answered: Int, val total: Int) : ParticipantView
-    data class Results(val courseClosed: Boolean) : ParticipantView
+    data object Results : ParticipantView
 }
 
 object ParticipantFlow {
 
     /**
-     * Calcula la pantalla de la clase.
-     * - Nunca muestra preguntas de un bloque que el maestro aún no abrió.
-     * - Si llegó tarde o se saltó preguntas, primero le muestra las pendientes de bloques ya abiertos.
+     * Calcula la pantalla según la página en la que va la persona.
+     * - Las afirmaciones de un bloque solo aparecen al llegar a su página en la enseñanza.
      * - [reviewItem] permite volver a una pregunta ya respondida ("‹ Anterior").
      */
     fun view(
         content: HoutsContent,
-        step: ClassStep,
+        lesson: Lesson,
         participant: ParticipantState,
         reviewItem: Int? = null,
     ): ParticipantView {
-        val totalBlocks = content.blocks.size
-        val openBlocks = when (step) {
-            ClassStep.Waiting -> 0
-            is ClassStep.HoutsBlock -> step.block
-            ClassStep.Results, ClassStep.Closed -> totalBlocks
+        val index = participant.page
+        val page = lesson.pages.getOrNull(index) ?: return ParticipantView.Results
+        val block = page.houtsBlock ?: run {
+            val section = lesson.pages.indices.filter { lesson.pages[it].section == page.section && lesson.pages[it].houtsBlock == null }
+            return ParticipantView.LessonStep(page, index, section.indexOf(index) + 1, section.size)
         }
-        if (openBlocks == 0) return ParticipantView.Waiting
 
-        val visible = HoutsScorer.visibleItems(content, participant.maritalStatus)
-            .filter { it.block <= openBlocks }
-
-        val target = reviewItem?.let { r -> visible.firstOrNull { it.n == r } }
-            ?: visible.firstOrNull { it.n !in participant.answers }
+        val all = HoutsScorer.visibleItems(content, participant.maritalStatus)
+        val inBlock = all.filter { it.block == block }
+        val target = reviewItem?.let { r -> inBlock.firstOrNull { it.n == r } }
+            ?: inBlock.firstOrNull { it.n !in participant.answers }
 
         if (target != null) {
-            val inBlock = visible.filter { it.block == target.block }
             val position = inBlock.indexOfFirst { it.n == target.n }
-            val previous = visible.getOrNull(visible.indexOfFirst { it.n == target.n } - 1)?.n
             return ParticipantView.Question(
                 item = target,
                 positionInBlock = position + 1,
                 blockSize = inBlock.size,
-                block = target.block,
-                totalBlocks = totalBlocks,
+                block = block,
+                totalBlocks = content.blocks.size,
                 currentAnswer = participant.answers[target.n],
-                previousItem = previous,
+                previousItem = inBlock.getOrNull(position - 1)?.n,
             )
         }
-
-        return when (step) {
-            is ClassStep.HoutsBlock -> ParticipantView.BlockDone(
-                block = step.block,
-                answered = visible.size,
-                total = HoutsScorer.visibleItems(content, participant.maritalStatus).size,
-            )
-            ClassStep.Results -> ParticipantView.Results(courseClosed = false)
-            ClassStep.Closed -> ParticipantView.Results(courseClosed = true)
-            ClassStep.Waiting -> ParticipantView.Waiting
-        }
+        return ParticipantView.BlockDone(block, answered = all.count { it.n in participant.answers }, total = all.size)
     }
 
-    /** Última pregunta respondida, para que "‹ Anterior" funcione desde "Bloque terminado". */
-    fun lastAnswered(content: HoutsContent, participant: ParticipantState, openBlocks: Int): Int? =
-        HoutsScorer.visibleItems(content, participant.maritalStatus)
-            .filter { it.block <= openBlocks && it.n in participant.answers }
-            .lastOrNull()?.n
+    /** Última pregunta del bloque, para que "‹ Anterior" funcione desde "Bloque terminado". */
+    fun lastInBlock(content: HoutsContent, participant: ParticipantState, block: Int): Int? =
+        HoutsScorer.visibleItems(content, participant.maritalStatus).lastOrNull { it.block == block }?.n
 }

@@ -10,10 +10,12 @@ import kotlin.test.assertTrue
 
 class CoreTest {
 
-    private val content: HoutsContent = HoutsContent.parse(
-        listOf("../app/src/main/assets/houts-v1.json", "app/src/main/assets/houts-v1.json")
-            .map(::File).first { it.exists() }.readText()
-    )
+    private fun asset(name: String): String =
+        listOf("../app/src/main/assets/$name", "app/src/main/assets/$name").map(::File).first { it.exists() }.readText()
+
+    private val content: HoutsContent = HoutsContent.parse(asset("houts-v1.json"))
+    private val lesson: Lesson = Lesson.parse(asset("leccion-v1.json"))
+    private fun pageOf(block: Int) = lesson.pages.indexOfFirst { it.houtsBlock == block }
 
     @Test
     fun `el contenido tiene 125 items, 25 dones y 5 bloques con un item de cada don`() {
@@ -86,62 +88,74 @@ class CoreTest {
     }
 
     @Test
-    fun `la clase simulada solo acepta 000000 y el maestro avanza`() {
-        var saved = -1
-        val session = SimulatedClassSession(content.blocks.map { it.block }) { saved = it }
+    fun `la clase simulada solo acepta 000000`() {
+        val session = SimulatedClassSession()
         assertIs<JoinResult.ClassNotFound>(session.join("123456"))
         assertIs<JoinResult.InvalidCode>(session.join("abc"))
         assertIs<JoinResult.Joined>(session.join("000000"))
-        assertEquals(ClassStep.Waiting, session.state.value!!.current)
-        session.teacherNext()
-        assertEquals(ClassStep.HoutsBlock(1), session.state.value!!.current)
-        assertEquals(1, saved)
-        repeat(10) { session.teacherNext() }
-        assertEquals(ClassStep.Closed, session.state.value!!.current)
     }
 
     @Test
-    fun `el participante no puede adelantarse al maestro`() {
-        var p = ParticipantState(maritalStatus = "casado", consentAtMillis = 1)
-        assertEquals(ParticipantView.Waiting, ParticipantFlow.view(content, ClassStep.Waiting, p))
+    fun `la leccion tiene cada bloque una vez, en orden, y un espacio por respuesta`() {
+        assertEquals(content.blocks.map { it.block }, lesson.pages.mapNotNull { it.houtsBlock })
+        lesson.pages.forEachIndexed { i, page ->
+            assertEquals(page.blanks.size, page.text.split(Blanks.MARK).size - 1, "página $i: ${page.title}")
+        }
+        assertTrue(pageOf(1) > 10) // primero la enseñanza, después las preguntas
+    }
 
-        val q = ParticipantFlow.view(content, ClassStep.HoutsBlock(1), p)
+    @Test
+    fun `completar espacios acepta sin tildes ni mayusculas`() {
+        assertTrue(Blanks.isCorrect("la institución|institución", "Institucion"))
+        assertTrue(Blanks.isCorrect("los que equipan|equipan", "los que EQUIPAN"))
+        assertTrue(Blanks.isCorrect("Señor", "senor"))
+        assertFalse(Blanks.isCorrect("servir", ""))
+        assertFalse(Blanks.isCorrect("físicas", "espirituales"))
+        assertEquals("físicas", Blanks.display("físicas|fisicas"))
+    }
+
+    @Test
+    fun `se empieza por la ensenanza y las preguntas aparecen al llegar a su bloque`() {
+        var p = ParticipantState(maritalStatus = "casado", consentAtMillis = 1)
+        val first = ParticipantFlow.view(content, lesson, p)
+        assertIs<ParticipantView.LessonStep>(first)
+        assertEquals(0, first.index)
+        assertEquals(1, first.positionInSection)
+
+        p = p.copy(page = pageOf(1))
+        val q = ParticipantFlow.view(content, lesson, p)
         assertIs<ParticipantView.Question>(q)
         assertEquals(1, q.item.n)
+        assertNull(q.previousItem) // vuelve a la página anterior
         assertEquals(24, q.blockSize) // sin el ítem 22 (celibato)
 
         content.blocks[0].items.forEach { p = p.answer(it, 2, 3000) }
-        val done = ParticipantFlow.view(content, ClassStep.HoutsBlock(1), p)
+        val done = ParticipantFlow.view(content, lesson, p)
         assertIs<ParticipantView.BlockDone>(done)
         assertEquals(24, done.answered)
         assertEquals(120, done.total)
+
+        assertIs<ParticipantView.LessonStep>(ParticipantFlow.view(content, lesson, p.copy(page = pageOf(1) + 1)))
     }
 
     @Test
-    fun `quien llega tarde responde primero lo pendiente y puede volver atras`() {
-        var p = ParticipantState(maritalStatus = "soltero", consentAtMillis = 1)
-        val q = ParticipantFlow.view(content, ClassStep.HoutsBlock(3), p)
-        assertIs<ParticipantView.Question>(q)
-        assertEquals(1, q.item.n)
-        assertNull(q.previousItem)
-
+    fun `dentro del bloque puede volver atras`() {
+        var p = ParticipantState(maritalStatus = "soltero", consentAtMillis = 1, page = pageOf(1))
         p = p.answer(1, 3, 2000)
-        val q2 = ParticipantFlow.view(content, ClassStep.HoutsBlock(3), p)
+        val q2 = ParticipantFlow.view(content, lesson, p)
         assertIs<ParticipantView.Question>(q2)
         assertEquals(2, q2.item.n)
         assertEquals(1, q2.previousItem)
 
-        val back = ParticipantFlow.view(content, ClassStep.HoutsBlock(3), p, reviewItem = 1)
+        val back = ParticipantFlow.view(content, lesson, p, reviewItem = 1)
         assertIs<ParticipantView.Question>(back)
         assertEquals(3, back.currentAnswer)
     }
 
     @Test
-    fun `resultados y cierre`() {
-        var p = ParticipantState(maritalStatus = "soltero", consentAtMillis = 1)
-        content.items.forEach { p = p.answer(it.n, 1, 3000) }
-        assertEquals(ParticipantView.Results(false), ParticipantFlow.view(content, ClassStep.Results, p))
-        assertEquals(ParticipantView.Results(true), ParticipantFlow.view(content, ClassStep.Closed, p))
+    fun `despues de la ultima pagina vienen los resultados`() {
+        val p = ParticipantState(maritalStatus = "soltero", consentAtMillis = 1, page = lesson.pages.size)
+        assertEquals(ParticipantView.Results, ParticipantFlow.view(content, lesson, p))
     }
 
     @Test
@@ -156,7 +170,8 @@ class CoreTest {
 
     @Test
     fun `el estado se guarda y se recupera`() {
-        val p = ParticipantState(name = "María", maritalStatus = "casado").answer(5, 2, 1000)
+        val p = ParticipantState(name = "María", maritalStatus = "casado", page = 3, notes = mapOf("1.0" to "equipan"))
+            .answer(5, 2, 1000)
         assertEquals(p, ParticipantState.fromJson(p.toJson()))
     }
 

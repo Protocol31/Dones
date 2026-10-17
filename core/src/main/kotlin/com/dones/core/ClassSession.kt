@@ -4,15 +4,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** Lo que el maestro está mostrando en este momento. */
-sealed interface ClassStep {
-    data object Waiting : ClassStep
-    data class HoutsBlock(val block: Int) : ClassStep
-    data object Results : ClassStep
-    /** El maestro cerró el curso: se emiten los certificados. */
-    data object Closed : ClassStep
-}
-
 data class ClassInfo(
     val code: String,
     val courseName: String,
@@ -20,15 +11,8 @@ data class ClassInfo(
     val teacherName: String,
 )
 
-data class ClassState(
-    val info: ClassInfo,
-    val steps: List<ClassStep>,
-    val stepIndex: Int,
-) {
-    val current: ClassStep get() = steps[stepIndex]
-    val isFirst: Boolean get() = stepIndex == 0
-    val isLast: Boolean get() = stepIndex == steps.lastIndex
-}
+/** Cada persona avanza sola por la enseñanza; la clase solo da los datos del curso. */
+data class ClassState(val info: ClassInfo)
 
 sealed interface JoinResult {
     data class Joined(val state: ClassState) : JoinResult
@@ -56,19 +40,8 @@ object JoinCode {
     }
 }
 
-/**
- * Clase simulada dentro del teléfono (código 000000). Sirve para probar el demo sin servidor:
- * un botón "Maestro simulado" avanza los pasos como lo haría el maestro desde su PC.
- */
-class SimulatedClassSession(
-    blocks: List<Int>,
-    initialStepIndex: Int = 0,
-    private val onStepChanged: (Int) -> Unit = {},
-) : ClassSession {
-
-    private val steps: List<ClassStep> =
-        listOf(ClassStep.Waiting) + blocks.map { ClassStep.HoutsBlock(it) } +
-            listOf(ClassStep.Results, ClassStep.Closed)
+/** Clase simulada dentro del teléfono (código 000000), para probar el demo sin servidor. */
+class SimulatedClassSession : ClassSession {
 
     private val info = ClassInfo(
         code = JoinCode.DEMO_CODE,
@@ -77,33 +50,18 @@ class SimulatedClassSession(
         teacherName = "Maestro de prueba",
     )
 
-    private val _state = MutableStateFlow<ClassState?>(
-        if (initialStepIndex > 0) ClassState(info, steps, initialStepIndex.coerceIn(0, steps.lastIndex)) else null
-    )
+    private val _state = MutableStateFlow<ClassState?>(null)
     override val state: StateFlow<ClassState?> = _state.asStateFlow()
 
     override fun join(rawCode: String): JoinResult {
         val code = JoinCode.parse(rawCode) ?: return JoinResult.InvalidCode
         if (code != JoinCode.DEMO_CODE) return JoinResult.ClassNotFound
-        val joined = _state.value ?: ClassState(info, steps, 0)
+        val joined = _state.value ?: ClassState(info)
         _state.value = joined
         return JoinResult.Joined(joined)
     }
 
-    fun teacherNext() = move(+1)
-    fun teacherPrevious() = move(-1)
-
     fun leave() {
         _state.value = null
-        onStepChanged(0)
-    }
-
-    private fun move(delta: Int) {
-        val s = _state.value ?: return
-        val next = (s.stepIndex + delta).coerceIn(0, s.steps.lastIndex)
-        if (next != s.stepIndex) {
-            _state.value = s.copy(stepIndex = next)
-            onStepChanged(next)
-        }
     }
 }

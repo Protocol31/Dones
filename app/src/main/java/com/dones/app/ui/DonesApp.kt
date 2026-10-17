@@ -3,17 +3,15 @@ package com.dones.app.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.dones.app.DonesViewModel
 import com.dones.app.Onboarding
 import com.dones.app.Overlay
 import com.dones.app.qr.QrScannerScreen
-import com.dones.core.ClassStep
 import com.dones.core.ParticipantView
 
-/** Decide qué pantalla mostrar. No hay menú: la clase (el maestro) marca el ritmo. */
+/** Decide qué pantalla mostrar. No hay menú: cada persona avanza página por página. */
 @Composable
 fun DonesApp(vm: DonesViewModel) {
     val onboarding = vm.onboarding
@@ -35,49 +33,23 @@ fun DonesApp(vm: DonesViewModel) {
     }
 
     Column(Modifier.fillMaxSize()) {
-        Column(Modifier.weight(1f)) {
-            val overlay = vm.overlay
-            if (overlay != null) {
-                BackHandler { vm.closeOverlay() }
-                when (overlay) {
-                    Overlay.Curve -> CurveScreen(vm)
-                    is Overlay.GiftDetail -> GiftDetailScreen(vm, overlay.code)
-                    Overlay.Ministries -> MinistriesScreen(vm)
-                    Overlay.Documents -> DocumentsScreen(vm)
-                }
-            } else {
-                when (val v = vm.view) {
-                    null, ParticipantView.Waiting -> WaitingScreen()
-                    is ParticipantView.Question -> QuestionScreen(vm, v)
-                    is ParticipantView.BlockDone -> BlockDoneScreen(vm, v)
-                    is ParticipantView.Results -> ResultsScreen(vm)
-                }
+        val overlay = vm.overlay
+        if (overlay != null) {
+            BackHandler { vm.closeOverlay() }
+            when (overlay) {
+                Overlay.Curve -> CurveScreen(vm)
+                is Overlay.GiftDetail -> GiftDetailScreen(vm, overlay.code)
+                Overlay.Ministries -> MinistriesScreen(vm)
+                Overlay.Documents -> DocumentsScreen(vm)
             }
-        }
-        DemoTeacherBar(vm)
-    }
-}
-
-/** Solo en el demo: reemplaza a la PC del maestro mientras no exista la consola web. */
-@Composable
-private fun DemoTeacherBar(vm: DonesViewModel) {
-    val state = vm.classState ?: return
-    val label = when (val s = state.current) {
-        ClassStep.Waiting -> "esperando inicio"
-        is ClassStep.HoutsBlock -> "bloque ${s.block} abierto"
-        ClassStep.Results -> "resultados abiertos"
-        ClassStep.Closed -> "curso cerrado"
-    }
-    Column(Modifier.navigationBarsPadding()) {
-        SimulatedTeacherBar(
-            stepLabel = "paso ${state.stepIndex + 1} de ${state.steps.size}, $label",
-            onPrevious = vm::teacherPrevious,
-            onNext = vm::teacherNext,
-            canPrevious = !state.isFirst,
-            canNext = !state.isLast,
-        )
-        if (state.isLast) {
-            BackLink("Reiniciar demo (borra todo)", onClick = vm::resetDemo)
+        } else {
+            when (val v = vm.view) {
+                null -> JoinCodeScreen(vm)
+                is ParticipantView.LessonStep -> LessonScreen(vm, v)
+                is ParticipantView.Question -> QuestionScreen(vm, v)
+                is ParticipantView.BlockDone -> BlockDoneScreen(vm, v)
+                ParticipantView.Results -> ResultsScreen(vm)
+            }
         }
     }
 }
