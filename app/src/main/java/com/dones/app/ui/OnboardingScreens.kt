@@ -36,6 +36,7 @@ fun JoinCodeScreen(vm: DonesViewModel) {
         bottom = {
             PrimaryButton("Entrar", onClick = { vm.submitCode(code) }, enabled = code.length == 6)
             SecondaryButton("📷  Usar la cámara para leer el código QR", onClick = vm::openScanner)
+            if (vm.canGoToProfiles) BackLink("‹ Volver", onClick = vm::switchProfile)
         },
     ) {
         Title("Escribe el código que ves en la pantalla")

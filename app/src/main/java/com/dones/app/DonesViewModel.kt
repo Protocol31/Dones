@@ -19,6 +19,7 @@ import com.dones.core.Lesson
 import com.dones.core.ParticipantFlow
 import com.dones.core.ParticipantState
 import com.dones.core.ParticipantView
+import com.dones.core.ProfileBook
 import com.dones.core.QualityChecker
 import com.dones.core.QualityReport
 import com.dones.core.SimulatedClassSession
@@ -26,11 +27,13 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.time.LocalDate
 
-/** Pantallas antes de entrar a la clase (una tarea por pantalla). */
-enum class Onboarding { JoinCode, Scanner, Connected, Purpose, Name, Age, Marital, WhatsApp, Review, Consent }
+/** Pantallas antes de entrar a la clase (una tarea por pantalla). Profiles: "¿Quién eres?". */
+enum class Onboarding { Profiles, JoinCode, Scanner, Connected, Purpose, Name, Age, Marital, WhatsApp, Review, Consent }
 
-/** Pantallas que se abren encima del resultado. */
+/** Pantallas que se abren encima (se apilan: "‹ Volver" regresa a la anterior). */
 sealed interface Overlay {
+    /** Inicio: seguir donde quedó, ver la lección desde el principio, cambiar de persona. */
+    data object Home : Overlay
     data object Curve : Overlay
     data class GiftDetail(val code: String) : Overlay
     data object Ministries : Overlay
@@ -43,7 +46,12 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
     val content: HoutsContent = storage.loadContent()
     val lesson: Lesson = storage.loadLesson()
 
-    var participant by mutableStateOf(storage.loadState())
+    /** Todos los perfiles guardados en este teléfono. */
+    var book by mutableStateOf(storage.loadProfiles())
+        private set
+
+    /** La persona que está usando la app ahora. */
+    var participant by mutableStateOf(book.active ?: ParticipantState())
         private set
 
     private val session = SimulatedClassSession()
@@ -52,8 +60,8 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var onboarding by mutableStateOf<Onboarding?>(null)
         private set
-    var overlay by mutableStateOf<Overlay?>(null)
-        private set
+    private var overlays by mutableStateOf(listOf<Overlay>())
+    val overlay: Overlay? get() = overlays.lastOrNull()
     var joinError by mutableStateOf<String?>(null)
         private set
     /** Pregunta ya respondida a la que la persona volvió con "‹ Anterior". */
@@ -62,12 +70,53 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         viewModelScope.launch { session.state.collect { classState = it } }
-        participant.classCode?.let { session.join(it) }
+        // Al abrir la app: si ya hay perfiles en el teléfono, primero "¿Quién eres?".
+        onboarding = if (book.profiles.isEmpty()) {
+            participant = newProfile()
+            Onboarding.JoinCode
+        } else {
+            Onboarding.Profiles
+        }
+    }
+
+    // ---------- Perfiles (guardados solo en el teléfono) ----------
+
+    private fun newProfile() = ParticipantState(id = storage.newId(), createdAtMillis = System.currentTimeMillis())
+
+    /** Elige su perfil y sigue exactamente donde quedó. */
+    fun selectProfile(id: String) {
+        val chosen = book.profiles.firstOrNull { it.id == id } ?: return
+        session.leave()
+        book = book.select(id)
+        storage.saveProfiles(book)
+        participant = chosen
+        chosen.classCode?.let { session.join(it) }
+        overlays = emptyList()
+        reviewItem = null
+        joinError = null
         onboarding = when {
-            participant.classCode == null -> Onboarding.JoinCode
-            !participant.onboardingDone -> Onboarding.Connected
+            chosen.classCode == null -> Onboarding.JoinCode
+            !chosen.onboardingDone -> Onboarding.Connected
             else -> null
         }
+        if (onboarding == null) goToFurthest()
+    }
+
+    /** Persona nueva en este teléfono. */
+    fun startNewProfile() {
+        session.leave()
+        participant = newProfile()
+        overlays = emptyList()
+        reviewItem = null
+        joinError = null
+        onboarding = Onboarding.JoinCode
+    }
+
+    /** Vuelve a "¿Quién eres?" sin borrar nada. */
+    fun switchProfile() {
+        overlays = emptyList()
+        reviewItem = null
+        onboarding = if (book.profiles.isEmpty()) Onboarding.JoinCode else Onboarding.Profiles
     }
 
     // ---------- Conectarse a la clase ----------
@@ -91,6 +140,9 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
     // ---------- Datos ----------
 
     fun goTo(step: Onboarding) { onboarding = step }
+
+    /** Desde la pantalla del código: volver a "¿Quién eres?" si hay perfiles guardados. */
+    val canGoToProfiles: Boolean get() = book.profiles.isNotEmpty()
 
     fun setName(name: String) {
         update { it.copy(name = name.trim().replace(Regex("\\s+"), " ")) }
@@ -122,6 +174,7 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
     fun onboardingBack() {
         onboarding = when (onboarding) {
             Onboarding.Scanner -> Onboarding.JoinCode
+            Onboarding.JoinCode -> if (book.profiles.isNotEmpty()) Onboarding.Profiles else Onboarding.JoinCode
             Onboarding.Purpose -> Onboarding.Connected
             Onboarding.Name -> Onboarding.Purpose
             Onboarding.Age -> Onboarding.Name
@@ -139,15 +192,21 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
         get() = classState?.let { ParticipantFlow.view(content, lesson, participant, reviewItem) }
 
     /** Cada persona avanza sola por la enseñanza. */
-    fun nextPage() {
-        update { it.copy(page = (it.page + 1).coerceAtMost(lesson.pages.size)) }
-        reviewItem = null
-        questionShownAt = SystemClock.elapsedRealtime()
-    }
+    fun nextPage() = goToPage(participant.page + 1)
 
-    fun previousPage() {
-        update { it.copy(page = (it.page - 1).coerceAtLeast(0)) }
+    fun previousPage() = goToPage(participant.page - 1)
+
+    /** "Ir a donde quedé": la página más lejana a la que llegó (y ahí, la primera pregunta sin responder). */
+    fun goToFurthest() = goToPage(participant.furthestPage)
+
+    /** "Ver la lección desde el principio". */
+    fun goToStart() = goToPage(0)
+
+    private fun goToPage(target: Int) {
+        update { it.goToPage(target, lesson.pages.size) }
         reviewItem = null
+        overlays = emptyList()
+        questionShownAt = SystemClock.elapsedRealtime()
     }
 
     /** Guarda lo escrito en una página: espacios para completar o pregunta abierta. */
@@ -169,15 +228,17 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
         reviewItem = ParticipantFlow.lastInBlock(content, participant, block)
     }
 
-    /** Borra todo y vuelve a la pantalla del código (para repetir la prueba). */
-    fun resetDemo() {
+    /** Borra el perfil de esta persona (respuestas, notas y PDFs) y vuelve a "¿Quién eres?". */
+    fun deleteCurrentProfile() {
         session.leave()
-        storage.documentsDir().listFiles()?.forEach { it.delete() }
-        update { ParticipantState() }
-        overlay = null
+        storage.documentsDir(participant.id).deleteRecursively()
+        book = book.remove(participant.id)
+        storage.saveProfiles(book)
+        participant = newProfile()
+        overlays = emptyList()
         reviewItem = null
         joinError = null
-        onboarding = Onboarding.JoinCode
+        onboarding = if (book.profiles.isEmpty()) Onboarding.JoinCode else Onboarding.Profiles
     }
 
     // ---------- Resultados ----------
@@ -192,16 +253,12 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
     val courseClosed: Boolean
         get() = view == ParticipantView.Results
 
-    fun open(o: Overlay) { overlay = o }
-    fun closeOverlay() {
-        overlay = when (overlay) {
-            is Overlay.GiftDetail -> Overlay.Curve
-            else -> null
-        }
-    }
+    /** Abre una pantalla encima; "‹ Volver" regresa exactamente a la anterior. */
+    fun open(o: Overlay) { if (overlay != o) overlays = overlays + o }
+    fun closeOverlay() { overlays = overlays.dropLast(1) }
 
     fun resultsPdf(): File = PdfDocuments.results(
-        dir = storage.documentsDir(),
+        dir = storage.documentsDir(participant.id),
         content = content,
         participant = participant,
         result = result,
@@ -217,11 +274,13 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
             ?: CertificateCode.generate(participant.name, info.code, today.toString()).also { c ->
                 update { it.copy(certificateCode = c) }
             }
-        return PdfDocuments.certificate(storage.documentsDir(), participant.name, info, today, code)
+        return PdfDocuments.certificate(storage.documentsDir(participant.id), participant.name, info, today, code)
     }
 
+    /** Cada cambio se guarda al tiro en el perfil, en el teléfono. */
     private fun update(change: (ParticipantState) -> ParticipantState) {
         participant = change(participant)
-        storage.saveState(participant)
+        book = book.save(participant)
+        storage.saveProfiles(book)
     }
 }

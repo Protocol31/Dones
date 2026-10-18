@@ -182,4 +182,70 @@ class CoreTest {
         assertEquals(a, CertificateCode.generate("maría gonzález", "000000", "2026-10-17"))
         assertTrue(Regex("DMM-[A-Z2-9]{4}-[A-Z2-9]{4}").matches(a))
     }
+
+    @Test
+    fun `los perfiles se guardan aparte y cada uno sigue donde quedo`() {
+        val ana = ParticipantState(id = "a", name = "Ana Pérez").goToPage(12, lesson.pages.size)
+        val luis = ParticipantState(id = "l", name = "Luis Soto").goToPage(3, lesson.pages.size)
+        var book = ProfileBook().save(ana).save(luis)
+        assertEquals("l", book.activeId)
+        book = book.select("a")
+        assertEquals(12, book.active?.page)
+        book = book.save(book.active!!.goToPage(13, lesson.pages.size))
+        assertEquals(2, book.profiles.size)
+        assertEquals(13, ProfileBook.fromJson(book.toJson()).active?.page)
+        assertEquals(3, ProfileBook.fromJson(book.toJson()).profiles.first { it.id == "l" }.page)
+        book = book.remove("a")
+        assertNull(book.activeId)
+        assertEquals(listOf("l"), book.profiles.map { it.id })
+        assertNull(book.select("no-existe").activeId)
+    }
+
+    @Test
+    fun `el archivo de la version anterior pasa a ser un perfil`() {
+        assertTrue(ProfileBook.fromLegacy(ParticipantState(), "x").profiles.isEmpty())
+        val old = ParticipantState(name = "Ana Pérez", page = 9)
+        val book = ProfileBook.fromLegacy(old, "x")
+        assertEquals("x", book.activeId)
+        assertEquals(9, book.active?.furthestPage)
+    }
+
+    @Test
+    fun `ir a donde quede recuerda la pagina mas lejana`() {
+        val last = lesson.pages.size
+        var p = ParticipantState(id = "a").goToPage(20, last)
+        assertFalse(p.isBehind)
+        p = p.goToPage(0, last)
+        assertTrue(p.isBehind)
+        assertEquals(20, p.furthestPage)
+        p = p.goToPage(p.furthestPage, last)
+        assertFalse(p.isBehind)
+        assertEquals(last, p.goToPage(999, last).page)
+    }
+
+    @Test
+    fun `no se avanza sin responder`() {
+        val blank = LessonPage(section = "x", text = "Dios ___ a ___", blanks = listOf("da", "todos"))
+        assertFalse(LessonGate.canContinue(blank, listOf("da", ""), emptyList()))
+        assertTrue(LessonGate.canContinue(blank, listOf("da", "todos"), emptyList()))
+        val choose = LessonPage(section = "x", choices = listOf("A", "B"))
+        assertFalse(LessonGate.canContinue(choose, emptyList(), emptyList()))
+        assertTrue(LessonGate.canContinue(choose, emptyList(), listOf("B")))
+        val write = LessonPage(section = "x", write = true)
+        assertFalse(LessonGate.canContinue(write, listOf("  "), emptyList()))
+        assertTrue(LessonGate.canContinue(write, listOf("Enseñé en la escuela dominical"), emptyList()))
+        assertTrue(LessonGate.canContinue(LessonPage(section = "x", text = "Solo lectura"), emptyList(), emptyList()))
+    }
+
+    @Test
+    fun `solo el ultimo bloque lleva a los resultados`() {
+        val p = ParticipantState(maritalStatus = "soltero", consentAtMillis = 1,
+            answers = content.items.associate { it.n to 2 })
+        val first = ParticipantFlow.view(content, lesson, p.copy(page = pageOf(1)))
+        assertIs<ParticipantView.BlockDone>(first)
+        assertFalse(first.isLastBlock)
+        val last = ParticipantFlow.view(content, lesson, p.copy(page = pageOf(content.blocks.size)))
+        assertIs<ParticipantView.BlockDone>(last)
+        assertTrue(last.isLastBlock)
+    }
 }

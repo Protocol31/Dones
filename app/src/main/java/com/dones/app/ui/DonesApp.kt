@@ -3,6 +3,9 @@ package com.dones.app.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.dones.app.DonesViewModel
@@ -16,8 +19,14 @@ import com.dones.core.ParticipantView
 fun DonesApp(vm: DonesViewModel) {
     val onboarding = vm.onboarding
     if (onboarding != null) {
-        BackHandler(enabled = onboarding !in setOf(Onboarding.JoinCode, Onboarding.Connected)) { vm.onboardingBack() }
+        val canGoBack = when (onboarding) {
+            Onboarding.Profiles, Onboarding.Connected -> false
+            Onboarding.JoinCode -> vm.canGoToProfiles
+            else -> true
+        }
+        BackHandler(enabled = canGoBack) { vm.onboardingBack() }
         when (onboarding) {
+            Onboarding.Profiles -> ProfilesScreen(vm)
             Onboarding.JoinCode -> JoinCodeScreen(vm)
             Onboarding.Scanner -> QrScannerScreen(onResult = vm::onQrScanned, onBack = vm::onboardingBack)
             Onboarding.Connected -> ConnectedScreen(vm)
@@ -32,17 +41,21 @@ fun DonesApp(vm: DonesViewModel) {
         return
     }
 
-    Column(Modifier.fillMaxSize()) {
+    // La barra de estado se cubre aquí una sola vez (las pantallas no la vuelven a sumar).
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+    Column(Modifier.fillMaxSize().statusBarsPadding()) {
         val overlay = vm.overlay
         if (overlay != null) {
             BackHandler { vm.closeOverlay() }
             when (overlay) {
+                Overlay.Home -> HomeScreen(vm)
                 Overlay.Curve -> CurveScreen(vm)
                 is Overlay.GiftDetail -> GiftDetailScreen(vm, overlay.code)
                 Overlay.Ministries -> MinistriesScreen(vm)
                 Overlay.Documents -> DocumentsScreen(vm)
             }
         } else {
+            ClassTopBar(vm)
             when (val v = vm.view) {
                 null -> JoinCodeScreen(vm)
                 is ParticipantView.LessonStep -> LessonScreen(vm, v)
@@ -51,5 +64,6 @@ fun DonesApp(vm: DonesViewModel) {
                 ParticipantView.Results -> ResultsScreen(vm)
             }
         }
+    }
     }
 }

@@ -6,6 +6,9 @@ import kotlinx.serialization.json.Json
 /** Todo lo que la app guarda del participante. Se guarda en el teléfono en cada toque. */
 @Serializable
 data class ParticipantState(
+    /** Identifica el perfil dentro del teléfono (varias personas pueden usar el mismo celular). */
+    val id: String = "",
+    val createdAtMillis: Long = 0,
     val classCode: String? = null,
     val name: String = "",
     val ageRange: String? = null,
@@ -19,6 +22,8 @@ data class ParticipantState(
     val answerLog: List<AnswerEvent> = emptyList(),
     /** Página de la enseñanza en la que va (índice en Lesson.pages); al pasar la última, ve su resultado. */
     val page: Int = 0,
+    /** Página más lejana a la que ha llegado: "Ir a donde quedé" vuelve aquí. */
+    val furthestPage: Int = 0,
     /** Lo que escribió en la enseñanza: "página.espacio" → texto. */
     val notes: Map<String, String> = emptyMap(),
     val certificateCode: String? = null,
@@ -30,6 +35,15 @@ data class ParticipantState(
             answers = answers + (item to value),
             answerLog = answerLog + AnswerEvent(item, value, elapsedMillis),
         )
+
+    /** Mueve a una página sin pasarse del final ([last] = Lesson.pages.size, que son los resultados). */
+    fun goToPage(target: Int, last: Int): ParticipantState {
+        val p = target.coerceIn(0, last)
+        return copy(page = p, furthestPage = maxOf(furthestPage, p))
+    }
+
+    /** ¿Está más atrás de donde llegó? Entonces se muestra "Ir a donde quedé". */
+    val isBehind: Boolean get() = page < furthestPage
 
     fun toJson(): String = json.encodeToString(serializer(), this)
 
@@ -65,7 +79,13 @@ sealed interface ParticipantView {
         val previousItem: Int?,
     ) : ParticipantView
 
-    data class BlockDone(val block: Int, val answered: Int, val total: Int) : ParticipantView
+    data class BlockDone(
+        val block: Int,
+        val answered: Int,
+        val total: Int,
+        /** Último bloque del cuestionario: después vienen los resultados. */
+        val isLastBlock: Boolean,
+    ) : ParticipantView
     data object Results : ParticipantView
 }
 
@@ -106,7 +126,12 @@ object ParticipantFlow {
                 previousItem = inBlock.getOrNull(position - 1)?.n,
             )
         }
-        return ParticipantView.BlockDone(block, answered = all.count { it.n in participant.answers }, total = all.size)
+        return ParticipantView.BlockDone(
+            block = block,
+            answered = all.count { it.n in participant.answers },
+            total = all.size,
+            isLastBlock = block == content.blocks.size,
+        )
     }
 
     /** Última pregunta del bloque, para que "‹ Anterior" funcione desde "Bloque terminado". */

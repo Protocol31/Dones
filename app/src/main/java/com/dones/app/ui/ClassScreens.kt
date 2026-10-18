@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.dones.app.DonesViewModel
 import com.dones.core.Blanks
+import com.dones.core.LessonGate
 import com.dones.core.ParticipantView
 import kotlinx.coroutines.delay
 
@@ -32,6 +33,8 @@ fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
     // Una página de espacios ya revisada se muestra con sus respuestas al volver a ella.
     var checked by remember(key) { mutableStateOf(page.blanks.isNotEmpty() && "$key.0" in vm.participant.notes) }
     val mustCheck = page.blanks.isNotEmpty() && !checked
+    // No se avanza sin responder.
+    val answered = LessonGate.canContinue(page, values, selected)
     Screen(
         top = {
             ProgressHeader(
@@ -40,10 +43,11 @@ fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
             )
         },
         bottom = {
+            if (!answered) LessonGate.hint(page)?.let { Hint(it) }
             if (mustCheck) {
-                PrimaryButton("Revisar", onClick = { vm.saveNotes(key, values.toList()); checked = true })
+                PrimaryButton("Revisar", enabled = answered, onClick = { vm.saveNotes(key, values.toList()); checked = true })
             } else {
-                PrimaryButton("Siguiente ›", onClick = {
+                PrimaryButton("Siguiente ›", enabled = answered, onClick = {
                     if (page.write) vm.saveNotes(key, values.toList())
                     if (page.choices.isNotEmpty()) vm.saveNotes(key, listOf(selected.joinToString("\n")))
                     vm.nextPage()
@@ -74,7 +78,7 @@ fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
                 }
             }
         }
-        if (mustCheck) Hint("Escribe lo que crees y toca Revisar. Si no sabes, déjalo en blanco.")
+        if (mustCheck) Hint("Escribe lo que crees y toca Revisar.")
 
         page.choices.forEach { choice ->
             ChoiceButton(choice, selected = choice in selected, onClick = {
@@ -92,7 +96,7 @@ fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
                 value = values[0],
                 onValueChange = { values[0] = it },
                 minLines = 4,
-                label = { Text("Escribe aquí (opcional)") },
+                label = { Text("Escribe aquí") },
                 textStyle = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -145,7 +149,7 @@ fun QuestionScreen(vm: DonesViewModel, q: ParticipantView.Question) {
 // W10
 @Composable
 fun BlockDoneScreen(vm: DonesViewModel, v: ParticipantView.BlockDone) {
-    val finished = v.answered == v.total
+    val finished = v.isLastBlock
     Screen(
         bottom = {
             PrimaryButton(if (finished) "Ver mis resultados ›" else "Continuar ›", onClick = vm::nextPage)

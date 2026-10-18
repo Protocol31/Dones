@@ -53,3 +53,28 @@ object Blanks {
             .trim()
             .replace(Regex("\\s+"), " ")
 }
+
+/** No se avanza sin responder: qué necesita cada página para dejar pasar. */
+object LessonGate {
+    /**
+     * - Espacios para completar: todos escritos (luego se toca "Revisar").
+     * - Opciones para marcar: al menos una.
+     * - Pregunta abierta: algo escrito.
+     * - Texto o versículo: siempre deja pasar.
+     */
+    fun canContinue(page: LessonPage, values: List<String>, selected: Collection<String>): Boolean = when {
+        page.blanks.isNotEmpty() -> values.size >= page.blanks.size && values.take(page.blanks.size).all { it.isNotBlank() }
+        page.choices.isNotEmpty() -> selected.isNotEmpty()
+        page.write -> values.firstOrNull()?.isNotBlank() == true
+        else -> true
+    }
+
+    /** Lo que se le dice a la persona cuando todavía no puede avanzar. */
+    fun hint(page: LessonPage): String? = when {
+        page.blanks.size > 1 -> "Completa todos los espacios para seguir."
+        page.blanks.isNotEmpty() -> "Escribe tu respuesta para seguir."
+        page.choices.isNotEmpty() -> "Marca al menos una opción para seguir."
+        page.write -> "Escribe tu respuesta para seguir."
+        else -> null
+    }
+}
