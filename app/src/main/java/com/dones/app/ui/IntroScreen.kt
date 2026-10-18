@@ -53,7 +53,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,7 +63,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.createBitmap
-import com.dones.app.R
 import kotlinx.coroutines.launch
 import kotlin.math.min
 
@@ -247,11 +247,13 @@ private class LightIntro(val shader: RuntimeShader) {
         private fun logoBitmap(context: Context, px: Int): Bitmap {
             val bmp = createBitmap(px, px)
             val canvas = android.graphics.Canvas(bmp)
-            val d = requireNotNull(context.getDrawable(R.drawable.logo_san_andres))
-            val w = (px * .7f).toInt()
-            val h = (w * LOGO_RATIO).toInt()
-            d.setBounds((px - w) / 2, (px - h) / 2, (px + w) / 2, (px + h) / 2)
-            d.draw(canvas)
+            val path = PathParser().parsePathString(ChurchLogo.pathData(context, ChurchLogo.LOGO_FILE)).toPath().asAndroidPath()
+            path.fillType = android.graphics.Path.FillType.EVEN_ODD
+            val w = px * .7f
+            val h = w * LOGO_RATIO
+            canvas.translate((px - w) / 2f, (px - h) / 2f)
+            canvas.scale(w / ChurchLogo.LOGO_W, w / ChurchLogo.LOGO_W)
+            canvas.drawPath(path, android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = android.graphics.Color.WHITE })
             return bmp
         }
 
@@ -450,13 +452,15 @@ private fun LiteIntro(end: () -> Unit) {
                     ),
                 ),
         )
+        val logoWidth = min(maxWidth.value * .64f, 320f).dp
+        val logoVector = ChurchLogo.logo()
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(28.dp)) {
             val v = logo.value
             Image(
-                painter = painterResource(R.drawable.logo_san_andres),
+                imageVector = logoVector,
                 contentDescription = "Iglesia Anglicana San Andrés",
                 modifier = Modifier
-                    .width(min(maxWidth.value * .64f, 320f).dp)
+                    .width(logoWidth)
                     .graphicsLayer { alpha = v; scaleX = .92f + .08f * v; scaleY = .92f + .08f * v }
                     .blur((18f * (1f - v)).dp),
             )

@@ -20,8 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
-import com.dones.app.R
 import androidx.compose.ui.unit.dp
 import com.dones.app.DonesViewModel
 import com.dones.core.ParticipantState
@@ -114,7 +112,7 @@ fun ClassTopBar(vm: DonesViewModel) {
             BackLink("Ir a donde quedé", icon = ErgosIcons.Bookmark, trailing = ErgosIcons.ChevronRight, color = Ergos.Gold, onClick = vm::goToFurthest)
         } else {
             Image(
-                painterResource(R.drawable.emblema_san_andres),
+                ChurchLogo.emblem(),
                 contentDescription = "Iglesia Anglicana San Andrés",
                 colorFilter = ColorFilter.tint(Ergos.Violet),
                 modifier = Modifier.padding(end = 12.dp).size(width = 52.dp, height = 42.dp),
