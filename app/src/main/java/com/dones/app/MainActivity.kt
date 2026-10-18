@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             DonesTheme {
-                // Intro "Llamado · por Ergos" una vez cada vez que se abre la app.
+                // Intro de la iglesia (luz de Ergos + logo + "Llamados") cada vez que se abre la app.
                 var showIntro by rememberSaveable { mutableStateOf(true) }
                 Crossfade(targetState = showIntro, animationSpec = tween(500), label = "intro") { intro ->
                     if (intro) IntroScreen(onFinished = { showIntro = false }) else DonesApp(viewModel)

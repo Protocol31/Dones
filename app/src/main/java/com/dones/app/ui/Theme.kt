@@ -34,6 +34,7 @@ object Ergos {
     val Gold = Color(0xFFE2B45C)
     val GoldHi = Color(0xFFF0C46C)
     val Positive = Color(0xFF6FDCA8)
+    val Negative = Color(0xFFFF8A8A)
     val ButtonTop = Color(0xFF8C52F6)
     val ButtonBottom = Color(0xFF7134EC)
 }
@@ -69,7 +70,7 @@ private val ErgosColors = darkColorScheme(
     surfaceContainerHighest = Ergos.Surface2,
     outline = Ergos.LineStrong,
     outlineVariant = Ergos.Line,
-    error = Color(0xFFFF8A8A),
+    error = Ergos.Negative,
     onError = Color(0xFF2A0A0A),
 )
 

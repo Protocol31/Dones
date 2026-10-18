@@ -51,7 +51,7 @@ fun QrScannerScreen(onResult: (String) -> Unit, onBack: () -> Unit) {
     LaunchedEffect(Unit) { if (!hasPermission) launcher.launch(Manifest.permission.CAMERA) }
 
     Screen(bottom = { BackLink(onClick = onBack) }) {
-        Title("Apunta a la pantalla del maestro")
+        com.dones.app.ui.PageHeader(title = "Apunta a la pantalla del maestro", icon = com.dones.app.ui.ErgosIcons.Qr)
         if (hasPermission) {
             CameraPreview(lifecycleOwner, onResult, Modifier.fillMaxWidth().aspectRatio(3f / 4f))
             Body("Se conecta solo al leer el código.")
