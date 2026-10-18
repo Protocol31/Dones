@@ -23,7 +23,7 @@ object ChurchLogo {
     const val LOGO_H = 295f
 
     /** Emblema solo (viewBox 40 6 223 182). */
-    private const val EMBLEM_FILE = "logo/emblema.txt"
+    const val EMBLEM_FILE = "logo/emblema.txt"
 
     private val cache = mutableMapOf<String, String>()
 

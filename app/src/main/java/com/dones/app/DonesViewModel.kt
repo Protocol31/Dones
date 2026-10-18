@@ -291,6 +291,7 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun resultsPdf(): File = PdfDocuments.results(
+        context = getApplication<Application>(),
         dir = storage.documentsDir(participant.id),
         content = content,
         participant = participant,
@@ -304,10 +305,10 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
         val info = classState?.info ?: return null
         val today = LocalDate.now()
         val code = participant.certificateCode
-            ?: CertificateCode.generate(participant.name, info.code, today.toString()).also { c ->
+            ?: CertificateCode.random().also { c ->
                 update { it.copy(certificateCode = c) }
             }
-        return PdfDocuments.certificate(storage.documentsDir(participant.id), participant.name, info, today, code)
+        return PdfDocuments.certificate(getApplication<Application>(), storage.documentsDir(participant.id), participant.name, info, today, code)
     }
 
     /** Cada cambio se guarda al tiro en el perfil, en el teléfono. */

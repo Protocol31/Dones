@@ -65,5 +65,7 @@ dependencies {
     implementation(libs.mlkit.barcode.scanning)
 
     implementation(libs.kotlinx.serialization.json)
+    // Código QR del certificado (solo genera; la lectura sigue con ML Kit).
+    implementation("com.google.zxing:core:3.5.3")
     implementation(libs.kotlinx.coroutines.android)
 }

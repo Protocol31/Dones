@@ -46,7 +46,7 @@ class SimulatedClassSession : ClassSession {
     private val info = ClassInfo(
         code = JoinCode.DEMO_CODE,
         courseName = "Descubriendo Mi Ministerio",
-        churchName = "Iglesia de prueba",
+        churchName = "Iglesia Anglicana San Andrés",
         teacherName = "Maestro de prueba",
     )
 
