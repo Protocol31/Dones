@@ -248,4 +248,34 @@ class CoreTest {
         assertIs<ParticipantView.BlockDone>(last)
         assertTrue(last.isLastBlock)
     }
+
+    @Test
+    fun `codigo de certificado al azar con letra de control`() {
+        val a = CertificateCode.random(java.util.Random(7))
+        assertTrue(Regex("LLM-[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]").matches(a), a)
+        assertTrue(CertificateCode.isWellFormed(a))
+        assertTrue(CertificateCode.isWellFormed(a.lowercase().replace("-", "")))
+        val typo = a.substring(0, 4) + (if (a[4] == 'A') 'B' else 'A') + a.substring(5)
+        assertTrue(!CertificateCode.isWellFormed(typo))
+        assertTrue(a != CertificateCode.random(java.util.Random(8)))
+    }
+
+    @Test
+    fun `lee las citas biblicas del cuestionario y la leccion`() {
+        val r = Bible.parse("1 Co 12:10, 28")!!
+        assertEquals(46, r.book.number)
+        assertEquals(12, r.chapter)
+        assertEquals(listOf(10..10, 28..28), r.ranges)
+        assertEquals("1 Corintios 12:10, 28", r.title)
+        assertEquals(listOf(5..6, 26..40), Bible.parse("Hch 8:5-6, 26-40")!!.ranges)
+        assertTrue(Bible.parse("He 11")!!.isWholeChapter)
+        assertEquals(8..8, Bible.parse("Job 10:8a")!!.ranges.single())
+        assertEquals(19, Bible.parse("Salmo 139:14-16")!!.book.number)
+        assertEquals(2..4, Bible.parse("Hechos 18:2b-4")!!.ranges.single())
+        assertEquals("https://www.bible.com/bible/149/EPH.4.11-14.RVR1960", Bible.parse("Ef 4:11-14")!!.bibleComUrl)
+        // Todas las citas del contenido se entienden.
+        val all = content.gifts.flatMap { it.refs } + lesson.pages.mapNotNull { it.ref }
+        val bad = all.filter { Bible.parse(it) == null }
+        assertTrue(bad.isEmpty(), "No se entienden: $bad")
+    }
 }

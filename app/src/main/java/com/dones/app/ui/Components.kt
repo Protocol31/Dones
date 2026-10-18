@@ -338,20 +338,27 @@ fun DoorCard(
     }
 }
 
-/** Referencia bíblica como etiqueta: "📖 Efesios 4:11-12". */
+/** Cita bíblica como etiqueta que se toca para leerla: "📖 Efesios 4:11-14 · Leer ›". */
 @Composable
-fun RefChip(text: String) {
+fun RefChip(text: String, onClick: (() -> Unit)? = null) {
+    val title = com.dones.core.Bible.parse(text)?.title ?: text
     Row(
         Modifier
+            .heightIn(min = 48.dp)
             .clip(RoundedCornerShape(50))
             .background(Ergos.VioletDeep.copy(alpha = .6f))
-            .border(1.dp, Ergos.Violet.copy(alpha = .5f), RoundedCornerShape(50))
-            .padding(horizontal = 14.dp, vertical = 8.dp),
+            .border(1.dp, Ergos.Violet.copy(alpha = if (onClick != null) .8f else .5f), RoundedCornerShape(50))
+            .then(if (onClick != null) Modifier.clickable(onClickLabel = "Leer el pasaje", role = Role.Button, onClick = onClick) else Modifier)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Icon(ErgosIcons.Book, contentDescription = null, tint = Ergos.AccentText, modifier = Modifier.size(22.dp))
-        Text(text, style = MaterialTheme.typography.labelMedium, color = Ergos.Ink)
+        Text(title, style = MaterialTheme.typography.labelMedium, color = Ergos.Ink)
+        if (onClick != null) {
+            Text("· Leer", style = MaterialTheme.typography.labelMedium, color = Ergos.AccentText)
+            Icon(ErgosIcons.ChevronRight, contentDescription = null, tint = Ergos.AccentText, modifier = Modifier.size(18.dp))
+        }
     }
 }
 

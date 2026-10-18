@@ -3,6 +3,8 @@
 
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Solo para descargar los versículos (RVR 1960) la primera vez que se abren. -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Para ver si WhatsApp está instalado y abrirlo directo. -->
     <queries>

@@ -171,7 +171,7 @@ fun GiftDetailScreen(vm: DonesViewModel, code: String) {
         PageHeader(title = gift.name, icon = ErgosIcons.Sparkle, eyebrow = "Don espiritual")
         Body(gift.definition)
         if (gift.refs.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { gift.refs.forEach { RefChip(it) } }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { gift.refs.forEach { r -> RefChip(r, onClick = { vm.openScripture(r) }) } }
         }
         if (ministries.isNotEmpty()) {
             ErgosCard(ornament = true) {

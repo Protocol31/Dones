@@ -53,6 +53,7 @@ fun DonesApp(vm: DonesViewModel) {
                 is Overlay.GiftDetail -> GiftDetailScreen(vm, overlay.code)
                 Overlay.Ministries -> MinistriesScreen(vm)
                 Overlay.Documents -> DocumentsScreen(vm)
+                is Overlay.Scripture -> ScriptureScreen(vm, overlay.ref)
             }
         } else {
             ClassTopBar(vm)

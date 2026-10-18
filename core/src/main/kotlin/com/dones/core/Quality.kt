@@ -38,6 +38,30 @@ object QualityChecker {
 object CertificateCode {
     private const val ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789" // sin 0/O ni 1/I
 
+    /**
+     * Código único del certificado, por ejemplo "LLM-4K7Q-9ZRX-P". Es al azar (no se puede adivinar
+     * a partir del nombre) y termina en una letra de control que detecta errores al escribirlo.
+     */
+    fun random(random: java.util.Random = java.security.SecureRandom()): String {
+        val body = (0 until 8).map { ALPHABET[random.nextInt(ALPHABET.length)] }.joinToString("")
+        return format(body)
+    }
+
+    /** ¿El código está bien escrito? (letra de control correcta). Acepta minúsculas y sin guiones. */
+    fun isWellFormed(code: String): Boolean {
+        val clean = code.uppercase().replace("-", "").removePrefix("LLM")
+        if (clean.length != 9 || clean.any { it !in ALPHABET }) return false
+        return check(clean.take(8)) == clean.last()
+    }
+
+    private fun format(body: String) = "LLM-" + body.take(4) + "-" + body.drop(4) + "-" + check(body)
+
+    private fun check(body: String): Char {
+        var sum = 0
+        body.forEachIndexed { i, c -> sum += (i + 1) * ALPHABET.indexOf(c) }
+        return ALPHABET[sum % ALPHABET.length]
+    }
+
     /** Código corto y estable, por ejemplo "DMM-4K7Q-9ZRX". */
     fun generate(name: String, classCode: String, dateIso: String): String {
         var h = 1125899906842597L

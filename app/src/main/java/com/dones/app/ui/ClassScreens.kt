@@ -96,7 +96,7 @@ fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
             Title(it)
             Ornament(width = 160.dp)
         }
-        page.ref?.let { RefChip(it) }
+        page.ref?.let { r -> RefChip(r, onClick = { vm.openScripture(r) }) }
         Text(
             lessonText(page.text, page.blanks, values, checked),
             style = MaterialTheme.typography.bodyLarge,

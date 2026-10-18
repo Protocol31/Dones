@@ -7,7 +7,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.dones.app.data.BibleRepository
 import com.dones.app.data.Storage
+import com.dones.app.data.Verse
+import com.dones.core.Bible
+import com.dones.core.BibleRef
 import com.dones.app.pdf.PdfDocuments
 import com.dones.core.CertificateCode
 import com.dones.core.ClassState
@@ -38,11 +42,22 @@ sealed interface Overlay {
     data class GiftDetail(val code: String) : Overlay
     data object Ministries : Overlay
     data object Documents : Overlay
+    /** Un pasaje bíblico (RVR 1960), por ejemplo "Ef 4:11-14". */
+    data class Scripture(val ref: String) : Overlay
+}
+
+/** Estado de la pantalla del pasaje bíblico. */
+sealed interface ScriptureState {
+    data object Loading : ScriptureState
+    data class Loaded(val ref: BibleRef, val verses: List<Verse>) : ScriptureState
+    /** Sin internet (y no estaba guardado) o cita que no se entiende. */
+    data class Failed(val ref: BibleRef?) : ScriptureState
 }
 
 class DonesViewModel(app: Application) : AndroidViewModel(app) {
 
     private val storage = Storage(app)
+    private val bible = BibleRepository(app)
     val content: HoutsContent = storage.loadContent()
     val lesson: Lesson = storage.loadLesson()
 
@@ -256,6 +271,24 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
     /** Abre una pantalla encima; "‹ Volver" regresa exactamente a la anterior. */
     fun open(o: Overlay) { if (overlay != o) overlays = overlays + o }
     fun closeOverlay() { overlays = overlays.dropLast(1) }
+
+    // ---------- Biblia ----------
+
+    var scripture by mutableStateOf<ScriptureState>(ScriptureState.Loading)
+        private set
+
+    /** Abre la pantalla para leer la cita en RVR 1960. */
+    fun openScripture(ref: String) = open(Overlay.Scripture(ref))
+
+    fun loadScripture(text: String) {
+        val ref = Bible.parse(text)
+        if (ref == null) { scripture = ScriptureState.Failed(null); return }
+        scripture = ScriptureState.Loading
+        viewModelScope.launch {
+            scripture = runCatching { bible.load(ref) }
+                .fold({ ScriptureState.Loaded(ref, it) }, { ScriptureState.Failed(ref) })
+        }
+    }
 
     fun resultsPdf(): File = PdfDocuments.results(
         dir = storage.documentsDir(participant.id),
