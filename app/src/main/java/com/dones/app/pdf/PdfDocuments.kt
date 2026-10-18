@@ -108,7 +108,7 @@ object PdfDocuments {
         y += 22f
         pen.text("LLAMADOS  ·  ${(info?.courseName ?: "Descubriendo Mi Ministerio").uppercase(Locale("es"))}", W / 2, y, pen.geistSemi, 7.5f, pen.solid(Ergos.ACCENT), Align.CENTER, 2.4f)
         y += 32f
-        pen.text("Mis dones espirituales", W / 2, y, pen.corBold, 32f, pen.gold(y - 26f, y + 4f), Align.CENTER)
+        pen.text("Mis dones espirituales", W / 2, y, pen.corBold, 32f, pen.sheen(y - 26f, y + 4f), Align.CENTER)
         y += 34f
         val nameSize = pen.fitSize(participant.name, pen.fraktur, 24f, W - 2 * m)
         pen.text(participant.name, W / 2, y, pen.fraktur, nameSize, pen.solid(Ergos.INK), Align.CENTER)
@@ -132,12 +132,12 @@ object PdfDocuments {
             pen.card(RectF(l, top, r, top + h), Ergos.SURFACE2, .92f, Ergos.VIOLET, .55f)
             val dx = l + 34f
             val dy = top + 32f
-            pen.diamond(dx, dy, 20f, pen.solid(Ergos.GOLD, .14f))
-            pen.diamond(dx, dy, 20f, pen.gold(dy - 20f, dy + 20f, 1.1f))
-            pen.text("${s.rank}", dx, dy + 7f, pen.corBold, 20f, pen.gold(dy - 12f, dy + 8f), Align.CENTER)
+            pen.diamond(dx, dy, 20f, pen.solid(Ergos.LAV, .14f))
+            pen.diamond(dx, dy, 20f, pen.sheen(dy - 20f, dy + 20f, 1.1f))
+            pen.text("${s.rank}", dx, dy + 7f, pen.corBold, 20f, pen.sheen(dy - 12f, dy + 8f), Align.CENTER)
             val tx = l + 72f
-            pen.text(s.gift.name, tx, top + 30f, pen.corBold, 20f, pen.gold(top + 12f, top + 34f))
-            pen.text("${s.percent} %", r - 16f, top + 29f, pen.geistSemi, 11f, pen.solid(Ergos.GOLD_HI), Align.RIGHT)
+            pen.text(s.gift.name, tx, top + 30f, pen.corBold, 20f, pen.sheen(top + 12f, top + 34f))
+            pen.text("${s.percent} %", r - 16f, top + 29f, pen.geistSemi, 11f, pen.solid(Ergos.LAV_HI), Align.RIGHT)
             var yy = top + 48f
             def.forEach { pen.text(it, tx, yy, pen.geist, 9.5f, pen.solid(Ergos.INK2)); yy += 13.5f }
             yy += 3f
@@ -163,26 +163,69 @@ object PdfDocuments {
             }
         }
 
-        // Curva completa: barras (la sección va entera en una página si cabe)
-        section("Tu curva completa", minOf(result.ranking.size * 16.5f, H - 160f))
-        for (s in result.ranking) {
-            need(17f)
-            val f = s.fraction.toFloat().coerceIn(0f, 1f)
-            val bx = m + 150f
-            val bw = W - m - bx - 40f
-            val dom = s in result.dominant
-            val sub = s in result.subordinate
-            pen.text(s.gift.name, m, y + 9f, if (dom) pen.geistSemi else pen.geist, 9f, pen.solid(if (dom) Ergos.GOLD_HI else Ergos.INK2))
-            pen.canvas.drawRoundRect(RectF(bx, y + 2f, bx + bw, y + 10f), 4f, 4f, pen.solid(Ergos.LINE))
-            val colors = when {
-                dom -> intArrayOf(Ergos.GOLD, Ergos.GOLD_HI)
-                sub -> intArrayOf(Ergos.VIOLET, Ergos.VIOLET_HI)
-                else -> intArrayOf(Ergos.LINE_STRONG, Ergos.withAlpha(Ergos.ACCENT, .8f))
+        // Curva completa: cada don con 15 casillas (5 preguntas x 3 puntos), agrupado por nivel.
+        // La sección va entera en una página si cabe.
+        run {
+            val others = result.ranking.filter { it !in result.dominant && it !in result.subordinate }
+            val groups = listOf(
+                Triple("Dominantes", result.dominant, 0),
+                Triple("Subordinados", result.subordinate, 1),
+                Triple("Tus otros dones", others, 2),
+            ).filter { it.second.isNotEmpty() }
+            val row = 19f
+            section("Tu curva completa", minOf(14f + groups.size * 22f + result.ranking.size * row, H - 160f))
+            val c = pen.canvas
+            val nx = m + 26f
+            val bx = m + 172f
+            val pips = 15
+            val gap = 3f
+            val pw = (W - m - 46f - bx - gap * (pips - 1)) / pips
+            pen.text("0", bx, y + 2f, pen.geist, 7f, pen.solid(Ergos.MUTED))
+            pen.text("Puntaje de 15", bx + (pw + gap) * pips - gap, y + 2f, pen.geist, 7f, pen.solid(Ergos.MUTED), Align.RIGHT)
+            y += 10f
+            for ((label, list, tier) in groups) {
+                need(26f + row)
+                y += 8f
+                val caps = label.uppercase(Locale("es"))
+                pen.text(caps, m, y + 6f, pen.geistSemi, 7.5f, pen.solid(if (tier < 2) Ergos.ACCENT else Ergos.MUTED), Align.LEFT, 2f)
+                c.drawLine(m + pen.measure(caps, pen.geistSemi, 7.5f, 2f) + 10f, y + 3f, W - m, y + 3f, pen.solid(Ergos.LINE, 1f, .6f))
+                y += 12f
+                if (tier == 0) {
+                    c.drawRoundRect(RectF(m - 8f, y - 3f, W - m + 8f, y + list.size * row + 1f), 8f, 8f, pen.solid(Ergos.VIOLET, .10f))
+                }
+                for (s in list) {
+                    need(row)
+                    val cy = y + 8f
+                    val filled = Math.round(s.fraction.toFloat().coerceIn(0f, 1f) * pips)
+                    if (tier < 2) {
+                        c.drawCircle(m + 8f, cy, 8f, pen.solid(if (tier == 0) Ergos.VIOLET else Ergos.LINE))
+                        pen.text("${s.rank}", m + 8f, cy + 3.2f, pen.geistSemi, 8.5f, pen.solid(Ergos.INK), Align.CENTER)
+                    } else {
+                        pen.text("${s.rank}", m + 8f, cy + 3.2f, pen.geist, 8.5f, pen.solid(Ergos.MUTED), Align.CENTER)
+                    }
+                    pen.text(
+                        s.gift.name, nx, cy + 3.8f,
+                        if (tier == 0) pen.corBold else pen.corSemi, if (tier == 0) 13.5f else 12f,
+                        pen.solid(if (tier == 2) Ergos.INK2 else Ergos.INK),
+                    )
+                    val colors = when (tier) {
+                        0 -> intArrayOf(Ergos.LAV_PALE, Ergos.VIOLET)
+                        1 -> intArrayOf(Ergos.VIOLET_HI, Ergos.VIOLET_BTN)
+                        else -> intArrayOf(Ergos.OTHER_HI, Ergos.OTHER_LO)
+                    }
+                    val fill = pen.solid(Ergos.VIOLET).apply {
+                        shader = LinearGradient(0f, cy - 4.5f, 0f, cy + 4.5f, colors, null, Shader.TileMode.CLAMP)
+                    }
+                    val empty = pen.solid(Ergos.LINE, .9f, .8f)
+                    for (i in 0 until pips) {
+                        val x = bx + i * (pw + gap)
+                        c.drawRoundRect(RectF(x, cy - 4.5f, x + pw, cy + 4.5f), 2.5f, 2.5f, if (i < filled) fill else empty)
+                    }
+                    pen.text("${s.raw}", W - m, cy + 3.5f, pen.geistSemi, 10f, pen.solid(if (tier == 2) Ergos.INK2 else Ergos.INK), Align.RIGHT)
+                    y += row
+                }
+                y += 2f
             }
-            val bar = pen.solid(Ergos.GOLD).apply { shader = LinearGradient(bx, 0f, bx + bw, 0f, colors, null, Shader.TileMode.CLAMP) }
-            pen.canvas.drawRoundRect(RectF(bx, y + 2f, bx + max(8f, bw * f), y + 10f), 4f, 4f, bar)
-            pen.text("${s.percent} %", W - m, y + 9f, pen.geistMed, 8.5f, pen.solid(Ergos.INK2), Align.RIGHT)
-            y += 16.5f
         }
 
         // Ministerios
@@ -191,7 +234,7 @@ object PdfDocuments {
             for (sug in result.ministries) {
                 val gifts = pen.wrap("Por tus dones: " + sug.matchingGifts.joinToString(", ") { it.name }, pen.geist, 8.5f, W - 2 * m - 16f)
                 need(20f + gifts.size * 12f)
-                pen.diamond(m + 5f, y + 7f, 3.5f, pen.gold(y, y + 10f))
+                pen.diamond(m + 5f, y + 7f, 3.5f, pen.sheen(y, y + 10f))
                 pen.text(sug.ministry.name, m + 16f, y + 11f, pen.corBold, 14f, pen.solid(Ergos.INK))
                 var yy = y + 24f
                 gifts.forEach { pen.text(it, m + 16f, yy, pen.geist, 8.5f, pen.solid(Ergos.MUTED)); yy += 12f }
@@ -209,7 +252,7 @@ object PdfDocuments {
         need(boxH + 30f)
         y += 10f
         pen.card(RectF(m, y, W - m, y + boxH), Ergos.DEEP, .55f, null, 0f)
-        pen.canvas.drawRoundRect(RectF(m, y, W - m, y + boxH), 8f, 8f, pen.gold(y, y + boxH, .7f))
+        pen.canvas.drawRoundRect(RectF(m, y, W - m, y + boxH), 8f, 8f, pen.sheen(y, y + boxH, .7f))
         var yy = y + 22f
         note.forEach { pen.text(it, W / 2, yy, pen.corMed, 12.5f, pen.solid(Ergos.INK), Align.CENTER); yy += 16f }
         y += boxH + 14f
@@ -246,14 +289,14 @@ object PdfDocuments {
             dy += 26f
         }
 
-        // Marcos dorados y rombos en el centro de cada lado
-        c.drawRect(16f, 16f, W - 16f, H - 16f, pen.gold(0f, H, 2.2f))
-        c.drawRect(22f, 22f, W - 22f, H - 22f, pen.gold(0f, H, .7f).apply { alpha = 230 })
+        // Marcos lavanda y rombos en el centro de cada lado
+        c.drawRect(16f, 16f, W - 16f, H - 16f, pen.sheen(0f, H, 2.2f))
+        c.drawRect(22f, 22f, W - 22f, H - 22f, pen.sheen(0f, H, .7f).apply { alpha = 230 })
         c.drawRect(27f, 27f, W - 27f, H - 27f, pen.solid(Ergos.VIOLET_HI, .55f, .6f))
         listOf(W / 2 to 16f, W / 2 to H - 16f, 16f to H / 2, W - 16f to H / 2).forEach { (px, py) ->
             pen.diamond(px, py, 6f, pen.solid(Ergos.NIGHT))
-            pen.diamond(px, py, 6f, pen.gold(py - 6f, py + 6f, 1.2f))
-            pen.diamond(px, py, 2.4f, pen.gold(py - 3f, py + 3f))
+            pen.diamond(px, py, 6f, pen.sheen(py - 6f, py + 6f, 1.2f))
+            pen.diamond(px, py, 2.4f, pen.sheen(py - 3f, py + 3f))
         }
         pen.corners(W, H) { pen.cornerFlourish() }
 
@@ -264,7 +307,7 @@ object PdfDocuments {
 
         // Título
         y += 44f
-        pen.text("CERTIFICADO", W / 2, y, pen.corBold, 40f, pen.gold(y - 34f, y + 4f), Align.CENTER, 9f)
+        pen.text("CERTIFICADO", W / 2, y, pen.corBold, 40f, pen.sheen(y - 34f, y + 4f), Align.CENTER, 9f)
         y += 20f
         pen.text("DE PARTICIPACIÓN", W / 2, y, pen.geistSemi, 9.5f, pen.solid(Ergos.ACCENT), Align.CENTER, 4.5f)
         y += 14f
@@ -275,18 +318,21 @@ object PdfDocuments {
         pen.text("Se otorga con alegría y gratitud a", W / 2, y, pen.corMed, 16f, pen.solid(Ergos.INK2), Align.CENTER)
         val ns = pen.fitSize(name, pen.fraktur, 48f, W - 220f)
         y += ns + 10f
-        pen.text(name, W / 2 + 1.5f, y + 2f, pen.fraktur, ns, pen.solid(Ergos.VIOLET, .55f), Align.CENTER)
-        pen.text(name, W / 2, y, pen.fraktur, ns, pen.gold(y - ns, y + 6f), Align.CENTER)
+        pen.text(name, W / 2 + 1.5f, y + 2f, pen.fraktur, ns, pen.solid(Ergos.VIOLET_LO, .8f), Align.CENTER)
+        val namePaint = pen.solid(Ergos.INK).apply {
+            shader = LinearGradient(0f, y - ns, 0f, y + 6f, intArrayOf(Ergos.WHITE, Ergos.LAV_PALE, Ergos.VIOLET_HI), floatArrayOf(0f, .5f, 1f), Shader.TileMode.CLAMP)
+        }
+        pen.text(name, W / 2, y, pen.fraktur, ns, namePaint, Align.CENTER)
         y += 14f
         run {
             val half = max(160f, pen.measure(name, pen.fraktur, ns) / 2 + 20f)
-            val p = pen.gold(y - 6f, y + 6f, .9f)
+            val p = pen.sheen(y - 6f, y + 6f, .9f)
             val sw = Path().apply {
                 moveTo(W / 2 - half, y); cubicTo(W / 2 - half * .5f, y - 5f, W / 2 - 30f, y + 5f, W / 2 - 8f, y)
                 moveTo(W / 2 + 8f, y); cubicTo(W / 2 + 30f, y + 5f, W / 2 + half * .5f, y - 5f, W / 2 + half, y)
             }
             c.drawPath(sw, p)
-            pen.diamond(W / 2, y, 4f, pen.gold(y - 4f, y + 4f))
+            pen.diamond(W / 2, y, 4f, pen.sheen(y - 4f, y + 4f))
             listOf(-1f, 1f).forEach { s -> c.drawPath(spiral(W / 2 + s * (half + 5f), y - 3f, 4.5f, 1.3f, s, PI.toFloat() * .5f), p) }
         }
 
@@ -296,7 +342,7 @@ object PdfDocuments {
         y += 20f
         pen.text("dando un paso para conocer los dones que Dios le confió para servir a Su iglesia.", W / 2, y, pen.corMed, 15.5f, pen.solid(Ergos.INK), Align.CENTER)
         y += 32f
-        pen.text("¡Felicitaciones!", W / 2, y, pen.corBold, 24f, pen.gold(y - 20f, y + 4f), Align.CENTER)
+        pen.text("¡Felicitaciones!", W / 2, y, pen.corBold, 24f, pen.sheen(y - 20f, y + 4f), Align.CENTER)
         y += 20f
         pen.text("«Cada uno según el don que ha recibido, minístrelo a los otros,", W / 2, y, pen.corMed, 12.5f, pen.solid(Ergos.ACCENT), Align.CENTER)
         y += 15f
@@ -305,9 +351,9 @@ object PdfDocuments {
         // Pie: fecha · sello · QR
         val by = H - 128f
         val leftX = 200f
-        pen.text("FECHA", leftX, by + 4f, pen.geistSemi, 7.5f, pen.solid(Ergos.GOLD), Align.CENTER, 2.5f)
+        pen.text("FECHA", leftX, by + 4f, pen.geistSemi, 7.5f, pen.solid(Ergos.LAV), Align.CENTER, 2.5f)
         pen.text(date.format(spanishDate), leftX, by + 22f, pen.corSemi, 14f, pen.solid(Ergos.INK), Align.CENTER)
-        c.drawLine(leftX - 60f, by + 30f, leftX + 60f, by + 30f, pen.gold(by, by + 40f, .6f))
+        c.drawLine(leftX - 60f, by + 30f, leftX + 60f, by + 30f, pen.sheen(by, by + 40f, .6f))
         pen.text(info.churchName, leftX, by + 44f, pen.corMed, 11f, pen.solid(Ergos.MUTED), Align.CENTER)
 
         pen.seal(W / 2, by + 18f, 38f)
@@ -317,9 +363,9 @@ object PdfDocuments {
         val qy = by - 16f
         val box = RectF(qx - 3f, qy - 3f, qx + qrSize + 3f, qy + qrSize + 3f)
         c.drawRoundRect(box, 4f, 4f, pen.solid(Ergos.INK))
-        c.drawRoundRect(box, 4f, 4f, pen.gold(qy, qy + qrSize, 1.2f))
+        c.drawRoundRect(box, 4f, 4f, pen.sheen(qy, qy + qrSize, 1.2f))
         pen.qr(Church.VERIFY_URL + code, qx, qy, qrSize)
-        pen.text("VERIFICA ESTE CERTIFICADO", W - 200f, qy + qrSize + 16f, pen.geistSemi, 6.5f, pen.solid(Ergos.GOLD), Align.CENTER, 1.6f)
+        pen.text("VERIFICA ESTE CERTIFICADO", W - 200f, qy + qrSize + 16f, pen.geistSemi, 6.5f, pen.solid(Ergos.LAV), Align.CENTER, 1.6f)
         pen.text(code, W - 200f, qy + qrSize + 28f, pen.geistSemi, 9f, pen.solid(Ergos.INK), Align.CENTER, 1.2f)
 
         pen.text("${Church.footer}, un curso para conocer tus dones espirituales", W / 2, H - 36f, pen.geist, 7f, pen.solid(Ergos.MUTED), Align.CENTER)
@@ -344,9 +390,15 @@ private object Ergos {
     const val VIOLET = 0xFF9450FF.toInt()
     const val VIOLET_HI = 0xFFB58BFF.toInt()
     const val ACCENT = 0xFFC4A2FF.toInt()
-    const val GOLD = 0xFFE2B45C.toInt()
-    const val GOLD_HI = 0xFFF0C46C.toInt()
-    const val GOLD_LO = 0xFFB8893A.toInt()
+    const val LAV = 0xFFC4A2FF.toInt()
+    const val LAV_HI = 0xFFEFE6FF.toInt()
+    const val LAV_LO = 0xFF8C52F6.toInt()
+    const val LAV_PALE = 0xFFE6D8FF.toInt()
+    const val VIOLET_LO = 0xFF6A2FE0.toInt()
+    const val VIOLET_BTN = 0xFF7134EC.toInt()
+    const val WHITE = 0xFFFFFFFF.toInt()
+    const val OTHER_HI = 0xFF8E7BC4.toInt()
+    const val OTHER_LO = 0xFF5B4A8E.toInt()
     const val INK = 0xFFF6F6FB.toInt()
     const val INK2 = 0xFFDCDBE8.toInt()
     const val MUTED = 0xFFB3AFCC.toInt()
@@ -401,8 +453,8 @@ private class Pen(private val context: Context) {
     }
 
     /** Oro con degradado vertical entre y0 e y1. */
-    fun gold(y0: Float, y1: Float, stroke: Float = 0f) = solid(Ergos.GOLD, 1f, stroke).apply {
-        shader = LinearGradient(0f, y0, 0f, y1, intArrayOf(Ergos.GOLD_HI, Ergos.GOLD, Ergos.GOLD_LO), floatArrayOf(0f, .55f, 1f), Shader.TileMode.CLAMP)
+    fun sheen(y0: Float, y1: Float, stroke: Float = 0f) = solid(Ergos.LAV, 1f, stroke).apply {
+        shader = LinearGradient(0f, y0, 0f, y1, intArrayOf(Ergos.LAV_HI, Ergos.LAV, Ergos.LAV_LO), floatArrayOf(0f, .55f, 1f), Shader.TileMode.CLAMP)
     }
 
     fun measure(text: String, face: Typeface, size: Float, spacing: Float = 0f): Float {
@@ -466,7 +518,7 @@ private class Pen(private val context: Context) {
     }
 
     fun frame(w: Float, h: Float, outer: Float, outerWidth: Float, inner: Float) {
-        canvas.drawRect(outer, outer, w - outer, h - outer, gold(0f, h, outerWidth))
+        canvas.drawRect(outer, outer, w - outer, h - outer, sheen(0f, h, outerWidth))
         canvas.drawRect(inner, inner, w - inner, h - inner, solid(Ergos.VIOLET_HI, .45f, .5f))
     }
 
@@ -500,9 +552,9 @@ private class Pen(private val context: Context) {
 
     /** Floritura renacentista de esquina: brazos en S, volutas, hojas de acanto y perlas. */
     fun cornerFlourish() {
-        val g = gold(30f, 140f, 1.3f)
-        val gf = gold(30f, 140f)
-        val thin = gold(30f, 140f, .7f)
+        val g = sheen(30f, 140f, 1.3f)
+        val gf = sheen(30f, 140f)
+        val thin = sheen(30f, 140f, .7f)
         canvas.drawPath(Path().apply { moveTo(36f, 36f); cubicTo(60f, 30f, 90f, 58f, 118f, 46f); cubicTo(134f, 39f, 140f, 52f, 132f, 58f) }, g)
         canvas.drawPath(spiral(126f, 50f, 9f, 1.6f, 1f, PI.toFloat() * .35f), g)
         canvas.drawPath(Path().apply { moveTo(44f, 44f); cubicTo(70f, 50f, 76f, 78f, 98f, 76f); cubicTo(108f, 75f, 110f, 66f, 103f, 64f) }, thin)
@@ -521,20 +573,20 @@ private class Pen(private val context: Context) {
 
     /** Versión pequeña para las páginas de "Mis dones". */
     fun cornerMini() {
-        canvas.drawPath(Path().apply { moveTo(30f, 30f); cubicTo(48f, 26f, 66f, 44f, 86f, 36f) }, gold(20f, 90f, 1f))
-        canvas.drawPath(spiral(90f, 40f, 6f, 1.5f, 1f, PI.toFloat() * 1.1f), gold(20f, 90f, 1f))
-        diamond(30f, 30f, 4.5f, gold(20f, 40f))
-        canvas.drawCircle(30f, 30f, 7f, gold(20f, 40f, .6f))
+        canvas.drawPath(Path().apply { moveTo(30f, 30f); cubicTo(48f, 26f, 66f, 44f, 86f, 36f) }, sheen(20f, 90f, 1f))
+        canvas.drawPath(spiral(90f, 40f, 6f, 1.5f, 1f, PI.toFloat() * 1.1f), sheen(20f, 90f, 1f))
+        diamond(30f, 30f, 4.5f, sheen(20f, 40f))
+        canvas.drawCircle(30f, 30f, 7f, sheen(20f, 40f, .6f))
     }
 
     /** Separador de Ergos con volutas: línea, perlas, rombo. */
     fun ornament(cx: Float, cy: Float, half: Float) {
-        val p = gold(cy - 5f, cy + 5f, .8f)
+        val p = sheen(cy - 5f, cy + 5f, .8f)
         canvas.drawLine(cx - half, cy, cx - 22f, cy, p)
         canvas.drawLine(cx + 22f, cy, cx + half, cy, p)
-        canvas.drawCircle(cx - 14f, cy, 1.8f, gold(cy - 2f, cy + 2f))
-        canvas.drawCircle(cx + 14f, cy, 1.8f, gold(cy - 2f, cy + 2f))
-        diamond(cx, cy, 5f, gold(cy - 5f, cy + 5f))
+        canvas.drawCircle(cx - 14f, cy, 1.8f, sheen(cy - 2f, cy + 2f))
+        canvas.drawCircle(cx + 14f, cy, 1.8f, sheen(cy - 2f, cy + 2f))
+        diamond(cx, cy, 5f, sheen(cy - 5f, cy + 5f))
         listOf(-1f, 1f).forEach { s -> canvas.drawPath(spiral(cx + s * (half + 5f), cy - 3.2f, 4f, 1.2f, s, PI.toFloat() * .5f), p) }
     }
 
@@ -544,7 +596,7 @@ private class Pen(private val context: Context) {
         canvas.save()
         canvas.translate(x, y)
         canvas.scale(s, s)
-        canvas.drawPath(logoPath, gold(0f, ChurchLogo.LOGO_H))
+        canvas.drawPath(logoPath, sheen(0f, ChurchLogo.LOGO_H))
         canvas.restore()
     }
 
@@ -554,13 +606,13 @@ private class Pen(private val context: Context) {
             shader = RadialGradient(cx, cy - 10f, r * 1.2f, intArrayOf(Ergos.DEEP, Ergos.NIGHT), null, Shader.TileMode.CLAMP)
         }
         canvas.drawCircle(cx, cy, r, fill)
-        canvas.drawCircle(cx, cy, r, gold(cy - r, cy + r, 1.6f))
-        canvas.drawCircle(cx, cy, r - 4f, gold(cy - r, cy + r, .6f))
-        canvas.drawCircle(cx, cy, r - 15f, gold(cy - r, cy + r, .6f))
+        canvas.drawCircle(cx, cy, r, sheen(cy - r, cy + r, 1.6f))
+        canvas.drawCircle(cx, cy, r - 4f, sheen(cy - r, cy + r, .6f))
+        canvas.drawCircle(cx, cy, r - 15f, sheen(cy - r, cy + r, .6f))
         // Texto en el anillo, centrado arriba
         val ring = "LLAMADOS  ·  SAN ANDRÉS  ·  DONES ESPIRITUALES  ·"
         val rr = r - 12.5f
-        val tp = gold(cy - r, cy + r).apply { typeface = geistSemi; textSize = 6.2f; letterSpacing = .08f }
+        val tp = sheen(cy - r, cy + r).apply { typeface = geistSemi; textSize = 6.2f; letterSpacing = .08f }
         val circle = Path().apply { addCircle(cx, cy, rr, Path.Direction.CW) }
         val length = (2 * PI * rr).toFloat()
         val tw = tp.measureText(ring)
@@ -573,7 +625,7 @@ private class Pen(private val context: Context) {
         canvas.translate(cx - 17f, cy - 182f * es / 2f)
         canvas.scale(es, es)
         canvas.translate(-40f, -6f)
-        canvas.drawPath(emblemPath, gold(0f, 200f))
+        canvas.drawPath(emblemPath, sheen(0f, 200f))
         canvas.restore()
     }
 
