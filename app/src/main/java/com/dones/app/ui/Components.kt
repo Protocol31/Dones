@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -72,12 +75,16 @@ private val CardShape = RoundedCornerShape(12.dp)
 
 /** Esqueleto común: una sola tarea por pantalla, con desplazamiento si la letra es muy grande. */
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 fun Screen(
     modifier: Modifier = Modifier,
     top: (@Composable () -> Unit)? = null,
     bottom: (@Composable ColumnScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    // Con el teclado abierto se esconden la barra de arriba y los botones de abajo,
+    // así queda casi toda la pantalla para el texto y los espacios para escribir.
+    val typing = WindowInsets.isImeVisible
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
             Modifier
@@ -85,7 +92,7 @@ fun Screen(
                 .background(NightGlow)
                 .safeDrawingPadding(),
         ) {
-            top?.invoke()
+            if (!typing) top?.invoke()
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -95,7 +102,7 @@ fun Screen(
                 verticalArrangement = Arrangement.spacedBy(18.dp),
                 content = content,
             )
-            if (bottom != null) {
+            if (bottom != null && !typing) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()

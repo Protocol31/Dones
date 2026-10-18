@@ -1,6 +1,11 @@
 package com.dones.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -113,6 +118,7 @@ fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
                         label = if (fields > 1) "Espacio ${i + 1}" else "Tu respuesta",
                         expected = expected,
                         checked = checked,
+                        last = i == page.blanks.lastIndex,
                     )
                 }
                 if (mustCheck) {
@@ -171,7 +177,9 @@ fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
  * borde y respuesta en verde si acertó, en rojo si no (y cambia en vivo si lo corrige).
  */
 @Composable
-private fun BlankField(value: String, onValueChange: (String) -> Unit, label: String, expected: String, checked: Boolean) {
+private fun BlankField(value: String, onValueChange: (String) -> Unit, label: String, expected: String, checked: Boolean, last: Boolean) {
+    // «Siguiente» del teclado salta al próximo espacio; en el último, «Listo» cierra el teclado.
+    val focus = LocalFocusManager.current
     val ok = Blanks.isCorrect(expected, value)
     val state: Boolean? = if (checked) ok else null
     OutlinedTextField(
@@ -182,6 +190,11 @@ private fun BlankField(value: String, onValueChange: (String) -> Unit, label: St
         textStyle = MaterialTheme.typography.bodyLarge,
         trailingIcon = if (state != null) ({ StatusDot(state) }) else null,
         colors = ergosFieldColors(state),
+        keyboardOptions = KeyboardOptions(imeAction = if (last) ImeAction.Done else ImeAction.Next),
+        keyboardActions = KeyboardActions(
+            onNext = { focus.moveFocus(FocusDirection.Down) },
+            onDone = { focus.clearFocus() },
+        ),
         modifier = Modifier.fillMaxWidth(),
     )
     if (state != null) {
