@@ -12,8 +12,20 @@ android {
         applicationId = "com.dones.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1-demo"
+        // En GitHub, cada compilación sube el número, así el celular la instala como actualización.
+        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+        versionName = "0.2-demo"
+    }
+
+    // Llave fija para el demo: así cada APK nuevo se instala encima del anterior sin borrar los perfiles.
+    // (Es una llave de prueba pública; para Google Play se usará otra, privada.)
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("demo-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {
