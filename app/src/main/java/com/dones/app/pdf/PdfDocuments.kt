@@ -49,7 +49,7 @@ object Church {
 }
 
 /**
- * PDFs generados en el teléfono con el diseño de Ergos: noche violeta, oro y florituras.
+ * PDFs generados en el teléfono con el diseño de Ergos: noche violeta, lavanda y florituras.
  * Mis dones: A4 vertical (595 × 842 pt). Certificado: A4 horizontal (842 × 595 pt).
  */
 object PdfDocuments {
@@ -65,204 +65,7 @@ object PdfDocuments {
         participant: ParticipantState,
         result: HoutsResult,
         info: ClassInfo?,
-    ): File {
-        val file = File(dir, "mis-dones.pdf")
-        val doc = PdfDocument()
-        val pen = Pen(context)
-        val W = 595f
-        val H = 842f
-        val m = 58f
-        var pageNo = 0
-        var page: PdfDocument.Page? = null
-        var y = 0f
-
-        fun newPage() {
-            page?.let { doc.finishPage(it) }
-            pageNo++
-            val p = doc.startPage(PdfDocument.PageInfo.Builder(W.toInt(), H.toInt(), pageNo).create())
-            page = p
-            pen.canvas = p.canvas
-            pen.background(W, H, W / 2f, 0f, W * .9f)
-            pen.frame(W, H, 16f, 1.2f, 21f)
-            pen.corners(W, H) { pen.cornerMini() }
-            pen.text("${Church.footer}  ·  Página $pageNo", W / 2, H - 30, pen.geist, 7f, pen.solid(Ergos.MUTED), Align.CENTER)
-            y = 52f
-        }
-
-        fun need(h: Float) { if (y + h > H - 58f) newPage() }
-
-        fun section(title: String, minHeight: Float = 40f) {
-            need(minHeight + 36f)
-            y += 22f
-            pen.text(title.uppercase(Locale("es")), W / 2, y, pen.geistSemi, 8.5f, pen.solid(Ergos.ACCENT), Align.CENTER, 3f)
-            y += 12f
-            pen.ornament(W / 2, y, 90f)
-            y += 14f
-        }
-
-        newPage()
-        // Encabezado: logo, curso, título, nombre
-        val logoW = 64f
-        pen.logo(W / 2 - logoW / 2, 40f, logoW)
-        y = 40f + logoW * ChurchLogo.LOGO_H / ChurchLogo.LOGO_W
-        y += 22f
-        pen.text("LLAMADOS  ·  ${(info?.courseName ?: "Descubriendo Mi Ministerio").uppercase(Locale("es"))}", W / 2, y, pen.geistSemi, 7.5f, pen.solid(Ergos.ACCENT), Align.CENTER, 2.4f)
-        y += 32f
-        pen.text("Mis dones espirituales", W / 2, y, pen.corBold, 32f, pen.sheen(y - 26f, y + 4f), Align.CENTER)
-        y += 34f
-        val nameSize = pen.fitSize(participant.name, pen.fraktur, 24f, W - 2 * m)
-        pen.text(participant.name, W / 2, y, pen.fraktur, nameSize, pen.solid(Ergos.INK), Align.CENTER)
-        y += 18f
-        pen.text(
-            listOf(info?.churchName ?: Church.NAME, LocalDate.now().format(spanishDate)).joinToString("  ·  "),
-            W / 2, y, pen.corMed, 11.5f, pen.solid(Ergos.MUTED), Align.CENTER,
-        )
-
-        // Dones dominantes: tarjetas
-        section("Tus dones dominantes", 110f)
-        for (s in result.dominant) {
-            val textW = W - 2 * m - 92f
-            val def = pen.wrap(s.gift.definition, pen.geist, 9.5f, textW)
-            val refs = pen.wrap(s.gift.refs.joinToString("  ·  "), pen.geistMed, 8f, textW)
-            val h = 44f + def.size * 13.5f + refs.size * 11f + 10f
-            need(h + 10f)
-            val top = y
-            val l = m
-            val r = W - m
-            pen.card(RectF(l, top, r, top + h), Ergos.SURFACE2, .92f, Ergos.VIOLET, .55f)
-            val dx = l + 34f
-            val dy = top + 32f
-            pen.diamond(dx, dy, 20f, pen.solid(Ergos.LAV, .14f))
-            pen.diamond(dx, dy, 20f, pen.sheen(dy - 20f, dy + 20f, 1.1f))
-            pen.text("${s.rank}", dx, dy + 7f, pen.corBold, 20f, pen.sheen(dy - 12f, dy + 8f), Align.CENTER)
-            val tx = l + 72f
-            pen.text(s.gift.name, tx, top + 30f, pen.corBold, 20f, pen.sheen(top + 12f, top + 34f))
-            pen.text("${s.percent} %", r - 16f, top + 29f, pen.geistSemi, 11f, pen.solid(Ergos.LAV_HI), Align.RIGHT)
-            var yy = top + 48f
-            def.forEach { pen.text(it, tx, yy, pen.geist, 9.5f, pen.solid(Ergos.INK2)); yy += 13.5f }
-            yy += 3f
-            refs.forEach { pen.text(it, tx, yy, pen.geistMed, 8f, pen.solid(Ergos.ACCENT)); yy += 11f }
-            y = top + h + 10f
-        }
-
-        // Subordinados: casillas de a 3
-        if (result.subordinate.isNotEmpty()) {
-            section("Tus dones subordinados", 46f)
-            val gap = 8f
-            val w = (W - 2 * m - gap * 2) / 3f
-            result.subordinate.chunked(3).forEach { row ->
-                need(46f)
-                row.forEachIndexed { i, s ->
-                    val x = m + i * (w + gap)
-                    pen.card(RectF(x, y, x + w, y + 38f), Ergos.SURFACE, .9f, Ergos.LINE_STRONG, .8f)
-                    val ns = pen.fitSize(s.gift.name, pen.corBold, 13.5f, w - 12f)
-                    pen.text(s.gift.name, x + w / 2, y + 17f, pen.corBold, ns, pen.solid(Ergos.VIOLET_HI), Align.CENTER)
-                    pen.text("${s.percent} %", x + w / 2, y + 30f, pen.geistMed, 8.5f, pen.solid(Ergos.INK2), Align.CENTER)
-                }
-                y += 46f
-            }
-        }
-
-        // Curva completa: cada don con 15 casillas (5 preguntas x 3 puntos), agrupado por nivel.
-        // La sección va entera en una página si cabe.
-        run {
-            val others = result.ranking.filter { it !in result.dominant && it !in result.subordinate }
-            val groups = listOf(
-                Triple("Dominantes", result.dominant, 0),
-                Triple("Subordinados", result.subordinate, 1),
-                Triple("Tus otros dones", others, 2),
-            ).filter { it.second.isNotEmpty() }
-            val row = 19f
-            section("Tu curva completa", minOf(14f + groups.size * 22f + result.ranking.size * row, H - 160f))
-            val c = pen.canvas
-            val nx = m + 26f
-            val bx = m + 172f
-            val pips = 15
-            val gap = 3f
-            val pw = (W - m - 46f - bx - gap * (pips - 1)) / pips
-            pen.text("0", bx, y + 2f, pen.geist, 7f, pen.solid(Ergos.MUTED))
-            pen.text("Puntaje de 15", bx + (pw + gap) * pips - gap, y + 2f, pen.geist, 7f, pen.solid(Ergos.MUTED), Align.RIGHT)
-            y += 10f
-            for ((label, list, tier) in groups) {
-                need(26f + row)
-                y += 8f
-                val caps = label.uppercase(Locale("es"))
-                pen.text(caps, m, y + 6f, pen.geistSemi, 7.5f, pen.solid(if (tier < 2) Ergos.ACCENT else Ergos.MUTED), Align.LEFT, 2f)
-                c.drawLine(m + pen.measure(caps, pen.geistSemi, 7.5f, 2f) + 10f, y + 3f, W - m, y + 3f, pen.solid(Ergos.LINE, 1f, .6f))
-                y += 12f
-                if (tier == 0) {
-                    c.drawRoundRect(RectF(m - 8f, y - 3f, W - m + 8f, y + list.size * row + 1f), 8f, 8f, pen.solid(Ergos.VIOLET, .10f))
-                }
-                for (s in list) {
-                    need(row)
-                    val cy = y + 8f
-                    val filled = Math.round(s.fraction.toFloat().coerceIn(0f, 1f) * pips)
-                    if (tier < 2) {
-                        c.drawCircle(m + 8f, cy, 8f, pen.solid(if (tier == 0) Ergos.VIOLET else Ergos.LINE))
-                        pen.text("${s.rank}", m + 8f, cy + 3.2f, pen.geistSemi, 8.5f, pen.solid(Ergos.INK), Align.CENTER)
-                    } else {
-                        pen.text("${s.rank}", m + 8f, cy + 3.2f, pen.geist, 8.5f, pen.solid(Ergos.MUTED), Align.CENTER)
-                    }
-                    pen.text(
-                        s.gift.name, nx, cy + 3.8f,
-                        if (tier == 0) pen.corBold else pen.corSemi, if (tier == 0) 13.5f else 12f,
-                        pen.solid(if (tier == 2) Ergos.INK2 else Ergos.INK),
-                    )
-                    val colors = when (tier) {
-                        0 -> intArrayOf(Ergos.LAV_PALE, Ergos.VIOLET)
-                        1 -> intArrayOf(Ergos.VIOLET_HI, Ergos.VIOLET_BTN)
-                        else -> intArrayOf(Ergos.OTHER_HI, Ergos.OTHER_LO)
-                    }
-                    val fill = pen.solid(Ergos.VIOLET).apply {
-                        shader = LinearGradient(0f, cy - 4.5f, 0f, cy + 4.5f, colors, null, Shader.TileMode.CLAMP)
-                    }
-                    val empty = pen.solid(Ergos.LINE, .9f, .8f)
-                    for (i in 0 until pips) {
-                        val x = bx + i * (pw + gap)
-                        c.drawRoundRect(RectF(x, cy - 4.5f, x + pw, cy + 4.5f), 2.5f, 2.5f, if (i < filled) fill else empty)
-                    }
-                    pen.text("${s.raw}", W - m, cy + 3.5f, pen.geistSemi, 10f, pen.solid(if (tier == 2) Ergos.INK2 else Ergos.INK), Align.RIGHT)
-                    y += row
-                }
-                y += 2f
-            }
-        }
-
-        // Ministerios
-        if (result.ministries.isNotEmpty()) {
-            section("Dónde podrías servir")
-            for (sug in result.ministries) {
-                val gifts = pen.wrap("Por tus dones: " + sug.matchingGifts.joinToString(", ") { it.name }, pen.geist, 8.5f, W - 2 * m - 16f)
-                need(20f + gifts.size * 12f)
-                pen.diamond(m + 5f, y + 7f, 3.5f, pen.sheen(y, y + 10f))
-                pen.text(sug.ministry.name, m + 16f, y + 11f, pen.corBold, 14f, pen.solid(Ergos.INK))
-                var yy = y + 24f
-                gifts.forEach { pen.text(it, m + 16f, yy, pen.geist, 8.5f, pen.solid(Ergos.MUTED)); yy += 12f }
-                y = yy + 8f
-            }
-        }
-
-        // Cierre
-        val note = pen.wrap(
-            "Este resultado es un punto de partida para la oración y la experimentación. " +
-                "Confírmalo con personas que te conocen, con tu pastor y con los líderes de tu iglesia.",
-            pen.corMed, 12.5f, W - 2 * m - 40f,
-        )
-        val boxH = 26f + note.size * 16f
-        need(boxH + 30f)
-        y += 10f
-        pen.card(RectF(m, y, W - m, y + boxH), Ergos.DEEP, .55f, null, 0f)
-        pen.canvas.drawRoundRect(RectF(m, y, W - m, y + boxH), 8f, 8f, pen.sheen(y, y + boxH, .7f))
-        var yy = y + 22f
-        note.forEach { pen.text(it, W / 2, yy, pen.corMed, 12.5f, pen.solid(Ergos.INK), Align.CENTER); yy += 16f }
-        y += boxH + 14f
-        pen.text("Cuestionario Houts modificado por Wagner · contenido v${content.version}", W / 2, y, pen.geist, 7f, pen.solid(Ergos.MUTED), Align.CENTER)
-
-        page?.let { doc.finishPage(it) }
-        file.outputStream().use { doc.writeTo(it) }
-        doc.close()
-        return file
-    }
+    ): File = ResultsPdf.build(context, dir, content, participant, result, info)
 
     // ------------------------------------------------------------------ Certificado
 
@@ -379,7 +182,7 @@ object PdfDocuments {
 
 // ------------------------------------------------------------------ Herramientas de dibujo
 
-private object Ergos {
+internal object Ergos {
     const val NIGHT = 0xFF0D0919.toInt()
     const val NIGHT2 = 0xFF1A1033.toInt()
     const val SURFACE = 0xFF171226.toInt()
@@ -406,10 +209,10 @@ private object Ergos {
     fun withAlpha(color: Int, a: Float): Int = (color and 0x00FFFFFF) or ((a * 255).roundToInt().coerceIn(0, 255) shl 24)
 }
 
-private enum class Align { LEFT, CENTER, RIGHT }
+internal enum class Align { LEFT, CENTER, RIGHT }
 
 /** Espiral que se cierra (las volutas de las florituras). */
-private fun spiral(cx: Float, cy: Float, r0: Float, turns: Float, dir: Float, start: Float): Path {
+internal fun spiral(cx: Float, cy: Float, r0: Float, turns: Float, dir: Float, start: Float): Path {
     val p = Path()
     val n = (60 * turns).toInt()
     for (i in 0..n) {
@@ -423,7 +226,7 @@ private fun spiral(cx: Float, cy: Float, r0: Float, turns: Float, dir: Float, st
     return p
 }
 
-private class Pen(private val context: Context) {
+internal class Pen(private val context: Context) {
     lateinit var canvas: Canvas
 
     private fun font(id: Int): Typeface = ResourcesCompat.getFont(context, id) ?: Typeface.SERIF
@@ -452,7 +255,7 @@ private class Pen(private val context: Context) {
         }
     }
 
-    /** Oro con degradado vertical entre y0 e y1. */
+    /** Lavanda con degradado vertical entre y0 e y1. */
     fun sheen(y0: Float, y1: Float, stroke: Float = 0f) = solid(Ergos.LAV, 1f, stroke).apply {
         shader = LinearGradient(0f, y0, 0f, y1, intArrayOf(Ergos.LAV_HI, Ergos.LAV, Ergos.LAV_LO), floatArrayOf(0f, .55f, 1f), Shader.TileMode.CLAMP)
     }
