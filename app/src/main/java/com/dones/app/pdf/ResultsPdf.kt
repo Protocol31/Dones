@@ -544,7 +544,7 @@ internal object ResultsPdf {
         // Ilustración a sangre en la mitad de arriba. Si la imagen es horizontal se usa entera;
         // si es la carta vertical, se recorta dentro del marco (sin la placa del nombre).
         val artTop = 22f
-        val ib = 500f
+        val ib = artTop + (W - 44f) * 4f / 5f // ventana 5:4, la medida de las ilustraciones horizontales
         val img = assetImage(context, "personajes", code, 1400)
         c.save()
         c.clipRect(22f, 22f, W - 22f, H - 22f)
