@@ -24,11 +24,8 @@ import java.io.File
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import kotlin.math.PI
-import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.roundToInt
-import kotlin.math.sin
 
 /** Textos largos de los PDF (assets/dones-detalle.json y assets/ministerios-detalle.json). */
 internal class PdfTexts(context: Context) {
@@ -69,7 +66,7 @@ internal class PdfTexts(context: Context) {
 
 /**
  * "Mis dones" en hojas fijas:
- * 1 dominantes · 2 subordinados · 3 curva completa · 4 dónde servir · 5 personaje bíblico.
+ * 1 dominantes · 2 subordinados · 3 curva completa · 4 dónde servir · 5 personaje bíblico · 6 la batalla.
  * Cada hoja achica un poco la letra si el contenido no cabe (por ejemplo, con empates).
  */
 internal object ResultsPdf {
@@ -93,29 +90,36 @@ internal object ResultsPdf {
         val pen = Pen(context)
         val texts = PdfTexts(context)
         val name = participant.name
-        val totalPages = if (result.subordinate.isEmpty()) 4 else 5
+        val battleText = BattleText.load(context)
+        val totalPages = (if (result.subordinate.isEmpty()) 4 else 5) + (if (battleText != null) 1 else 0)
         var pageNo = 0
         var page: PdfDocument.Page? = null
         var y = 0f
 
-        fun newPage(glowY: Float = 0f) {
+        fun newPage(glowY: Float = 0f, red: Boolean = false) {
             page?.let { doc.finishPage(it) }
             pageNo++
             val p = doc.startPage(PdfDocument.PageInfo.Builder(W.toInt(), H.toInt(), pageNo).create())
             page = p
             pen.canvas = p.canvas
-            pen.background(W, H, W / 2f, glowY, W * .9f)
+            if (red) redBackground(pen) else pen.background(W, H, W / 2f, glowY, W * .9f)
             pen.frame(W, H, 16f, 1.2f, 21f)
             pen.corners(W, H) { pen.cornerMini() }
-            pen.text("${Church.footer}  ·  Página $pageNo de $totalPages", W / 2, H - 30, pen.geist, 7f, pen.solid(Ergos.MUTED), Align.CENTER)
+            pen.text(
+                "${Church.footer}  ·  Página $pageNo de $totalPages", W / 2, H - 30, pen.geist, 7f,
+                pen.solid(if (red) Red.MUTED else Ergos.MUTED), Align.CENTER,
+            )
             y = 52f
         }
 
+        fun runningHead(color: Int = Ergos.MUTED) =
+            pen.text("Mis dones espirituales  ·  $name".uppercase(Locale("es")), W / 2, 46f, pen.geistSemi, 6.8f, pen.solid(color), Align.CENTER, 1.6f)
+
         /** Encabezado de las hojas 2 en adelante. */
         fun pageHead(title: String, sub: String?) {
-            pen.text("Mis dones espirituales  ·  $name".uppercase(Locale("es")), W / 2, 46f, pen.geistSemi, 6.8f, pen.solid(Ergos.MUTED), Align.CENTER, 1.6f)
-            y = 84f
-            pen.text(title, W / 2, y, pen.corBold, 28f, pen.sheen(y - 22f, y + 4f), Align.CENTER)
+            runningHead()
+            y = 86f
+            pen.text(title, W / 2, y, pen.fraktur, fit(pen, title, pen.fraktur, 30f, W - 2 * M), pen.sheen(y - 24f, y + 6f), Align.CENTER)
             y += 14f
             pen.ornament(W / 2, y, 90f)
             y += 20f
@@ -138,7 +142,7 @@ internal object ResultsPdf {
             W / 2, y, pen.geistSemi, 6.8f, pen.solid(Ergos.ACCENT), Align.CENTER, 2.2f,
         )
         y += 28f
-        pen.text("Mis dones espirituales", W / 2, y, pen.corBold, 28f, pen.sheen(y - 22f, y + 4f), Align.CENTER)
+        pen.text("Mis dones espirituales", W / 2, y, pen.fraktur, 30f, pen.sheen(y - 24f, y + 6f), Align.CENTER)
         y += 27f
         pen.text(name, W / 2, y, pen.fraktur, fit(pen, name, pen.fraktur, 21f, W - 2 * M), pen.solid(Ergos.INK), Align.CENTER)
         y += 16f
@@ -177,8 +181,16 @@ internal object ResultsPdf {
         ministries(pen, texts, result.ministries, y)
 
         // ---------------------------------------------------------------- Hoja 5: personaje bíblico
-        newPage(glowY = 250f)
+        newPage(glowY = 300f)
+        runningHead()
         character(context, pen, texts, result)
+
+        // ---------------------------------------------------------------- Hoja 6: la batalla por tus dones
+        if (battleText != null) {
+            newPage(red = true)
+            runningHead(Red.MUTED)
+            battle(context, pen, battleText, result)
+        }
 
         page?.let { doc.finishPage(it) }
         file.outputStream().use { doc.writeTo(it) }
@@ -426,78 +438,90 @@ internal object ResultsPdf {
 
     // ------------------------------------------------------------------ Personaje bíblico
 
-    /** Imagen en assets/personajes/ cuyo nombre empieza con el código del don (p. ej. "O-moises.png"). */
-    private fun characterImage(context: Context, code: String): Bitmap? = runCatching {
-        val name = context.assets.list("personajes")?.firstOrNull {
-            (it.startsWith("$code-") || it.startsWith("$code.")) &&
+    /** Primera imagen en assets/[folder]/ cuyo nombre empieza con [prefix] (p. ej. "B-pedro.jpg"). */
+    private fun assetImage(context: Context, folder: String, prefix: String, maxSide: Int): Bitmap? = runCatching {
+        val name = context.assets.list(folder)?.firstOrNull {
+            (it.startsWith("$prefix-") || it.startsWith("$prefix.")) &&
                 it.substringAfterLast('.').lowercase() in setOf("png", "jpg", "jpeg", "webp")
         } ?: return null
-        val full = context.assets.open("personajes/$name").use { BitmapFactory.decodeStream(it) } ?: return null
+        val full = context.assets.open("$folder/$name").use { BitmapFactory.decodeStream(it) } ?: return null
         // Se reduce para que el PDF no pese demasiado.
-        val side = 640
-        val s = side.toFloat() / minOf(full.width, full.height)
+        val s = maxSide.toFloat() / max(full.width, full.height)
         if (s >= 1f) full else Bitmap.createScaledBitmap(full, (full.width * s).roundToInt(), (full.height * s).roundToInt(), true)
     }.getOrNull()
+
+    /** Dibuja [img] llenando el rectángulo y recortando lo que sobra (centrado). */
+    private fun drawCover(pen: Pen, img: Bitmap, dst: RectF) {
+        val s = max(dst.width() / img.width, dst.height() / img.height)
+        val iw = dst.width() / s
+        val ih = dst.height() / s
+        val sx = (img.width - iw) / 2f
+        val sy = (img.height - ih) / 2f
+        val src = Rect(sx.roundToInt(), sy.roundToInt(), (sx + iw).roundToInt(), (sy + ih).roundToInt())
+        pen.canvas.drawBitmap(img, src, dst, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
+    }
+
+    private fun cornerDiamonds(pen: Pen, l: Float, t: Float, r: Float, b: Float, fill: Int) {
+        listOf(l to t, r to t, l to b, r to b).forEach { (x, y) ->
+            pen.diamond(x, y, 6f, pen.solid(fill))
+            pen.diamond(x, y, 6f, pen.sheen(y - 6f, y + 6f, 1.1f))
+            pen.diamond(x, y, 2.2f, pen.sheen(y - 3f, y + 3f))
+        }
+    }
+
+    // ------------------------------------------------------------------ Hoja 5: personaje bíblico
 
     private fun character(context: Context, pen: Pen, texts: PdfTexts, result: HoutsResult) {
         val c = pen.canvas
         val top = result.dominant.firstOrNull() ?: result.ranking.firstOrNull() ?: return
         val ch = texts.gifts[top.gift.code]?.character ?: return
-        val cx = W / 2
-        val cy = 236f
-        val r = 112f
 
-        // Halo, rayos y rombos alrededor del círculo
-        c.drawCircle(cx, cy, r * 2.1f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        var y = 86f
+        val title = "Eres como ${ch.name}"
+        pen.text(title, W / 2, y, pen.fraktur, fit(pen, title, pen.fraktur, 32f, W - 2 * M), pen.sheen(y - 26f, y + 6f), Align.CENTER)
+
+        // La carta: la ilustración completa con marco, como una carta coleccionable.
+        val cw = 226f
+        val chh = cw * 1220f / 720f
+        val cl = W / 2 - cw / 2
+        val ct = 106f
+        val cr = cl + cw
+        val cb = ct + chh
+        c.drawRect(0f, ct - 60f, W, cb + 60f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = RadialGradient(
-                cx, cy, r * 2.1f,
-                intArrayOf(Ergos.withAlpha(Ergos.VIOLET, .45f), Ergos.withAlpha(Ergos.DEEP, .25f), Ergos.withAlpha(Ergos.NIGHT, 0f)),
-                floatArrayOf(0f, .5f, 1f), Shader.TileMode.CLAMP,
+                W / 2, (ct + cb) / 2, chh * .75f,
+                intArrayOf(Ergos.withAlpha(Ergos.VIOLET, .45f), Ergos.withAlpha(Ergos.DEEP, .2f), Ergos.withAlpha(Ergos.NIGHT, 0f)),
+                floatArrayOf(0f, .55f, 1f), Shader.TileMode.CLAMP,
             )
         })
-        for (i in 0 until 48) {
-            val a = (i / 48f * 2 * PI).toFloat()
-            val r0 = r + 16f
-            val r1 = r + if (i % 2 == 1) 26f else 40f
-            c.drawLine(cx + r0 * cos(a), cy + r0 * sin(a), cx + r1 * cos(a), cy + r1 * sin(a), pen.solid(Ergos.LAV, if (i % 2 == 1) .35f else .7f, .7f))
-        }
-        for (i in 0 until 8) {
-            val a = (i / 8f * 2 * PI + PI / 8).toFloat()
-            pen.diamond(cx + (r + 48f) * cos(a), cy + (r + 48f) * sin(a), 3.5f, pen.sheen(cy - r, cy + r))
-        }
-        c.drawCircle(cx, cy, r + 10f, pen.sheen(cy - r, cy + r, .7f))
-        c.drawCircle(cx, cy, r + 3f, pen.sheen(cy - r, cy + r, 2.2f))
-
-        // Retrato recortado en círculo; sin imagen, la inicial del personaje.
+        rrect(pen, cl - 9f, ct - 9f, cr + 9f, cb + 9f, 14f, pen.solid(CARD_BACK))
+        rrect(pen, cl - 9f, ct - 9f, cr + 9f, cb + 9f, 14f, pen.sheen(ct, cb, 1.6f))
         c.save()
-        c.clipPath(Path().apply { addCircle(cx, cy, r, Path.Direction.CW) })
-        val img = characterImage(context, top.gift.code)
+        c.clipPath(Path().apply { addRoundRect(RectF(cl, ct, cr, cb), 8f, 8f, Path.Direction.CW) })
+        val img = assetImage(context, "personajes", top.gift.code, 900)
         if (img != null) {
-            val s = max(2 * r / img.width, 2 * r / img.height)
-            val iw = img.width * s
-            val ih = img.height * s
-            c.drawBitmap(img, Rect(0, 0, img.width, img.height), RectF(cx - iw / 2, cy - ih / 2, cx + iw / 2, cy + ih / 2), Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
+            drawCover(pen, img, RectF(cl, ct, cr, cb))
         } else {
-            c.drawCircle(cx, cy, r, Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                shader = RadialGradient(cx, cy - 30f, r * 1.3f, intArrayOf(0xFF3B1E7A.toInt(), Ergos.NIGHT2), null, Shader.TileMode.CLAMP)
+            // Sin ilustración: la inicial y el nombre con la letra del logo.
+            c.drawRect(cl, ct, cr, cb, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                shader = RadialGradient(W / 2, ct + chh * .4f, chh * .7f, intArrayOf(0xFF3B1E7A.toInt(), Ergos.NIGHT2), null, Shader.TileMode.CLAMP)
             })
-            pen.text(ch.name.take(1), cx, cy + 40f, pen.corBold, 120f, pen.sheen(cy - 60f, cy + 40f), Align.CENTER)
+            pen.text(ch.name.take(1), W / 2, ct + chh * .55f, pen.fraktur, 150f, pen.sheen(ct + chh * .3f, ct + chh * .55f), Align.CENTER)
+            pen.text(ch.name, W / 2, cb - 30f, pen.fraktur, fit(pen, ch.name, pen.fraktur, 30f, cw - 30f), pen.solid(Ergos.INK), Align.CENTER)
         }
         c.restore()
+        rrect(pen, cl, ct, cr, cb, 8f, pen.solid(Ergos.VIOLET_HI, .55f, .7f))
+        cornerDiamonds(pen, cl - 9f, ct - 9f, cr + 9f, cb + 9f, CARD_BACK)
 
-        var y = cy + r + 62f
-        pen.text("ERES COMO", W / 2, y, pen.geistSemi, 9f, pen.solid(Ergos.ACCENT), Align.CENTER, 4f)
-        y += 46f
-        pen.text(ch.name, W / 2, y, pen.corBold, fit(pen, ch.name, pen.corBold, 46f, W - 2 * M), pen.sheen(y - 36f, y + 6f), Align.CENTER)
-        y += 14f
-        pen.ornament(W / 2, y, 110f)
-        y += 26f
-        pen.wrap("«${ch.quote}»", pen.corMed, 13f, W - 2 * M - 60f).forEach {
-            pen.text(it, W / 2, y, pen.corMed, 13f, pen.solid(Ergos.ACCENT), Align.CENTER)
-            y += 16f
+        y = cb + 36f
+        pen.wrap("«${ch.quote}»", pen.corMed, 13.5f, W - 2 * M - 50f).forEach {
+            pen.text(it, W / 2, y, pen.corMed, 13.5f, pen.solid(Ergos.ACCENT), Align.CENTER)
+            y += 16.5f
         }
-        pen.text(ch.ref, W / 2, y + 1f, pen.geistSemi, 8f, pen.solid(Ergos.MUTED), Align.CENTER, 1.5f)
-        y += 26f
+        pen.text(ch.ref.uppercase(Locale("es")), W / 2, y + 1f, pen.geistSemi, 8f, pen.solid(Ergos.MUTED), Align.CENTER, 1.5f)
+        y += 14f
+        pen.ornament(W / 2, y, 100f)
+        y += 24f
 
         val others = result.dominant.drop(1).map { it.gift.name }
         val extra = when (others.size) {
@@ -512,14 +536,14 @@ internal object ResultsPdf {
         )
         val noteTop = BOTTOM - note.size * 10.5f - 4f
         // El texto principal se achica si no cabe sobre las píldoras y la nota.
-        var size = 14.5f
-        var body = pen.wrap(ch.text + extra, pen.corMed, size, W - 2 * M - 30f)
-        while (size > 11f && y + body.size * size * 1.31f + 10f + 22f > noteTop - 16f) {
+        var size = 13.5f
+        var body = pen.wrap(ch.text + extra, pen.corMed, size, W - 2 * M - 20f)
+        while (size > 10.5f && y + body.size * size * 1.3f + 10f + 22f > noteTop - 12f) {
             size -= .5f
-            body = pen.wrap(ch.text + extra, pen.corMed, size, W - 2 * M - 30f)
+            body = pen.wrap(ch.text + extra, pen.corMed, size, W - 2 * M - 20f)
         }
-        body.forEach { pen.text(it, W / 2, y, pen.corMed, size, pen.solid(Ergos.INK), Align.CENTER); y += size * 1.31f }
-        y += 10f
+        body.forEach { pen.text(it, W / 2, y, pen.corMed, size, pen.solid(Ergos.INK), Align.CENTER); y += size * 1.3f }
+        y += 8f
 
         // Píldoras con los dones dominantes
         val items = result.dominant.map { it.gift.name }
@@ -535,5 +559,161 @@ internal object ResultsPdf {
         var yy = noteTop
         note.forEach { pen.text(it, W / 2, yy, pen.geist, 7.8f, pen.solid(Ergos.MUTED), Align.CENTER); yy += 10.5f }
         pen.text("Cuestionario Houts modificado por Wagner", W / 2, yy + 4f, pen.geist, 6.8f, pen.solid(Ergos.MUTED, .8f), Align.CENTER)
+    }
+
+    // ------------------------------------------------------------------ Hoja 6: la batalla por tus dones
+
+    private const val CARD_BACK = 0xFF120C1F.toInt()
+
+    /** Tonos de la hoja de advertencia: toda roja; el morado queda solo en los bordes. */
+    private object Red {
+        const val BG0 = 0xFF8E1426.toInt()
+        const val BG1 = 0xFF5A0B1F.toInt()
+        const val BG2 = 0xFF2A0618.toInt()
+        const val CARD = 0xFF3A0716.toInt()
+        const val ROSE = 0xFFFFB8C2.toInt()
+        const val ROSE_HI = 0xFFFFE3E7.toInt()
+        const val ALARM = 0xFFFF6B76.toInt()
+        const val MUTED = 0xFFE7A9B3.toInt()
+    }
+
+    private fun redBackground(pen: Pen) {
+        pen.canvas.drawRect(0f, 0f, W, H, pen.solid(Red.BG2))
+        pen.canvas.drawRect(0f, 0f, W, H, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = RadialGradient(W / 2, 230f, W * 1.05f, intArrayOf(Red.BG0, Red.BG1, Red.BG2), floatArrayOf(0f, .5f, 1f), Shader.TileMode.CLAMP)
+        })
+    }
+
+    private fun rose(y0: Float, y1: Float) = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        shader = LinearGradient(0f, y0, 0f, y1, intArrayOf(Ergos.WHITE, Red.ROSE_HI, Red.ROSE), floatArrayOf(0f, .5f, 1f), Shader.TileMode.CLAMP)
+    }
+
+    private fun battle(context: Context, pen: Pen, b: BattleText, result: HoutsResult) {
+        val c = pen.canvas
+        var y = 66f
+        // Aviso
+        val aw = pen.measure("ADVERTENCIA", pen.geistSemi, 7.5f, 3f) + 34f
+        rrect(pen, W / 2 - aw / 2, y - 11f, W / 2 + aw / 2, y + 6f, 8.5f, pen.solid(0xFF000000.toInt(), .25f))
+        rrect(pen, W / 2 - aw / 2, y - 11f, W / 2 + aw / 2, y + 6f, 8.5f, pen.solid(Ergos.VIOLET_HI, .9f, .8f))
+        pen.diamond(W / 2 - aw / 2 + 10f, y - 2.5f, 2.6f, pen.solid(Red.ALARM))
+        pen.diamond(W / 2 + aw / 2 - 10f, y - 2.5f, 2.6f, pen.solid(Red.ALARM))
+        pen.text("ADVERTENCIA", W / 2, y, pen.geistSemi, 7.5f, pen.solid(Red.ROSE_HI), Align.CENTER, 3f)
+        y += 36f
+        val title = "La batalla por tus dones"
+        pen.text(title, W / 2 + 1.5f, y + 2f, pen.fraktur, 32f, pen.solid(0xFF000000.toInt(), .35f), Align.CENTER)
+        pen.text(title, W / 2, y, pen.fraktur, 32f, rose(y - 26f, y + 6f), Align.CENTER)
+        y += 14f
+
+        // Ilustración: la del don principal si existe (assets/batalla/<código>-…), si no la general.
+        val doms = (result.dominant.ifEmpty { result.ranking.take(1) }).take(3)
+        val code = doms.firstOrNull()?.gift?.code
+        val own = code?.let { assetImage(context, "batalla", it, 1500) }
+        val art = own ?: assetImage(context, "batalla", "default", 1500)
+        val ax = M - 8f
+        val aW = W - 2 * ax
+        val ah = 214f
+        val ay = y
+        if (art != null) {
+            c.save()
+            c.clipPath(Path().apply { addRoundRect(RectF(ax, ay, ax + aW, ay + ah), 8f, 8f, Path.Direction.CW) })
+            drawCover(pen, art, RectF(ax, ay, ax + aW, ay + ah))
+            c.restore()
+            rrect(pen, ax, ay, ax + aW, ay + ah, 8f, pen.sheen(ay, ay + ah, 1.6f))
+            rrect(pen, ax - 4f, ay - 4f, ax + aW + 4f, ay + ah + 4f, 11f, pen.solid(Ergos.VIOLET_HI, .5f, .6f))
+            y = ay + ah + 2f
+            if (own == null) {
+                val cap = "LAS AVES DEL CAMINO  ·  MT 13:4, 19"
+                val pw = pen.measure(cap, pen.geistSemi, 7.5f, 2f) + 36f
+                rrect(pen, W / 2 - pw / 2, y - 12f, W / 2 + pw / 2, y + 12f, 12f, pen.solid(Red.BG2))
+                rrect(pen, W / 2 - pw / 2, y - 12f, W / 2 + pw / 2, y + 12f, 12f, pen.sheen(y - 12f, y + 12f, 1.1f))
+                pen.text(cap, W / 2, y + 3f, pen.geistSemi, 7.5f, pen.solid(Red.ROSE_HI), Align.CENTER, 2f)
+            }
+            y += 32f
+        } else {
+            y += 10f
+        }
+
+        val tw = W - 2 * M
+        pen.wrap(b.intro, pen.corMed, 12.5f, tw).forEach { pen.text(it, W / 2, y, pen.corMed, 12.5f, pen.solid(Ergos.INK), Align.CENTER); y += 15.5f }
+        y += 4f
+
+        // Una columna por don dominante (hasta tres).
+        val list = doms.filter { b.gifts.containsKey(it.gift.code) }
+        val closing = pen.wrap(b.closing, pen.corMed, 12f, tw)
+        val closeH = closing.size * 14.5f + 26f
+        if (list.isNotEmpty()) {
+            val n = list.size
+            val colGap = 10f
+            val cx0 = M - 8f
+            val cw = (W - 2 * cx0 - colGap * (n - 1)) / n
+            val colTop = y
+            val avail = BOTTOM - closeH - colTop
+
+            fun column(s: GiftScore, x: Float, k: Float, draw: Boolean): Float {
+                val d = b.gifts.getValue(s.gift.code)
+                val pad = 10f
+                val iw = cw - 2 * pad
+                fun t(str: String, tx: Float, ty: Float, face: Typeface, size: Float, color: Int, align: Align = Align.LEFT, sp: Float = 0f) {
+                    if (draw) pen.text(str, tx, ty, face, size, pen.solid(color), align, sp)
+                }
+                var yy = colTop + 18f * k
+                t(s.gift.name.uppercase(Locale("es")), x + cw / 2, yy, pen.geistSemi, 8f * k, Red.ROSE_HI, Align.CENTER, 1.4f)
+                yy += 18f * k
+                pen.wrap("«${d.lie}»", pen.corBold, 13f * k, iw).forEach { t(it, x + cw / 2, yy, pen.corBold, 13f * k, Red.ROSE, Align.CENTER); yy += 15f * k }
+                t("LA MENTIRA", x + cw / 2, yy + 1f, pen.geistSemi, 6.5f * k, Red.ALARM, Align.CENTER, 1.5f)
+                yy += 14f * k
+                pen.wrap(d.attack, pen.geist, 8.2f * k, iw).forEach { t(it, x + pad, yy, pen.geist, 8.2f * k, Ergos.INK2); yy += 10.6f * k }
+                yy += 4f * k
+                if (draw) c.drawLine(x + 12f, yy, x + cw - 12f, yy, pen.solid(Ergos.VIOLET_HI, .45f, .6f))
+                yy += 12f * k
+                t("LA VERDAD", x + pad, yy, pen.geistSemi, 6.5f * k, Red.ROSE_HI, Align.LEFT, 1.5f)
+                yy += 12f * k
+                pen.wrap(d.truth, pen.corMed, 11f * k, iw).forEach { t(it, x + pad, yy, pen.corMed, 11f * k, Ergos.INK); yy += 12.6f * k }
+                t(d.ref, x + pad, yy + 1f, pen.geistSemi, 7.5f * k, Red.ROSE)
+                yy += 15f * k
+                t("CÓMO RESISTIR", x + pad, yy, pen.geistSemi, 6.5f * k, Red.ROSE_HI, Align.LEFT, 1.5f)
+                yy += 12f * k
+                pen.wrap(d.defense, pen.geist, 8.2f * k, iw).forEach { t(it, x + pad, yy, pen.geist, 8.2f * k, Ergos.INK2); yy += 10.6f * k }
+                return yy + 6f * k - colTop
+            }
+
+            fun height(k: Float) = list.mapIndexed { i, s -> column(s, cx0 + i * (cw + colGap), k, false) }.max()
+            var k = if (n == 1) 1.15f else 1.08f
+            while (k > .66f && height(k) > avail) k -= .02f
+            val boxH = height(k)
+            list.forEachIndexed { i, s ->
+                val x = cx0 + i * (cw + colGap)
+                rrect(pen, x, colTop, x + cw, colTop + boxH, 8f, pen.solid(Red.CARD, .78f))
+                rrect(pen, x, colTop, x + cw, colTop + boxH, 8f, pen.solid(Ergos.VIOLET_HI, .75f, .8f))
+                column(s, x, k, true)
+            }
+            y = colTop + boxH + 22f
+        }
+        closing.forEach { pen.text(it, W / 2, y, pen.corMed, 12f, pen.solid(Ergos.INK), Align.CENTER); y += 14.5f }
+        pen.text(b.closingRef.uppercase(Locale("es")), W / 2, y + 2f, pen.geistSemi, 7.5f, pen.solid(Red.ROSE), Align.CENTER, 1.5f)
+    }
+}
+
+/** Textos de la hoja 6 (assets/batalla.json). */
+internal class BattleText(
+    val intro: String,
+    val closing: String,
+    val closingRef: String,
+    val gifts: Map<String, Gift>,
+) {
+    data class Gift(val attack: String, val lie: String, val truth: String, val ref: String, val defense: String)
+
+    companion object {
+        fun load(context: Context): BattleText? = runCatching {
+            val o = JSONObject(context.assets.open("batalla.json").bufferedReader().use { it.readText() })
+            val g = o.getJSONObject("gifts")
+            BattleText(
+                o.optString("intro"), o.optString("closing"), o.optString("closingRef"),
+                g.keys().asSequence().associateWith { code ->
+                    val x = g.getJSONObject(code)
+                    Gift(x.optString("attack"), x.optString("lie"), x.optString("truth"), x.optString("ref"), x.optString("defense"))
+                },
+            )
+        }.getOrNull()
     }
 }
