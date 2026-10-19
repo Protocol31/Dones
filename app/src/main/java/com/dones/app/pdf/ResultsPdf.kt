@@ -74,7 +74,7 @@ internal object ResultsPdf {
     private const val W = 595f
     private const val H = 842f
     private const val M = 58f
-    private const val BOTTOM = H - 58f
+    private const val BOTTOM = H - 70f
     private val spanishDate = DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", Locale("es"))
 
     fun build(
@@ -96,30 +96,31 @@ internal object ResultsPdf {
         var page: PdfDocument.Page? = null
         var y = 0f
 
-        fun newPage(glowY: Float = 0f, red: Boolean = false) {
+        /** Fondo con textura y marco dorado; [frame] = false cuando la hoja lo dibuja al final (hoja 5). */
+        fun newPage(red: Boolean = false, frame: Boolean = true) {
             page?.let { doc.finishPage(it) }
             pageNo++
             val p = doc.startPage(PdfDocument.PageInfo.Builder(W.toInt(), H.toInt(), pageNo).create())
             page = p
             pen.canvas = p.canvas
-            if (red) redBackground(pen) else pen.background(W, H, W / 2f, glowY, W * .9f)
-            pen.frame(W, H, 16f, 1.2f, 21f)
-            pen.corners(W, H) { pen.cornerMini() }
+            pen.paper(W, H)
+            if (red) redBackground(pen)
+            if (frame) pen.goldFrame(W, H)
             pen.text(
-                "${Church.footer}  ·  Página $pageNo de $totalPages", W / 2, H - 30, pen.geist, 7f,
+                "${Church.footer}  ·  Página $pageNo de $totalPages", W / 2, H - 50f, pen.geist, 7f,
                 pen.solid(if (red) Red.MUTED else Ergos.MUTED), Align.CENTER,
             )
             y = 52f
         }
 
         fun runningHead(color: Int = Ergos.MUTED) =
-            pen.text("Mis dones espirituales  ·  $name".uppercase(Locale("es")), W / 2, 46f, pen.geistSemi, 6.8f, pen.solid(color), Align.CENTER, 1.6f)
+            pen.text("Mis dones espirituales  ·  $name".uppercase(Locale("es")), W / 2, 60f, pen.geistSemi, 6.8f, pen.solid(color), Align.CENTER, 1.6f)
 
         /** Encabezado de las hojas 2 en adelante. */
         fun pageHead(title: String, sub: String?) {
             runningHead()
-            y = 86f
-            pen.text(title, W / 2, y, pen.fraktur, fit(pen, title, pen.fraktur, 30f, W - 2 * M), pen.sheen(y - 24f, y + 6f), Align.CENTER)
+            y = 98f
+            pen.frakturText(title, W / 2, y, pen.fitFraktur(title, 30f, W - 2 * M), pen.gold(y - 24f, y + 6f), Align.CENTER)
             y += 14f
             pen.ornament(W / 2, y, 90f)
             y += 20f
@@ -135,16 +136,16 @@ internal object ResultsPdf {
         // ---------------------------------------------------------------- Hoja 1: dominantes
         newPage()
         val logoW = 46f
-        pen.logo(W / 2 - logoW / 2, 36f, logoW)
-        y = 36f + logoW * ChurchLogo.LOGO_H / ChurchLogo.LOGO_W + 16f
+        pen.logo(W / 2 - logoW / 2, 54f, logoW)
+        y = 54f + logoW * ChurchLogo.LOGO_H / ChurchLogo.LOGO_W + 16f
         pen.text(
             "LLAMADOS  ·  ${(info?.courseName ?: "Descubriendo Mi Ministerio").uppercase(Locale("es"))}",
             W / 2, y, pen.geistSemi, 6.8f, pen.solid(Ergos.ACCENT), Align.CENTER, 2.2f,
         )
         y += 28f
-        pen.text("Mis dones espirituales", W / 2, y, pen.fraktur, 30f, pen.sheen(y - 24f, y + 6f), Align.CENTER)
+        pen.frakturText("Mis dones espirituales", W / 2, y, 30f, pen.gold(y - 24f, y + 6f), Align.CENTER)
         y += 27f
-        pen.text(name, W / 2, y, pen.fraktur, fit(pen, name, pen.fraktur, 21f, W - 2 * M), pen.solid(Ergos.INK), Align.CENTER)
+        pen.frakturText(name, W / 2, y, pen.fitFraktur(name, 21f, W - 2 * M), pen.solid(Ergos.INK), Align.CENTER)
         y += 16f
         pen.text(
             listOf(info?.churchName ?: Church.NAME, LocalDate.now().format(spanishDate)).joinToString("  ·  "),
@@ -181,9 +182,9 @@ internal object ResultsPdf {
         ministries(pen, texts, result.ministries, y)
 
         // ---------------------------------------------------------------- Hoja 5: personaje bíblico
-        newPage(glowY = 300f)
-        runningHead()
-        character(context, pen, texts, result)
+        newPage(frame = false)
+        character(context, pen, texts, result, content)
+        pen.goldFrame(W, H)
 
         // ---------------------------------------------------------------- Hoja 6: la batalla por tus dones
         if (battleText != null) {
@@ -461,109 +462,197 @@ internal object ResultsPdf {
         pen.canvas.drawBitmap(img, src, dst, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
     }
 
-    private fun cornerDiamonds(pen: Pen, l: Float, t: Float, r: Float, b: Float, fill: Int) {
-        listOf(l to t, r to t, l to b, r to b).forEach { (x, y) ->
-            pen.diamond(x, y, 6f, pen.solid(fill))
-            pen.diamond(x, y, 6f, pen.sheen(y - 6f, y + 6f, 1.1f))
-            pen.diamond(x, y, 2.2f, pen.sheen(y - 3f, y + 3f))
+    // ------------------------------------------------------------------ Hoja 5: personaje bíblico
+
+    /** Tema de cada personaje (assets/personajes-tema.json): color, tres palabras y una frase. */
+    private class Theme(val accent: Int, val words: List<String>, val motto: String)
+
+    private fun theme(context: Context, code: String): Theme = runCatching {
+        val o = JSONObject(context.assets.open("personajes-tema.json").bufferedReader().use { it.readText() })
+            .getJSONObject("characters").getJSONObject(code)
+        val w = o.getJSONArray("words")
+        Theme(android.graphics.Color.parseColor(o.getString("accent")), (0 until w.length()).map { w.getString(it) }, o.optString("motto"))
+    }.getOrElse { Theme(Ergos.ACCENT, emptyList(), "") }
+
+    /** Mezcla el color con la noche (para fondos de píldoras y del ícono). */
+    private fun deep(color: Int, k: Float = .22f): Int {
+        fun ch(c: Int, n: Int) = (n + (c - n) * k).roundToInt()
+        return (0xFF shl 24) or (ch(color shr 16 and 255, 13) shl 16) or (ch(color shr 8 and 255, 9) shl 8) or ch(color and 255, 25)
+    }
+
+    private fun star(pen: Pen, x: Float, y: Float, r: Float, color: Int) {
+        pen.canvas.drawPath(Path().apply {
+            moveTo(x, y - r); quadTo(x, y, x + r * .5f, y); quadTo(x, y, x, y + r); quadTo(x, y, x - r * .5f, y); quadTo(x, y, x, y - r); close()
+        }, pen.solid(color))
+    }
+
+    /** Ícono del personaje dentro de un sol de rayos (assets/iconos/<código>.png teñido con el color del tema). */
+    private fun emblem(pen: Pen, code: String, th: Theme, cx: Float, cy: Float, r: Float) {
+        val c = pen.canvas
+        for (i in 0 until 36) {
+            val a = (i / 36.0 * 2 * Math.PI).toFloat()
+            val r0 = r * 1.05f
+            val r1 = r * if (i % 2 == 1) 1.25f else 1.45f
+            c.drawLine(cx + r0 * kotlin.math.cos(a), cy + r0 * kotlin.math.sin(a), cx + r1 * kotlin.math.cos(a), cy + r1 * kotlin.math.sin(a), pen.solid(th.accent, if (i % 2 == 1) .45f else .85f, .8f))
+        }
+        c.drawCircle(cx, cy, r * .92f, pen.solid(deep(th.accent, .3f), .8f))
+        c.drawCircle(cx, cy, r * .92f, pen.solid(th.accent, .7f, .7f))
+        pen.asset("iconos/$code.png")?.let { icon ->
+            val s = r * .78f
+            c.drawBitmap(icon, Rect(0, 0, icon.width, icon.height), RectF(cx - s, cy - s, cx + s, cy + s), Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+                colorFilter = android.graphics.PorterDuffColorFilter(th.accent, android.graphics.PorterDuff.Mode.SRC_IN)
+            })
+        }
+        star(pen, cx - r * 1.9f, cy - r * .9f, 5f, th.accent)
+        star(pen, cx + r * 1.9f, cy - r * .9f, 5f, th.accent)
+    }
+
+    /** Píldoras con borde del color del tema, centradas en x. */
+    private fun chips(pen: Pen, words: List<String>, x: Float, y: Float, color: Int) {
+        if (words.isEmpty()) return
+        val ws = words.map { pen.measure(it, pen.geistSemi, 7f, 1.6f) + 18f }
+        var px = x - (ws.sum() + 6f * (ws.size - 1)) / 2
+        words.forEachIndexed { i, w ->
+            rrect(pen, px, y, px + ws[i], y + 17f, 8.5f, pen.solid(color, .9f, .7f))
+            pen.text(w, px + ws[i] / 2, y + 11.6f, pen.geistSemi, 7f, pen.solid(color), Align.CENTER, 1.6f)
+            px += ws[i] + 6f
         }
     }
 
-    // ------------------------------------------------------------------ Hoja 5: personaje bíblico
+    /** Código de barras decorativo, como en los afiches. */
+    private fun barcode(pen: Pen, x: Float, y: Float, w: Float, h: Float, paint: Paint) {
+        val widths = floatArrayOf(1f, .5f, 1.5f, .5f, 2f, .8f)
+        val gaps = floatArrayOf(1.2f, 2f, 1f, 2.5f)
+        var xx = x
+        var k = 0
+        while (xx < x + w) {
+            val bw = widths[k % widths.size]
+            k++
+            pen.canvas.drawRect(xx, y, xx + bw, y + h, paint)
+            xx += bw + gaps[k % gaps.size]
+        }
+    }
 
-    private fun character(context: Context, pen: Pen, texts: PdfTexts, result: HoutsResult) {
+    private fun character(context: Context, pen: Pen, texts: PdfTexts, result: HoutsResult, content: HoutsContent) {
         val c = pen.canvas
         val top = result.dominant.firstOrNull() ?: result.ranking.firstOrNull() ?: return
-        val ch = texts.gifts[top.gift.code]?.character ?: return
+        val code = top.gift.code
+        val ch = texts.gifts[code]?.character ?: return
+        val th = theme(context, code)
+        val number = (content.gifts.indexOfFirst { it.code == code } + 1).coerceAtLeast(1)
 
-        var y = 86f
-        val title = "Eres como ${ch.name}"
-        pen.text(title, W / 2, y, pen.fraktur, fit(pen, title, pen.fraktur, 32f, W - 2 * M), pen.sheen(y - 26f, y + 6f), Align.CENTER)
-
-        // La carta: la ilustración completa con marco, como una carta coleccionable.
-        val cw = 226f
-        val chh = cw * 1220f / 720f
-        val cl = W / 2 - cw / 2
-        val ct = 106f
-        val cr = cl + cw
-        val cb = ct + chh
-        c.drawRect(0f, ct - 60f, W, cb + 60f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            shader = RadialGradient(
-                W / 2, (ct + cb) / 2, chh * .75f,
-                intArrayOf(Ergos.withAlpha(Ergos.VIOLET, .45f), Ergos.withAlpha(Ergos.DEEP, .2f), Ergos.withAlpha(Ergos.NIGHT, 0f)),
-                floatArrayOf(0f, .55f, 1f), Shader.TileMode.CLAMP,
-            )
-        })
-        rrect(pen, cl - 9f, ct - 9f, cr + 9f, cb + 9f, 14f, pen.solid(CARD_BACK))
-        rrect(pen, cl - 9f, ct - 9f, cr + 9f, cb + 9f, 14f, pen.sheen(ct, cb, 1.6f))
+        // Ilustración a sangre en la mitad de arriba. Si la imagen es horizontal se usa entera;
+        // si es la carta vertical, se recorta dentro del marco (sin la placa del nombre).
+        val artTop = 22f
+        val ib = 500f
+        val img = assetImage(context, "personajes", code, 1400)
         c.save()
-        c.clipPath(Path().apply { addRoundRect(RectF(cl, ct, cr, cb), 8f, 8f, Path.Direction.CW) })
-        val img = assetImage(context, "personajes", top.gift.code, 900)
+        c.clipRect(22f, 22f, W - 22f, H - 22f)
         if (img != null) {
-            drawCover(pen, img, RectF(cl, ct, cr, cb))
+            val src = if (img.width > img.height) RectF(0f, 0f, img.width.toFloat(), img.height.toFloat())
+            else RectF(img.width * 44f / 720f, img.height * 56f / 1220f, img.width * 676f / 720f, img.height * 1010f / 1220f)
+            val dst = RectF(22f, artTop, W - 22f, ib)
+            val s = max(dst.width() / src.width(), dst.height() / src.height())
+            val iw = dst.width() / s
+            val ih = dst.height() / s
+            val sx = src.left + (src.width() - iw) / 2
+            val sy = src.top + (src.height() - ih) * .12f
+            c.drawBitmap(img, Rect(sx.roundToInt(), sy.roundToInt(), (sx + iw).roundToInt(), (sy + ih).roundToInt()), dst, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
         } else {
-            // Sin ilustración: la inicial y el nombre con la letra del logo.
-            c.drawRect(cl, ct, cr, cb, Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                shader = RadialGradient(W / 2, ct + chh * .4f, chh * .7f, intArrayOf(0xFF3B1E7A.toInt(), Ergos.NIGHT2), null, Shader.TileMode.CLAMP)
+            c.drawRect(22f, artTop, W - 22f, ib, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                shader = RadialGradient(W / 2, 260f, 320f, intArrayOf(deep(th.accent, .45f), Ergos.NIGHT2), null, Shader.TileMode.CLAMP)
             })
-            pen.text(ch.name.take(1), W / 2, ct + chh * .55f, pen.fraktur, 150f, pen.sheen(ct + chh * .3f, ct + chh * .55f), Align.CENTER)
-            pen.text(ch.name, W / 2, cb - 30f, pen.fraktur, fit(pen, ch.name, pen.fraktur, 30f, cw - 30f), pen.solid(Ergos.INK), Align.CENTER)
         }
+        // Degradados para que el texto se lea sobre la ilustración
+        c.drawRect(0f, ib - 230f, W, ib + 1f, Paint().apply {
+            shader = LinearGradient(0f, ib - 230f, 0f, ib, intArrayOf(Ergos.withAlpha(Ergos.NIGHT, 0f), Ergos.withAlpha(Ergos.NIGHT, .85f), 0xFF0F0B1E.toInt()), floatArrayOf(0f, .7f, 1f), Shader.TileMode.CLAMP)
+        })
+        c.drawRect(0f, artTop, W, artTop + 190f, Paint().apply {
+            shader = LinearGradient(0f, artTop, 0f, artTop + 190f, Ergos.withAlpha(Ergos.NIGHT, .85f), Ergos.withAlpha(Ergos.NIGHT, 0f), Shader.TileMode.CLAMP)
+        })
         c.restore()
-        rrect(pen, cl, ct, cr, cb, 8f, pen.solid(Ergos.VIOLET_HI, .55f, .7f))
-        cornerDiamonds(pen, cl - 9f, ct - 9f, cr + 9f, cb + 9f, CARD_BACK)
 
-        y = cb + 36f
-        pen.wrap("«${ch.quote}»", pen.corMed, 13.5f, W - 2 * M - 50f).forEach {
-            pen.text(it, W / 2, y, pen.corMed, 13.5f, pen.solid(Ergos.ACCENT), Align.CENTER)
-            y += 16.5f
+        // Rótulos tipo ficha
+        val es = Locale("es")
+        pen.text("N.º ${"%02d".format(number)}  ·  TU PERSONAJE BÍBLICO", M, 80f, pen.geistSemi, 7f, pen.solid(Ergos.CREAM), Align.LEFT, 2.2f)
+        pen.text(ch.ref.uppercase(es), W - M, 80f, pen.geistSemi, 7f, pen.solid(Ergos.CREAM), Align.RIGHT, 2.2f)
+        c.drawLine(M, 88f, W - M, 88f, pen.solid(Ergos.CREAM, .5f, .5f))
+        pen.text("ERES COMO", M, 110f, pen.geistSemi, 9f, pen.solid(th.accent), Align.LEFT, 4f)
+        val size = pen.fitFraktur(ch.name, 92f, W - 2 * M)
+        val ny = 110f + size * .82f
+        pen.frakturText(ch.name, M + 3f, ny + 3f, size, pen.solid(0xFF000000.toInt(), .55f))
+        pen.frakturText(ch.name, M, ny, size, pen.gold(116f, ny))
+
+        // Cita sobre el degradado
+        val quote = pen.wrap("«${ch.quote}»", pen.corMed, 16f, W - 2 * M - 40f)
+        var y = ib - 40f - (quote.size - 1) * 19f
+        quote.forEach { pen.text(it, W / 2, y, pen.corMed, 16f, pen.solid(Ergos.CREAM), Align.CENTER); y += 19f }
+        barcode(pen, M, ib - 22f, 70f, 9f, pen.solid(Ergos.CREAM, .55f))
+        run {
+            val x = W - M - 9f
+            val yb = ib - 22f
+            val p = pen.solid(Ergos.CREAM, .55f, .6f)
+            c.drawRect(x, yb, x + 9f, yb + 9f, p); c.drawLine(x, yb, x + 9f, yb + 9f, p); c.drawLine(x + 9f, yb, x, yb + 9f, p)
         }
-        pen.text(ch.ref.uppercase(Locale("es")), W / 2, y + 1f, pen.geistSemi, 8f, pen.solid(Ergos.MUTED), Align.CENTER, 1.5f)
-        y += 14f
-        pen.ornament(W / 2, y, 100f)
-        y += 24f
 
+        // Separador
+        y = ib + 14f
+        c.drawLine(M, y, W - M, y, pen.gold(y - 1f, y + 1f, .7f))
+        pen.diamond(W / 2, y, 4f, pen.gold(y - 4f, y + 4f))
+        y += 26f
+
+        // Columna izquierda: su historia; derecha: ícono, palabras y frase
+        val lw = 300f
+        val rx = M + lw + 24f
+        val rw = W - M - rx
         val others = result.dominant.drop(1).map { it.gift.name }
         val extra = when (others.size) {
             0 -> ""
             1 -> " Además, Dios puso en ti el don de ${others[0]}: juntos forman tu manera única de servir."
             else -> " Además, Dios puso en ti los dones de ${others.dropLast(1).joinToString(", ")} y ${others.last()}: juntos forman tu manera única de servir."
         }
+        pen.text("SU HISTORIA, TU LLAMADO", M, y, pen.geistSemi, 7f, pen.solid(th.accent), Align.LEFT, 2f)
         val note = pen.wrap(
             "Este resultado es un punto de partida para la oración y la experimentación. " +
                 "Confírmalo con personas que te conocen, con tu pastor y con los líderes de tu iglesia.",
-            pen.geist, 7.8f, W - 2 * M - 40f,
+            pen.geist, 7.6f, W - 2 * M - 60f,
         )
-        val noteTop = BOTTOM - note.size * 10.5f - 4f
-        // El texto principal se achica si no cabe sobre las píldoras y la nota.
-        var size = 13.5f
-        var body = pen.wrap(ch.text + extra, pen.corMed, size, W - 2 * M - 20f)
-        while (size > 10.5f && y + body.size * size * 1.3f + 10f + 22f > noteTop - 12f) {
-            size -= .5f
-            body = pen.wrap(ch.text + extra, pen.corMed, size, W - 2 * M - 20f)
+        val noteTop = BOTTOM - note.size * 10f + 4f
+        val pillsMax = noteTop - 22f - 14f
+        var bs = 12.3f
+        var body = pen.wrap(ch.text + extra, pen.corMed, bs, lw)
+        while (bs > 10f && y + 18f + body.size * bs * 1.25f + 12f > pillsMax) {
+            bs -= .3f
+            body = pen.wrap(ch.text + extra, pen.corMed, bs, lw)
         }
-        body.forEach { pen.text(it, W / 2, y, pen.corMed, size, pen.solid(Ergos.INK), Align.CENTER); y += size * 1.3f }
-        y += 8f
+        var yy = y + 18f
+        body.forEach { pen.text(it, M, yy, pen.corMed, bs, pen.solid(Ergos.INK)); yy += bs * 1.25f }
+
+        emblem(pen, code, th, rx + rw / 2, y + 36f, 25f)
+        chips(pen, th.words.take(2), rx + rw / 2, y + 80f, th.accent)
+        chips(pen, th.words.drop(2), rx + rw / 2, y + 101f, th.accent)
+        var my = y + 140f
+        if (th.motto.isNotEmpty()) pen.wrap("«${th.motto}»", pen.corBold, 13f, rw).forEach {
+            pen.text(it, rx + rw / 2, my, pen.corBold, 13f, pen.solid(Ergos.CREAM), Align.CENTER); my += 15f
+        }
 
         // Píldoras con los dones dominantes
+        val py = minOf(max(yy, my) + 6f, pillsMax)
         val items = result.dominant.map { it.gift.name }
         val ws = items.map { pen.measure(it, pen.geistSemi, 9f) + 22f }
         var px = W / 2 - (ws.sum() + 8f * (items.size - 1)) / 2
         items.forEachIndexed { i, t ->
-            rrect(pen, px, y, px + ws[i], y + 22f, 11f, pen.solid(Ergos.VIOLET, .28f))
-            rrect(pen, px, y, px + ws[i], y + 22f, 11f, pen.sheen(y, y + 22f, .8f))
-            pen.text(t, px + ws[i] / 2, y + 14.5f, pen.geistSemi, 9f, pen.solid(Ergos.INK), Align.CENTER)
+            rrect(pen, px, py, px + ws[i], py + 22f, 11f, pen.solid(deep(th.accent), .85f))
+            rrect(pen, px, py, px + ws[i], py + 22f, 11f, pen.gold(py, py + 22f, .8f))
+            pen.text(t, px + ws[i] / 2, py + 14.5f, pen.geistSemi, 9f, pen.solid(Ergos.INK), Align.CENTER)
             px += ws[i] + 8f
         }
 
-        var yy = noteTop
-        note.forEach { pen.text(it, W / 2, yy, pen.geist, 7.8f, pen.solid(Ergos.MUTED), Align.CENTER); yy += 10.5f }
-        pen.text("Cuestionario Houts modificado por Wagner", W / 2, yy + 4f, pen.geist, 6.8f, pen.solid(Ergos.MUTED, .8f), Align.CENTER)
+        var ny2 = noteTop
+        note.forEach { pen.text(it, W / 2, ny2, pen.geist, 7.6f, pen.solid(Ergos.MUTED), Align.CENTER); ny2 += 10f }
     }
 
     // ------------------------------------------------------------------ Hoja 6: la batalla por tus dones
-
-    private const val CARD_BACK = 0xFF120C1F.toInt()
 
     /** Tonos de la hoja de advertencia: toda roja; el morado queda solo en los bordes. */
     private object Red {
@@ -578,9 +667,13 @@ internal object ResultsPdf {
     }
 
     private fun redBackground(pen: Pen) {
-        pen.canvas.drawRect(0f, 0f, W, H, pen.solid(Red.BG2))
+        // Rojo encima del papel con textura, dejando ver un poco la textura.
         pen.canvas.drawRect(0f, 0f, W, H, Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            shader = RadialGradient(W / 2, 230f, W * 1.05f, intArrayOf(Red.BG0, Red.BG1, Red.BG2), floatArrayOf(0f, .5f, 1f), Shader.TileMode.CLAMP)
+            shader = RadialGradient(
+                W / 2, 230f, W * 1.05f,
+                intArrayOf(Ergos.withAlpha(Red.BG0, .86f), Ergos.withAlpha(Red.BG1, .88f), Ergos.withAlpha(Red.BG2, .9f)),
+                floatArrayOf(0f, .5f, 1f), Shader.TileMode.CLAMP,
+            )
         })
     }
 
@@ -590,7 +683,7 @@ internal object ResultsPdf {
 
     private fun battle(context: Context, pen: Pen, b: BattleText, result: HoutsResult) {
         val c = pen.canvas
-        var y = 66f
+        var y = 80f
         // Aviso
         val aw = pen.measure("ADVERTENCIA", pen.geistSemi, 7.5f, 3f) + 34f
         rrect(pen, W / 2 - aw / 2, y - 11f, W / 2 + aw / 2, y + 6f, 8.5f, pen.solid(0xFF000000.toInt(), .25f))

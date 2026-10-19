@@ -1,0 +1,230 @@
+{
+  "_nota": "Tema de la hoja «Eres como…»: color de acento, tres palabras y una frase. El ícono está en assets/iconos/<código>.png.",
+  "characters": {
+    "A": {
+      "accent": "#F2B66B",
+      "words": [
+        "LLAMADO",
+        "VERDAD",
+        "OBEDIENCIA"
+      ],
+      "motto": "Heme aquí, envíame a mí"
+    },
+    "B": {
+      "accent": "#F4B58F",
+      "words": [
+        "CUIDADO",
+        "OFRENDA",
+        "FE"
+      ],
+      "motto": "Muerto, aún habla por ella"
+    },
+    "C": {
+      "accent": "#E8C27A",
+      "words": [
+        "ESTUDIO",
+        "LEY",
+        "CLARIDAD"
+      ],
+      "motto": "Preparó su corazón para enseñar"
+    },
+    "D": {
+      "accent": "#C3A9FF",
+      "words": [
+        "CRITERIO",
+        "JUSTICIA",
+        "HUMILDAD"
+      ],
+      "motto": "Dame un corazón entendido"
+    },
+    "E": {
+      "accent": "#B7A8FF",
+      "words": [
+        "ESTUDIO",
+        "FIRMEZA",
+        "ORACIÓN"
+      ],
+      "motto": "Dios les dio conocimiento"
+    },
+    "F": {
+      "accent": "#8FB8FF",
+      "words": [
+        "ÁNIMO",
+        "CONSUELO",
+        "CONFIANZA"
+      ],
+      "motto": "Permaneced fieles al Señor"
+    },
+    "G": {
+      "accent": "#9EC2FF",
+      "words": [
+        "ESCUCHA",
+        "VERDAD",
+        "CORAZÓN"
+      ],
+      "motto": "Jehová mira el corazón"
+    },
+    "H": {
+      "accent": "#FFC85A",
+      "words": [
+        "GENEROSIDAD",
+        "GOZO",
+        "JUSTICIA"
+      ],
+      "motto": "La mitad de mis bienes doy"
+    },
+    "I": {
+      "accent": "#E6C48E",
+      "words": [
+        "LEALTAD",
+        "SERVICIO",
+        "HUMILDAD"
+      ],
+      "motto": "A dondequiera que fueres, iré yo"
+    },
+    "J": {
+      "accent": "#A9C8FF",
+      "words": [
+        "COMPASIÓN",
+        "BUENAS OBRAS",
+        "TERNURA"
+      ],
+      "motto": "Abundaba en buenas obras"
+    },
+    "K": {
+      "accent": "#9CC8FF",
+      "words": [
+        "ENVÍO",
+        "VALENTÍA",
+        "CULTURAS"
+      ],
+      "motto": "Apartadme para la obra"
+    },
+    "L": {
+      "accent": "#C9D6FF",
+      "words": [
+        "ANUNCIO",
+        "ESCRITURA",
+        "ALEGRÍA"
+      ],
+      "motto": "Le anunció el evangelio de Jesús"
+    },
+    "M": {
+      "accent": "#C59BFF",
+      "words": [
+        "HOGAR",
+        "ACOGIDA",
+        "GENEROSIDAD"
+      ],
+      "motto": "Entrad en mi casa"
+    },
+    "N": {
+      "accent": "#F0D79A",
+      "words": [
+        "CONFIANZA",
+        "PROMESA",
+        "OBEDIENCIA"
+      ],
+      "motto": "Salió sin saber a dónde iba"
+    },
+    "O": {
+      "accent": "#8FB6FF",
+      "words": [
+        "GUÍA",
+        "VALOR",
+        "VISIÓN"
+      ],
+      "motto": "Ven, y te enviaré"
+    },
+    "P": {
+      "accent": "#D9CBB0",
+      "words": [
+        "ORDEN",
+        "PLAN",
+        "CONSTANCIA"
+      ],
+      "motto": "El pueblo tuvo ánimo para trabajar"
+    },
+    "Q": {
+      "accent": "#FF9A4D",
+      "words": [
+        "FUEGO",
+        "VALENTÍA",
+        "ORACIÓN"
+      ],
+      "motto": "El Dios que responde con fuego"
+    },
+    "R": {
+      "accent": "#F7D08A",
+      "words": [
+        "RESTAURACIÓN",
+        "FE",
+        "COMPASIÓN"
+      ],
+      "motto": "Su carne se volvió como la de un niño"
+    },
+    "S": {
+      "accent": "#FF8F6B",
+      "words": [
+        "ALABANZA",
+        "ESPÍRITU",
+        "APERTURA"
+      ],
+      "motto": "Magnificaban a Dios"
+    },
+    "T": {
+      "accent": "#C2A3FF",
+      "words": [
+        "REVELACIÓN",
+        "HUMILDAD",
+        "SABIDURÍA"
+      ],
+      "motto": "No está en mí; Dios responderá"
+    },
+    "U": {
+      "accent": "#C8B48A",
+      "words": [
+        "SENCILLEZ",
+        "LIBERTAD",
+        "MENSAJE"
+      ],
+      "motto": "Preparad el camino del Señor"
+    },
+    "V": {
+      "accent": "#B8C4E8",
+      "words": [
+        "ENTREGA",
+        "FIDELIDAD",
+        "PROPÓSITO"
+      ],
+      "motto": "Antes que te formase, te conocí"
+    },
+    "W": {
+      "accent": "#F3C77A",
+      "words": [
+        "ORACIÓN",
+        "CONSTANCIA",
+        "ESPERA"
+      ],
+      "motto": "Sirviendo de noche y de día"
+    },
+    "X": {
+      "accent": "#8FD0FF",
+      "words": [
+        "LIBERTAD",
+        "ALABANZA",
+        "VALENTÍA"
+      ],
+      "motto": "Saúl tenía alivio"
+    },
+    "Y": {
+      "accent": "#FFC9A8",
+      "words": [
+        "SERVICIO",
+        "ATENCIÓN",
+        "AMOR"
+      ],
+      "motto": "Lo recibió en su casa"
+    }
+  }
+}

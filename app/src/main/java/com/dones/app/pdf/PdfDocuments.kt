@@ -1,12 +1,15 @@
 package com.dones.app.pdf
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.LinearGradient
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RadialGradient
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
@@ -79,38 +82,18 @@ object PdfDocuments {
         pen.canvas = page.canvas
         val c = pen.canvas
 
-        // Fondo con resplandor y damasco de rombos
-        pen.background(W, H, W / 2, H * .42f, W * .62f)
-        val lattice = pen.solid(Ergos.VIOLET, .07f, .5f)
-        var x = -H
-        while (x < W + H) { c.drawLine(x, 0f, x + H, H, lattice); c.drawLine(x, H, x + H, 0f, lattice); x += 26f }
-        val dot = pen.solid(Ergos.VIOLET_HI, .10f)
-        var dy = 13f
-        while (dy < H) {
-            var dx = 0f
-            while (dx < W) { c.drawCircle(dx + if ((dy / 26f).toInt() % 2 == 1) 13f else 0f, dy, .9f, dot); dx += 26f }
-            dy += 26f
-        }
-
-        // Marcos lavanda y rombos en el centro de cada lado
-        c.drawRect(16f, 16f, W - 16f, H - 16f, pen.sheen(0f, H, 2.2f))
-        c.drawRect(22f, 22f, W - 22f, H - 22f, pen.sheen(0f, H, .7f).apply { alpha = 230 })
-        c.drawRect(27f, 27f, W - 27f, H - 27f, pen.solid(Ergos.VIOLET_HI, .55f, .6f))
-        listOf(W / 2 to 16f, W / 2 to H - 16f, 16f to H / 2, W - 16f to H / 2).forEach { (px, py) ->
-            pen.diamond(px, py, 6f, pen.solid(Ergos.NIGHT))
-            pen.diamond(px, py, 6f, pen.sheen(py - 6f, py + 6f, 1.2f))
-            pen.diamond(px, py, 2.4f, pen.sheen(py - 3f, py + 3f))
-        }
-        pen.corners(W, H) { pen.cornerFlourish() }
+        // Fondo con textura y el marco dorado de las cartas
+        pen.paper(W, H)
+        pen.goldFrame(W, H)
 
         // Logo de la iglesia
         val logoW = 96f
-        pen.logo(W / 2 - logoW / 2, 40f, logoW)
-        var y = 40f + logoW * ChurchLogo.LOGO_H / ChurchLogo.LOGO_W
+        pen.logo(W / 2 - logoW / 2, 50f, logoW)
+        var y = 50f + logoW * ChurchLogo.LOGO_H / ChurchLogo.LOGO_W
 
         // Título
         y += 44f
-        pen.text("CERTIFICADO", W / 2, y, pen.corBold, 40f, pen.sheen(y - 34f, y + 4f), Align.CENTER, 9f)
+        pen.text("CERTIFICADO", W / 2, y, pen.corBold, 40f, pen.gold(y - 34f, y + 4f), Align.CENTER, 9f)
         y += 20f
         pen.text("DE PARTICIPACIÓN", W / 2, y, pen.geistSemi, 9.5f, pen.solid(Ergos.ACCENT), Align.CENTER, 4.5f)
         y += 14f
@@ -119,16 +102,16 @@ object PdfDocuments {
         // Nombre en la letra del logo
         y += 30f
         pen.text("Se otorga con alegría y gratitud a", W / 2, y, pen.corMed, 16f, pen.solid(Ergos.INK2), Align.CENTER)
-        val ns = pen.fitSize(name, pen.fraktur, 48f, W - 220f)
+        val ns = pen.fitFraktur(name, 48f, W - 220f)
         y += ns + 10f
-        pen.text(name, W / 2 + 1.5f, y + 2f, pen.fraktur, ns, pen.solid(Ergos.VIOLET_LO, .8f), Align.CENTER)
+        pen.frakturText(name, W / 2 + 1.5f, y + 2f, ns, pen.solid(Ergos.VIOLET_LO, .8f), Align.CENTER)
         val namePaint = pen.solid(Ergos.INK).apply {
             shader = LinearGradient(0f, y - ns, 0f, y + 6f, intArrayOf(Ergos.WHITE, Ergos.LAV_PALE, Ergos.VIOLET_HI), floatArrayOf(0f, .5f, 1f), Shader.TileMode.CLAMP)
         }
-        pen.text(name, W / 2, y, pen.fraktur, ns, namePaint, Align.CENTER)
+        pen.frakturText(name, W / 2, y, ns, namePaint, Align.CENTER)
         y += 14f
         run {
-            val half = max(160f, pen.measure(name, pen.fraktur, ns) / 2 + 20f)
+            val half = max(160f, pen.measureFraktur(name, ns) / 2 + 20f)
             val p = pen.sheen(y - 6f, y + 6f, .9f)
             val sw = Path().apply {
                 moveTo(W / 2 - half, y); cubicTo(W / 2 - half * .5f, y - 5f, W / 2 - 30f, y + 5f, W / 2 - 8f, y)
@@ -171,7 +154,7 @@ object PdfDocuments {
         pen.text("VERIFICA ESTE CERTIFICADO", W - 200f, qy + qrSize + 16f, pen.geistSemi, 6.5f, pen.solid(Ergos.LAV), Align.CENTER, 1.6f)
         pen.text(code, W - 200f, qy + qrSize + 28f, pen.geistSemi, 9f, pen.solid(Ergos.INK), Align.CENTER, 1.2f)
 
-        pen.text("${Church.footer}, un curso para conocer tus dones espirituales", W / 2, H - 36f, pen.geist, 7f, pen.solid(Ergos.MUTED), Align.CENTER)
+        pen.text("${Church.footer}, un curso para conocer tus dones espirituales", W / 2, H - 44f, pen.geist, 7f, pen.solid(Ergos.MUTED), Align.CENTER)
 
         doc.finishPage(page)
         file.outputStream().use { doc.writeTo(it) }
@@ -202,6 +185,10 @@ internal object Ergos {
     const val WHITE = 0xFFFFFFFF.toInt()
     const val OTHER_HI = 0xFF8E7BC4.toInt()
     const val OTHER_LO = 0xFF5B4A8E.toInt()
+    const val GOLD = 0xFFD9B877.toInt()
+    const val GOLD_HI = 0xFFF6E3B4.toInt()
+    const val GOLD_LO = 0xFF9C7744.toInt()
+    const val CREAM = 0xFFEFE3C8.toInt()
     const val INK = 0xFFF6F6FB.toInt()
     const val INK2 = 0xFFDCDBE8.toInt()
     const val MUTED = 0xFFB3AFCC.toInt()
@@ -237,6 +224,34 @@ internal class Pen(private val context: Context) {
     val geistMed = font(R.font.geist_medium)
     val geistSemi = font(R.font.geist_semibold)
     val fraktur = font(R.font.unifraktur_maguntia)
+    /** Solo para la S y la A mayúsculas: en Maguntia parecen G y U. */
+    val rocker = font(R.font.new_rocker)
+
+    private fun frakturRuns(s: String, size: Float) =
+        s.map { ch -> if (ch == 'S' || ch == 'A') Triple(ch.toString(), rocker, size * .93f) else Triple(ch.toString(), fraktur, size) }
+
+    fun measureFraktur(s: String, size: Float): Float = frakturRuns(s, size).sumOf { (t, f, z) -> measure(t, f, z).toDouble() }.toFloat()
+
+    fun fitFraktur(s: String, size: Float, width: Float): Float {
+        var v = size
+        while (v > 8f && measureFraktur(s, v) > width) v -= 1f
+        return v
+    }
+
+    /** Texto con la letra del logo, cambiando solo la S y la A mayúsculas por unas que se leen bien. */
+    fun frakturText(s: String, x: Float, y: Float, size: Float, paint: Paint, align: Align = Align.LEFT) {
+        var x0 = when (align) {
+            Align.LEFT -> x
+            Align.CENTER -> x - measureFraktur(s, size) / 2
+            Align.RIGHT -> x - measureFraktur(s, size)
+        }
+        for ((t, f, z) in frakturRuns(s, size)) {
+            paint.typeface = f
+            paint.textSize = z
+            canvas.drawText(t, x0, y, paint)
+            x0 += measure(t, f, z)
+        }
+    }
 
     private val logoPath: Path by lazy {
         PathParser.createPathFromPathData(ChurchLogo.pathData(context, ChurchLogo.LOGO_FILE)).apply { fillType = Path.FillType.EVEN_ODD }
@@ -253,6 +268,33 @@ internal class Pen(private val context: Context) {
             strokeCap = Paint.Cap.ROUND
             strokeJoin = Paint.Join.ROUND
         }
+    }
+
+    /** Oro de los marcos de las cartas, con degradado vertical entre y0 e y1. */
+    fun gold(y0: Float, y1: Float, stroke: Float = 0f) = solid(Ergos.GOLD, 1f, stroke).apply {
+        shader = LinearGradient(0f, y0, 0f, y1, intArrayOf(Ergos.GOLD_HI, Ergos.GOLD, Ergos.GOLD_LO), floatArrayOf(0f, .5f, 1f), Shader.TileMode.CLAMP)
+    }
+
+    private val bitmaps = mutableMapOf<String, Bitmap?>()
+
+    /** Imagen de assets/ (se lee una sola vez por documento). */
+    fun asset(path: String): Bitmap? = bitmaps.getOrPut(path) {
+        runCatching { context.assets.open(path).use { BitmapFactory.decodeStream(it) } }.getOrNull()
+    }
+
+    private fun fill(img: Bitmap, w: Float, h: Float) =
+        canvas.drawBitmap(img, Rect(0, 0, img.width, img.height), RectF(0f, 0f, w, h), Paint(Paint.FILTER_BITMAP_FLAG))
+
+    /** Fondo morado con textura, como el de las cartas. */
+    fun paper(w: Float, h: Float) {
+        val img = asset(if (w > h) "pdf/fondo-horizontal.jpg" else "pdf/fondo.jpg")
+        if (img != null) fill(img, w, h) else background(w, h, w / 2, h * .4f, w * .9f)
+    }
+
+    /** Marco dorado de la carta de Lidia, ajustado a la hoja. */
+    fun goldFrame(w: Float, h: Float) {
+        val img = asset(if (w > h) "pdf/marco-horizontal.png" else "pdf/marco.png")
+        if (img != null) fill(img, w, h) else frame(w, h, 16f, 1.2f, 21f)
     }
 
     /** Lavanda con degradado vertical entre y0 e y1. */
@@ -384,12 +426,12 @@ internal class Pen(private val context: Context) {
 
     /** Separador de Ergos con volutas: línea, perlas, rombo. */
     fun ornament(cx: Float, cy: Float, half: Float) {
-        val p = sheen(cy - 5f, cy + 5f, .8f)
+        val p = gold(cy - 5f, cy + 5f, .8f)
         canvas.drawLine(cx - half, cy, cx - 22f, cy, p)
         canvas.drawLine(cx + 22f, cy, cx + half, cy, p)
-        canvas.drawCircle(cx - 14f, cy, 1.8f, sheen(cy - 2f, cy + 2f))
-        canvas.drawCircle(cx + 14f, cy, 1.8f, sheen(cy - 2f, cy + 2f))
-        diamond(cx, cy, 5f, sheen(cy - 5f, cy + 5f))
+        canvas.drawCircle(cx - 14f, cy, 1.8f, gold(cy - 2f, cy + 2f))
+        canvas.drawCircle(cx + 14f, cy, 1.8f, gold(cy - 2f, cy + 2f))
+        diamond(cx, cy, 5f, gold(cy - 5f, cy + 5f))
         listOf(-1f, 1f).forEach { s -> canvas.drawPath(spiral(cx + s * (half + 5f), cy - 3.2f, 4f, 1.2f, s, PI.toFloat() * .5f), p) }
     }
 
