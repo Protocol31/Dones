@@ -419,7 +419,7 @@ private fun CharacterSection(vm: DonesViewModel, texts: PdfTexts) {
     }
     // El versículo, tal cual, como en el PDF: comilla grande, texto serif y la cita en versalitas.
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text("“", style = TextStyle(fontFamily = Cormorant, fontWeight = FontWeight.Bold, fontSize = 64.sp, lineHeight = 40.sp, brush = GoldText))
+        Text("“", style = TextStyle(fontFamily = Cormorant, fontWeight = FontWeight.Bold, fontSize = 64.sp, lineHeight = 64.sp, brush = GoldText), modifier = Modifier.height(44.dp))
         Text(ch.quote, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = Cormorant, fontWeight = FontWeight.Medium, lineHeight = 36.sp), color = Ergos.Ink)
         SpacedCaps("—  ${ch.ref}  ·  RVR1960", th.accent, 12.sp, center = false)
         RefChip(ch.ref, onClick = { vm.openScripture(ch.ref) })
@@ -517,7 +517,7 @@ private fun BattleSection(vm: DonesViewModel) {
                 SwordsTitle({ PosterName("La batalla", 56.sp, RoseText) })
                 SpacedCaps("Por tus dones", alarm, 13.sp)
                 // Espacio para que se vea la escultura antes del texto.
-                Spacer(Modifier.height(220.dp))
+                Spacer(Modifier.height(380.dp))
                 Text(
                     b?.intro.orEmpty(),
                     style = MaterialTheme.typography.bodyLarge.copy(fontFamily = Cormorant, fontWeight = FontWeight.Medium, fontSize = 23.sp, lineHeight = 32.sp, shadow = Shadow(Color.Black, Offset(0f, 3f), 6f)),
@@ -530,7 +530,7 @@ private fun BattleSection(vm: DonesViewModel) {
                         Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(Color(0xFF2A0712).copy(alpha = .82f))
+                            .background(Color(0xFF2A0712).copy(alpha = .7f))
                             .border(1.5.dp, alarm.copy(alpha = .6f), RoundedCornerShape(14.dp))
                             .padding(18.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
