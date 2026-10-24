@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -149,10 +150,11 @@ fun ResultsTabScreen(vm: DonesViewModel) {
     val texts = remember { PdfTexts(context) }
     var section by remember { mutableStateOf(0) }
     var error by remember { mutableStateOf<String?>(null) }
+    val chipsScroll = rememberScrollState()
     val result = vm.result
     key(section) {
         Screen(
-            top = { SectionChips(section) { section = it } },
+            top = { SectionChips(section, chipsScroll) { section = it } },
             bottom = {
                 PrimaryButton(
                     "Guardar mi PDF para imprimir",
@@ -186,11 +188,11 @@ fun ResultsTabScreen(vm: DonesViewModel) {
 }
 
 @Composable
-private fun SectionChips(selected: Int, onSelect: (Int) -> Unit) {
+private fun SectionChips(selected: Int, scroll: ScrollState, onSelect: (Int) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
+            .horizontalScroll(scroll)
             .padding(horizontal = 12.dp, vertical = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
