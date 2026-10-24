@@ -34,6 +34,9 @@ import java.time.LocalDate
 /** Pantallas antes de entrar a la clase (una tarea por pantalla). Profiles: "¿Quién eres?". */
 enum class Onboarding { Profiles, JoinCode, Scanner, Connected, Purpose, Name, Age, Marital, WhatsApp, Review, Consent }
 
+/** Las tres pestañas de arriba: lecciones de clase, el cuestionario de 125 afirmaciones y los resultados. */
+enum class MainTab { Lessons, Quiz, Results }
+
 /** Pantallas que se abren encima (se apilan: "‹ Volver" regresa a la anterior). */
 sealed interface Overlay {
     /** Inicio: seguir donde quedó, ver la lección desde el principio, cambiar de persona. */
@@ -70,6 +73,12 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
         private set
 
     private val session = SimulatedClassSession()
+
+    /** Pestaña abierta. */
+    var tab by mutableStateOf(MainTab.Lessons)
+        private set
+    /** Bloque del cuestionario recién terminado (se muestra "¡Bloque terminado!" hasta que la persona continúe). */
+    private var quizPause by mutableStateOf<Int?>(null)
 
     var classState by mutableStateOf<ClassState?>(null)
         private set
@@ -108,6 +117,8 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
         chosen.classCode?.let { session.join(it) }
         overlays = emptyList()
         reviewItem = null
+        quizPause = null
+        tab = MainTab.Lessons
         joinError = null
         onboarding = when {
             chosen.classCode == null -> Onboarding.JoinCode
@@ -123,6 +134,8 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
         participant = newProfile()
         overlays = emptyList()
         reviewItem = null
+        quizPause = null
+        tab = MainTab.Lessons
         joinError = null
         onboarding = Onboarding.JoinCode
     }
@@ -203,16 +216,54 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------- Clase ----------
 
+    /** Pantalla de la pestaña "Lecciones": solo las páginas de enseñanza (las del cuestionario viven en su pestaña). */
     val view: ParticipantView?
-        get() = classState?.let { ParticipantFlow.view(content, lesson, participant, reviewItem) }
+        get() = classState?.let {
+            val i = lessonDisplayIndex(participant.page)
+            ParticipantFlow.view(content, lesson, if (i == participant.page) participant else participant.copy(page = i), null)
+        }
+
+    private fun isLessonPage(i: Int) = lesson.pages.getOrNull(i)?.houtsBlock == null
+
+    /** Si la persona quedó en una página de preguntas (versión anterior), se muestra la siguiente de enseñanza. */
+    private fun lessonDisplayIndex(i: Int): Int {
+        var t = i
+        while (t < lesson.pages.size && !isLessonPage(t)) t++
+        return t
+    }
+
+    private fun lessonAfter(from: Int): Int = lessonDisplayIndex(from + 1)
+
+    private fun lessonBefore(from: Int): Int {
+        var t = from - 1
+        while (t > 0 && !isLessonPage(t)) t--
+        return t.coerceAtLeast(0)
+    }
+
+    private fun lessonAtOrBefore(i: Int): Int {
+        var t = i.coerceAtMost(lesson.pages.size - 1)
+        while (t > 0 && !isLessonPage(t)) t--
+        return t.coerceAtLeast(0)
+    }
+
+    /** ¿Está más atrás de donde llegó en las lecciones? Entonces se muestra "Ir a donde quedé". */
+    val isBehind: Boolean
+        get() {
+            val f = participant.furthestPage
+            val at = if (f >= lesson.pages.size) lesson.pages.size else lessonAtOrBefore(f)
+            return lessonDisplayIndex(participant.page) < at
+        }
 
     /** Cada persona avanza sola por la enseñanza. */
-    fun nextPage() = goToPage(participant.page + 1)
+    fun nextPage() = goToPage(lessonAfter(participant.page))
 
-    fun previousPage() = goToPage(participant.page - 1)
+    fun previousPage() = goToPage(lessonBefore(participant.page))
 
-    /** "Ir a donde quedé": la página más lejana a la que llegó (y ahí, la primera pregunta sin responder). */
-    fun goToFurthest() = goToPage(participant.furthestPage)
+    /** "Ir a donde quedé": la lección más lejana a la que llegó. */
+    fun goToFurthest() {
+        val f = participant.furthestPage
+        goToPage(if (f >= lesson.pages.size) lesson.pages.size else lessonAtOrBefore(f))
+    }
 
     /** "Ver la lección desde el principio". */
     fun goToStart() = goToPage(0)
@@ -221,7 +272,58 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
         update { it.goToPage(target, lesson.pages.size) }
         reviewItem = null
         overlays = emptyList()
+        tab = MainTab.Lessons
         questionShownAt = SystemClock.elapsedRealtime()
+    }
+
+    // ---------- Pestañas ----------
+
+    fun openTab(t: MainTab) {
+        tab = t
+        overlays = emptyList()
+        reviewItem = null
+        questionShownAt = SystemClock.elapsedRealtime()
+    }
+
+    private fun quizItems() =
+        HoutsScorer.visibleItems(content, participant.maritalStatus).sortedWith(compareBy({ it.block }, { it.n }))
+
+    val quizTotal: Int get() = quizItems().size
+    val quizAnswered: Int get() = quizItems().count { it.n in participant.answers }
+
+    /** Los resultados se abren solo cuando respondió todas las afirmaciones que le tocan. */
+    val quizComplete: Boolean get() = quizTotal > 0 && quizAnswered == quizTotal
+
+    /** Pantalla de la pestaña "Cuestionario": las afirmaciones en orden, bloque por bloque. */
+    val quizView: ParticipantView
+        get() {
+            val ordered = quizItems()
+            val answered = ordered.count { it.n in participant.answers }
+            val lastBlock = content.blocks.size
+            val pause = quizPause
+            if (pause != null) return ParticipantView.BlockDone(pause, answered, ordered.size, pause == lastBlock)
+            val target = reviewItem?.let { r -> ordered.firstOrNull { it.n == r } }
+                ?: ordered.firstOrNull { it.n !in participant.answers }
+                ?: return ParticipantView.BlockDone(lastBlock, answered, ordered.size, true)
+            val inBlock = ordered.filter { it.block == target.block }
+            val at = ordered.indexOfFirst { it.n == target.n }
+            return ParticipantView.Question(
+                item = target,
+                positionInBlock = inBlock.indexOfFirst { it.n == target.n } + 1,
+                blockSize = inBlock.size,
+                block = target.block,
+                totalBlocks = lastBlock,
+                currentAnswer = participant.answers[target.n],
+                previousItem = ordered.getOrNull(at - 1)?.n,
+            )
+        }
+
+    /** "Continuar" después de un bloque: sigue con el próximo o, al terminar todo, abre los resultados. */
+    fun quizContinue() {
+        quizPause = null
+        reviewItem = null
+        questionShownAt = SystemClock.elapsedRealtime()
+        if (quizComplete) tab = MainTab.Results
     }
 
     /** Guarda lo escrito en una página: espacios para completar o pregunta abierta. */
@@ -235,11 +337,15 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
         update { it.answer(item, value, elapsed) }
         reviewItem = null
         questionShownAt = now
+        // Si con esta respuesta quedó completo su bloque, se muestra "¡Bloque terminado!".
+        val block = content.item(item).block
+        if (quizItems().none { it.block == block && it.n !in participant.answers }) quizPause = block
     }
 
     fun goBackTo(item: Int) { reviewItem = item }
 
     fun backFromBlockDone(block: Int) {
+        quizPause = null
         reviewItem = ParticipantFlow.lastInBlock(content, participant, block)
     }
 
@@ -252,6 +358,8 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
         participant = newProfile()
         overlays = emptyList()
         reviewItem = null
+        quizPause = null
+        tab = MainTab.Lessons
         joinError = null
         onboarding = if (book.profiles.isEmpty()) Onboarding.JoinCode else Onboarding.Profiles
     }
@@ -266,7 +374,7 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Al terminar la última página el curso queda cerrado para esa persona y recibe su certificado. */
     val courseClosed: Boolean
-        get() = view == ParticipantView.Results
+        get() = participant.page >= lesson.pages.size
 
     /** Abre una pantalla encima; "‹ Volver" regresa exactamente a la anterior. */
     fun open(o: Overlay) { if (overlay != o) overlays = overlays + o }

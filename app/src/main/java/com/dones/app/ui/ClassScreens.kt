@@ -273,7 +273,7 @@ private fun lessonText(text: String, blanks: List<String>, values: List<String>,
 
 // W8: una afirmación por pantalla. Al tocar se marca, pausa breve y pasa sola a la siguiente.
 @Composable
-fun QuestionScreen(vm: DonesViewModel, q: ParticipantView.Question) {
+fun QuestionScreen(vm: DonesViewModel, q: ParticipantView.Question, inQuiz: Boolean = false) {
     // Respuesta recién tocada: se ve marcada un momento antes de avanzar.
     var pending by remember(q.item.n) { mutableStateOf<Int?>(null) }
     LaunchedEffect(pending) {
@@ -294,7 +294,7 @@ fun QuestionScreen(vm: DonesViewModel, q: ParticipantView.Question) {
         bottom = {
             val prev = q.previousItem
             if (prev != null) BackLink("Anterior", onClick = { vm.goBackTo(prev) })
-            else BackLink("Anterior", onClick = vm::previousPage)
+            else if (!inQuiz) BackLink("Anterior", onClick = vm::previousPage)
         },
     ) {
         ErgosCard(ornament = true, background = Ergos.Surface2, border = Ergos.Violet.copy(alpha = .45f), padding = 22.dp) {
@@ -314,7 +314,7 @@ fun QuestionScreen(vm: DonesViewModel, q: ParticipantView.Question) {
 
 // W10
 @Composable
-fun BlockDoneScreen(vm: DonesViewModel, v: ParticipantView.BlockDone) {
+fun BlockDoneScreen(vm: DonesViewModel, v: ParticipantView.BlockDone, inQuiz: Boolean = false) {
     val finished = v.isLastBlock
     Screen(
         bottom = {
@@ -322,7 +322,7 @@ fun BlockDoneScreen(vm: DonesViewModel, v: ParticipantView.BlockDone) {
                 if (finished) "Ver mis resultados" else "Continuar",
                 icon = if (finished) ErgosIcons.Sparkle else null,
                 trailing = ErgosIcons.ChevronRight,
-                onClick = vm::nextPage,
+                onClick = if (inQuiz) vm::quizContinue else vm::nextPage,
             )
             BackLink("Revisar mi última respuesta", onClick = { vm.backFromBlockDone(v.block) })
         },
@@ -330,6 +330,7 @@ fun BlockDoneScreen(vm: DonesViewModel, v: ParticipantView.BlockDone) {
         CenteredMessage(
             title = "¡Bloque ${v.block} terminado!",
             body = if (finished) "Respondiste las ${v.total} afirmaciones. Tus dones están listos."
+            else if (inQuiz) "Llevas ${v.answered} de ${v.total} afirmaciones. Sigue con el próximo bloque."
             else "Llevas ${v.answered} de ${v.total} afirmaciones. La lección continúa.",
             icon = if (finished) ErgosIcons.Sparkle else ErgosIcons.Check,
         )

@@ -9,6 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.dones.app.DonesViewModel
+import com.dones.app.MainTab
 import com.dones.app.Onboarding
 import com.dones.app.Overlay
 import com.dones.app.qr.QrScannerScreen
@@ -57,12 +58,21 @@ fun DonesApp(vm: DonesViewModel) {
             }
         } else {
             ClassTopBar(vm)
-            when (val v = vm.view) {
-                null -> JoinCodeScreen(vm)
-                is ParticipantView.LessonStep -> LessonScreen(vm, v)
-                is ParticipantView.Question -> QuestionScreen(vm, v)
-                is ParticipantView.BlockDone -> BlockDoneScreen(vm, v)
-                ParticipantView.Results -> ResultsScreen(vm)
+            MainTabBar(vm)
+            when (vm.tab) {
+                MainTab.Lessons -> when (val v = vm.view) {
+                    null -> JoinCodeScreen(vm)
+                    is ParticipantView.LessonStep -> LessonScreen(vm, v)
+                    is ParticipantView.Question -> QuestionScreen(vm, v)
+                    is ParticipantView.BlockDone -> BlockDoneScreen(vm, v)
+                    ParticipantView.Results -> LessonsDoneScreen(vm)
+                }
+                MainTab.Quiz -> when (val v = vm.quizView) {
+                    is ParticipantView.Question -> QuestionScreen(vm, v, inQuiz = true)
+                    is ParticipantView.BlockDone -> BlockDoneScreen(vm, v, inQuiz = true)
+                    else -> Unit
+                }
+                MainTab.Results -> if (vm.quizComplete) ResultsTabScreen(vm) else ResultsLockedScreen(vm)
             }
         }
     }

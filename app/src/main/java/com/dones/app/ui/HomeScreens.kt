@@ -101,7 +101,7 @@ fun HomeScreen(vm: DonesViewModel) {
 /** Barra de arriba en la clase: "Inicio", el emblema de la iglesia y, si volvió atrás, "Ir a donde quedé". */
 @Composable
 fun ClassTopBar(vm: DonesViewModel) {
-    val behind = vm.participant.isBehind
+    val behind = vm.isBehind
     Row(
         Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
