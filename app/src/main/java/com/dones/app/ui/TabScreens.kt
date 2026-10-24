@@ -594,13 +594,6 @@ private fun BattleSection(vm: DonesViewModel) {
                     if (b.closingRef.isNotBlank()) SpacedCaps("${b.closingRef}  ·  RVR1960", rose, 11.sp)
                 }
             }
-            if (b != null) {
-                Spacer(Modifier.height(18.dp))
-                BattleDivider(rose, alarm, short = true)
-                Spacer(Modifier.height(8.dp))
-                PosterItalic(b.closing, Ergos.Ink, 25.sp)
-                if (b.closingRef.isNotBlank()) SpacedCaps("${b.closingRef}  ·  RVR1960", rose, 12.sp)
-            }
         }
     }
     DoorCard(ErgosIcons.Scroll, "Mis documentos y certificado", onClick = { vm.open(Overlay.Documents) }, subtitle = "Abrir o enviar por WhatsApp")
