@@ -519,20 +519,12 @@ internal object ResultsPdf {
         }
     }
 
-    /** Código de barras decorativo, como en los afiches. */
-    private fun barcode(pen: Pen, x: Float, y: Float, w: Float, h: Float, paint: Paint) {
-        val widths = floatArrayOf(1f, .5f, 1.5f, .5f, 2f, .8f)
-        val gaps = floatArrayOf(1.2f, 2f, 1f, 2.5f)
-        var xx = x
-        var k = 0
-        while (xx < x + w) {
-            val bw = widths[k % widths.size]
-            k++
-            pen.canvas.drawRect(xx, y, xx + bw, y + h, paint)
-            xx += bw + gaps[k % gaps.size]
-        }
-    }
+    /** Dónde va el texto sobre la escultura: "left", "right" o "bottom" (assets/esculturas-texto.json). */
+    private fun textSide(context: Context, code: String): String = runCatching {
+        JSONObject(context.assets.open("esculturas-texto.json").bufferedReader().use { it.readText() }).optString(code, "bottom")
+    }.getOrDefault("bottom")
 
+    /** Hoja 5: la escultura ocupa toda la hoja y el texto va en el lado vacío (o abajo si la figura ocupa el centro). */
     private fun character(context: Context, pen: Pen, texts: PdfTexts, result: HoutsResult, content: HoutsContent) {
         val c = pen.canvas
         val top = result.dominant.firstOrNull() ?: result.ranking.firstOrNull() ?: return
@@ -540,108 +532,162 @@ internal object ResultsPdf {
         val ch = texts.gifts[code]?.character ?: return
         val th = theme(context, code)
         val number = (content.gifts.indexOfFirst { it.code == code } + 1).coerceAtLeast(1)
+        val es = Locale("es")
+        val side = textSide(context, code)
+        val center = side == "bottom"
 
-        // Ilustración a sangre en la mitad de arriba. Si la imagen es horizontal se usa entera;
-        // si es la carta vertical, se recorta dentro del marco (sin la placa del nombre).
-        val artTop = 22f
-        val ib = artTop + (W - 44f) * 4f / 5f // ventana 5:4, la medida de las ilustraciones horizontales
-        val img = assetImage(context, "esculturas", code, 1400)
-        c.save()
-        c.clipRect(22f, 22f, W - 22f, H - 22f)
+        // Escultura a sangre (la ilustración es 3:4 y la hoja un poco más angosta: se pierde un poco a los lados)
+        val img = assetImage(context, "esculturas", code, 1800)
         if (img != null) {
-            val src = RectF(0f, 0f, img.width.toFloat(), img.height.toFloat())
-            val dst = RectF(22f, artTop, W - 22f, ib)
-            val s = max(dst.width() / src.width(), dst.height() / src.height())
-            val iw = dst.width() / s
-            val ih = dst.height() / s
-            val sx = src.left + (src.width() - iw) / 2
-            val sy = src.top + (src.height() - ih) * .12f
-            c.drawBitmap(img, Rect(sx.roundToInt(), sy.roundToInt(), (sx + iw).roundToInt(), (sy + ih).roundToInt()), dst, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
+            val s = max(W / img.width, H / img.height)
+            val iw = W / s
+            val ih = H / s
+            val sx = ((img.width - iw) / 2f).coerceAtLeast(0f)
+            val src = Rect(sx.roundToInt(), 0, (sx + iw).roundToInt().coerceAtMost(img.width), ih.roundToInt().coerceAtMost(img.height))
+            c.drawBitmap(img, src, RectF(0f, 0f, W, H), Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
+        }
+        // Sombra suave del lado del texto, para que se lea
+        if (center) {
+            val y0 = H * .40f
+            val y1 = H * .64f
+            c.drawRect(0f, y0, W, H, Paint().apply {
+                shader = LinearGradient(0f, y0, 0f, y1, intArrayOf(Ergos.withAlpha(Ergos.NIGHT, 0f), Ergos.withAlpha(Ergos.NIGHT, .93f)), null, Shader.TileMode.CLAMP)
+            })
+            c.drawRect(0f, y1, W, H, pen.solid(Ergos.NIGHT, .93f))
         } else {
-            c.drawRect(22f, artTop, W - 22f, ib, Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                shader = RadialGradient(W / 2, 260f, 320f, intArrayOf(deep(th.accent, .45f), Ergos.NIGHT2), null, Shader.TileMode.CLAMP)
+            val xa = if (side == "left") 0f else W
+            val xb = if (side == "left") W * .8f else W * .2f
+            c.drawRect(0f, 0f, W, H, Paint().apply {
+                shader = LinearGradient(xa, 0f, xb, 0f, intArrayOf(Ergos.withAlpha(Ergos.NIGHT, .86f), Ergos.withAlpha(Ergos.NIGHT, .55f), Ergos.withAlpha(Ergos.NIGHT, 0f)), floatArrayOf(0f, .6f, 1f), Shader.TileMode.CLAMP)
             })
         }
-        // Degradados para que el texto se lea sobre la ilustración
-        c.drawRect(0f, ib - 230f, W, ib + 1f, Paint().apply {
-            shader = LinearGradient(0f, ib - 230f, 0f, ib, intArrayOf(Ergos.withAlpha(Ergos.NIGHT, 0f), Ergos.withAlpha(Ergos.NIGHT, .85f), 0xFF0F0B1E.toInt()), floatArrayOf(0f, .7f, 1f), Shader.TileMode.CLAMP)
+        c.drawRect(0f, 0f, W, 130f, Paint().apply {
+            shader = LinearGradient(0f, 0f, 0f, 130f, Ergos.withAlpha(Ergos.NIGHT, .75f), Ergos.withAlpha(Ergos.NIGHT, 0f), Shader.TileMode.CLAMP)
         })
-        c.drawRect(0f, artTop, W, artTop + 190f, Paint().apply {
-            shader = LinearGradient(0f, artTop, 0f, artTop + 190f, Ergos.withAlpha(Ergos.NIGHT, .85f), Ergos.withAlpha(Ergos.NIGHT, 0f), Shader.TileMode.CLAMP)
-        })
-        c.restore()
 
         // Rótulos tipo ficha
-        val es = Locale("es")
-        pen.text("N.º ${"%02d".format(number)}  ·  TU PERSONAJE BÍBLICO", M, 80f, pen.geistSemi, 7f, pen.solid(Ergos.CREAM), Align.LEFT, 2.2f)
-        pen.text(ch.ref.uppercase(es), W - M, 80f, pen.geistSemi, 7f, pen.solid(Ergos.CREAM), Align.RIGHT, 2.2f)
+        pen.shadowed("N.º ${"%02d".format(number)}  ·  TU PERSONAJE BÍBLICO", M, 80f, pen.geistSemi, 7f, Ergos.CREAM, Align.LEFT, 2.2f)
+        pen.shadowed("${ch.ref.uppercase(es)}  ·  RVR1960", W - M, 80f, pen.geistSemi, 7f, Ergos.CREAM, Align.RIGHT, 2.2f)
         c.drawLine(M, 88f, W - M, 88f, pen.solid(Ergos.CREAM, .5f, .5f))
-        pen.text("ERES COMO", M, 110f, pen.geistSemi, 9f, pen.solid(th.accent), Align.LEFT, 4f)
-        val size = pen.fitFraktur(ch.name, 92f, W - 2 * M)
-        val ny = 110f + size * .82f
-        pen.frakturText(ch.name, M + 3f, ny + 3f, size, pen.solid(0xFF000000.toInt(), .55f))
-        pen.frakturText(ch.name, M, ny, size, pen.gold(116f, ny))
 
-        // Cita sobre el degradado
-        val quote = pen.wrap("«${ch.quote}»", pen.corMed, 16f, W - 2 * M - 40f)
-        var y = ib - 40f - (quote.size - 1) * 19f
-        quote.forEach { pen.text(it, W / 2, y, pen.corMed, 16f, pen.solid(Ergos.CREAM), Align.CENTER); y += 19f }
-
-        // Separador
-        y = ib + 14f
-        c.drawLine(M, y, W - M, y, pen.gold(y - 1f, y + 1f, .7f))
-        pen.diamond(W / 2, y, 4f, pen.gold(y - 4f, y + 4f))
-        y += 26f
-
-        // Columna izquierda: su historia; derecha: ícono, palabras y frase
-        val lw = 300f
-        val rx = M + lw + 24f
-        val rw = W - M - rx
+        // Bloque de texto
+        val bw = if (center) W - 2 * M else 224f
+        val bx = if (side == "right") W - M - bw else M
+        val ax = if (center) W / 2 else bx
+        val al = if (center) Align.CENTER else Align.LEFT
+        val startY = if (center) H * .45f else 112f
         val others = result.dominant.drop(1).map { it.gift.name }
         val extra = when (others.size) {
             0 -> ""
             1 -> " Además, Dios puso en ti el don de ${others[0]}: juntos forman tu manera única de servir."
             else -> " Además, Dios puso en ti los dones de ${others.dropLast(1).joinToString(", ")} y ${others.last()}: juntos forman tu manera única de servir."
         }
-        pen.text("SU HISTORIA, TU LLAMADO", M, y, pen.geistSemi, 7f, pen.solid(th.accent), Align.LEFT, 2f)
         val note = pen.wrap(
             "Este resultado es un punto de partida para la oración y la experimentación. " +
                 "Confírmalo con personas que te conocen, con tu pastor y con los líderes de tu iglesia.",
-            pen.geist, 7.6f, W - 2 * M - 60f,
+            pen.geist, 7.6f, if (center) W - 2 * M - 60f else bw,
         )
         val noteTop = BOTTOM - note.size * 10f + 4f
-        val pillsMax = noteTop - 22f - 14f
-        var bs = 12.3f
-        var body = pen.wrap(ch.text + extra, pen.corMed, bs, lw)
-        while (bs > 10f && y + 18f + body.size * bs * 1.25f + 12f > pillsMax) {
-            bs -= .3f
-            body = pen.wrap(ch.text + extra, pen.corMed, bs, lw)
-        }
-        var yy = y + 18f
-        body.forEach { pen.text(it, M, yy, pen.corMed, bs, pen.solid(Ergos.INK)); yy += bs * 1.25f }
-
-        emblem(pen, code, th, rx + rw / 2, y + 36f, 25f)
-        chips(pen, th.words.take(2), rx + rw / 2, y + 80f, th.accent)
-        chips(pen, th.words.drop(2), rx + rw / 2, y + 101f, th.accent)
-        var my = y + 140f
-        if (th.motto.isNotEmpty()) pen.wrap("«${th.motto}»", pen.corBold, 13f, rw).forEach {
-            pen.text(it, rx + rw / 2, my, pen.corBold, 13f, pen.solid(Ergos.CREAM), Align.CENTER); my += 15f
-        }
-
-        // Píldoras con los dones dominantes
-        val py = minOf(max(yy, my) + 6f, pillsMax)
         val items = result.dominant.map { it.gift.name }
-        val ws = items.map { pen.measure(it, pen.geistSemi, 9f) + 22f }
-        var px = W / 2 - (ws.sum() + 8f * (items.size - 1)) / 2
-        items.forEachIndexed { i, t ->
-            rrect(pen, px, py, px + ws[i], py + 22f, 11f, pen.solid(deep(th.accent), .85f))
-            rrect(pen, px, py, px + ws[i], py + 22f, 11f, pen.gold(py, py + 22f, .8f))
-            pen.text(t, px + ws[i] / 2, py + 14.5f, pen.geistSemi, 9f, pen.solid(Ergos.INK), Align.CENTER)
-            px += ws[i] + 8f
+        val words = th.words.take(3).map { it.uppercase(es) }
+
+        // Dibuja (o solo mide) todo el bloque con la letra a escala k; devuelve dónde termina
+        fun lay(k: Float, draw: Boolean): Float {
+            var y = startY
+            // "Eres como" y el nombre
+            val eresSz = 21f * k
+            y += eresSz
+            if (draw) pen.shadowed("Eres como", ax, y, pen.italic, eresSz, Ergos.CREAM, al)
+            val nameSize = pen.fitFraktur(ch.name, 76f * k, bw)
+            y += nameSize * .86f + 2f
+            if (draw) {
+                pen.frakturText(ch.name, ax + 2.5f, y + 2.5f, nameSize, pen.solid(0xFF000000.toInt(), .6f), al)
+                pen.frakturText(ch.name, ax, y, nameSize, pen.gold(y - nameSize * .8f, y + 6f), al)
+            }
+            // Tres palabras en píldoras unidas por una línea
+            y += 26f
+            if (words.isNotEmpty()) {
+                var fs = 7.4f
+                val link = 12f
+                fun total() = words.sumOf { (pen.measure(it, pen.geistSemi, fs, 1.4f) + 16f).toDouble() }.toFloat() + link * (words.size - 1)
+                while (total() > bw && fs > 5.6f) fs -= .3f
+                if (draw) {
+                    var px = if (center) W / 2 - total() / 2 else ax
+                    words.forEachIndexed { i, t ->
+                        val w = pen.measure(t, pen.geistSemi, fs, 1.4f) + 16f
+                        rrect(pen, px, y - 11f, px + w, y + 5f, 8f, pen.solid(Ergos.NIGHT, .55f))
+                        rrect(pen, px, y - 11f, px + w, y + 5f, 8f, pen.gold(y - 11f, y + 5f, .9f))
+                        pen.text(t, px + w / 2, y, pen.geistSemi, fs, pen.solid(th.accent), Align.CENTER, 1.4f)
+                        px += w
+                        if (i < words.size - 1) {
+                            c.drawLine(px, y - 3f, px + link, y - 3f, pen.gold(y - 4f, y - 2f, .8f))
+                            px += link
+                        }
+                    }
+                }
+            }
+            // El versículo, tal cual, con su cita
+            val qs = 15.5f * k
+            val quote = pen.wrap("«${ch.quote}»", pen.corMed, qs, if (center) bw - 40f else bw)
+            y += 32f
+            quote.forEach { if (draw) pen.shadowed(it, ax, y, pen.corMed, qs, Ergos.INK, al); y += qs * 1.22f }
+            y += 2f
+            if (draw) pen.shadowed("—  ${ch.ref}  ·  RVR1960", ax, y, pen.geistSemi, 7.4f, Ergos.ACCENT, al, 1.6f)
+            // Su historia
+            y += 26f
+            if (draw) pen.shadowed("SU HISTORIA, TU LLAMADO", ax, y, pen.geistSemi, 7.2f, th.accent, al, 2f)
+            val bs = 11.8f * k
+            val body = pen.wrap(ch.text + extra, pen.corMed, bs, bw)
+            y += 15f
+            body.forEach { if (draw) pen.shadowed(it, bx, y, pen.corMed, bs, Ergos.INK); y += bs * 1.26f }
+            // Emblema y lema
+            y += 10f
+            val motto = if (th.motto.isEmpty()) emptyList() else pen.wrap("«${th.motto}»", pen.italic, 13f * k, bw - 70f)
+            val rowH = max(56f, 22f + motto.size * 15f * k)
+            if (draw) {
+                emblem(pen, code, th, bx + 24f, y + 26f, 19f)
+                if (motto.isNotEmpty()) {
+                    pen.shadowed("SU LEMA", bx + 68f, y + 14f, pen.geistSemi, 6.8f, th.accent, Align.LEFT, 2f)
+                    var my = y + 32f
+                    motto.forEach { pen.shadowed(it, bx + 68f, my, pen.italic, 13f * k, Ergos.CREAM); my += 15f * k }
+                }
+            }
+            y += rowH + 8f
+            // Dones dominantes
+            if (draw) pen.shadowed("TUS DONES DOMINANTES", ax, y + 4f, pen.geistSemi, 7f, Ergos.CREAM, al, 2f)
+            y += 14f
+            val ps = 9f * k
+            val pw = items.map { pen.measure(it, pen.geistSemi, ps) + 22f }
+            var row = mutableListOf<Int>()
+            var rowW = 0f
+            fun flush() {
+                if (draw && row.isNotEmpty()) {
+                    val tot = row.sumOf { pw[it].toDouble() }.toFloat() + 8f * (row.size - 1)
+                    var px = if (center) W / 2 - tot / 2 else bx
+                    for (i in row) {
+                        rrect(pen, px, y, px + pw[i], y + 22f, 11f, pen.solid(deep(th.accent), .9f))
+                        rrect(pen, px, y, px + pw[i], y + 22f, 11f, pen.gold(y, y + 22f, .8f))
+                        pen.text(items[i], px + pw[i] / 2, y + 14.5f, pen.geistSemi, ps, pen.solid(Ergos.INK), Align.CENTER)
+                        px += pw[i] + 8f
+                    }
+                }
+                row = mutableListOf()
+                rowW = 0f
+            }
+            items.indices.forEach { i ->
+                if (row.isNotEmpty() && rowW + 8f + pw[i] > bw) { flush(); y += 28f }
+                rowW += pw[i] + if (row.isEmpty()) 0f else 8f
+                row.add(i)
+            }
+            flush()
+            return y + 22f
         }
+        var k = 1f
+        while (lay(k, false) > noteTop - 8f && k > .7f) k -= .03f
+        lay(k, true)
 
         var ny2 = noteTop
-        note.forEach { pen.text(it, W / 2, ny2, pen.geist, 7.6f, pen.solid(Ergos.MUTED), Align.CENTER); ny2 += 10f }
+        note.forEach { pen.shadowed(it, ax, ny2, pen.geist, 7.6f, Ergos.MUTED, al); ny2 += 10f }
     }
 
     // ------------------------------------------------------------------ Hoja 6: la batalla por tus dones

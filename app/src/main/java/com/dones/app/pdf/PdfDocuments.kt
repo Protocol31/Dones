@@ -220,6 +220,7 @@ internal class Pen(private val context: Context) {
     val corBold = font(R.font.cormorant_bold)
     val corSemi = font(R.font.cormorant_semibold)
     val corMed = font(R.font.cormorant_medium)
+    val italic = font(R.font.cormorant_semibold_italic)
     val geist = font(R.font.geist_regular)
     val geistMed = font(R.font.geist_medium)
     val geistSemi = font(R.font.geist_semibold)
@@ -325,6 +326,12 @@ internal class Pen(private val context: Context) {
             canvas.drawText(t, x0, y, paint)
             x0 += paint.measureText(t) + spacing
         }
+    }
+
+    /** Texto con una sombra oscura abajo a la derecha, para que se lea sobre una imagen. */
+    fun shadowed(s: String, x: Float, y: Float, face: Typeface, size: Float, color: Int, align: Align = Align.LEFT, spacing: Float = 0f) {
+        text(s, x + .7f, y + 1f, face, size, solid(0xFF000000.toInt(), .75f), align, spacing)
+        text(s, x, y, face, size, solid(color), align, spacing)
     }
 
     fun wrap(text: String, face: Typeface, size: Float, width: Float): List<String> {
