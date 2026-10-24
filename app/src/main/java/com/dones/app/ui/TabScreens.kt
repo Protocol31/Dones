@@ -23,6 +23,15 @@ import androidx.compose.foundation.layout.width
 import android.content.Context
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -466,7 +475,7 @@ private fun BattleSection(vm: DonesViewModel) {
     val result = vm.result
     val doms = (result.dominant.ifEmpty { result.ranking.take(1) }).take(3)
     val code = doms.firstOrNull()?.gift?.code
-    // Imagen larga de la app: assets/batalla/<código>-…-app.jpg; si no, una sin sufijo; si no, la general.
+    // Tira larga de la app: assets/batalla/<código>-…-app.jpg; si no, una sin sufijo; si no, la general.
     val path = remember(code) {
         code?.let { c ->
             runCatching {
@@ -478,101 +487,111 @@ private fun BattleSection(vm: DonesViewModel) {
         } ?: "batalla/default.jpg"
     }
     val art = rememberAssetImage(path, 1)
-    // Texturas de niebla que siguen cuando se acaba la tira (con la parte de arriba transparente para fundirse).
-    val fog1 = rememberAssetImage("batalla/textura-1.webp", 1)
-    val fog2 = rememberAssetImage("batalla/textura-2.webp", 1)
+    val fog1 = rememberAssetImage("batalla-fondo/niebla-1.jpg", 1)
+    val fog2 = rememberAssetImage("batalla-fondo/niebla-2.jpg", 1)
+    val deepRed = Color(0xFF2A0618)
     val rose = Color(0xFFFFB8C2)
     val roseHi = Color(0xFFFFE3E7)
     val alarm = Color(0xFFFF6B76)
-    val muted = Color(0xFFE7B4BC)
-    val shadow = Shadow(Color.Black, Offset(0f, 3f), 8f)
-    val serif = MaterialTheme.typography.bodyLarge.copy(fontFamily = Cormorant, fontWeight = FontWeight.Medium, fontSize = 23.sp, lineHeight = 32.sp, shadow = shadow)
-    val sans = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp, lineHeight = 26.sp, shadow = shadow)
-
-    // La sección va de borde a borde de la pantalla (sale del margen de 24 dp de la página).
-    Box(
-        Modifier
-            .layout { m, c ->
-                val extra = 48.dp.roundToPx()
-                val p = m.measure(c.copy(minWidth = c.maxWidth + extra, maxWidth = c.maxWidth + extra))
-                layout(c.maxWidth, p.height) { p.place(-extra / 2, 0) }
-            }
-            .drawWithCache {
-                val w = size.width
-                onDrawBehind {
-                    drawRect(Color(0xFF2A0618))
-                    var y = 0f
-                    // La tira de arriba a todo el ancho, sin estirar.
-                    if (art != null) {
-                        val h = w * art.height / art.width
-                        drawImage(art, dstSize = IntSize(w.toInt(), h.toInt()), filterQuality = FilterQuality.High)
-                        y = h * .9f
-                    }
-                    // Debajo, las texturas una tras otra; su parte de arriba es transparente y se funde.
-                    val fogs = listOfNotNull(fog1, fog2)
-                    var i = 0
-                    while (fogs.isNotEmpty() && y < size.height) {
-                        val f = fogs[i % fogs.size]; i++
-                        val h = w * f.height / f.width
-                        drawImage(f, dstOffset = IntOffset(0, y.toInt()), dstSize = IntSize(w.toInt(), h.toInt()), filterQuality = FilterQuality.High)
-                        y += h * .88f
-                    }
-                    // Velo suave para leer; arriba se deja ver la escultura.
-                    drawRect(Brush.verticalGradient(0f to Color.Transparent, .12f to Color(0x55120208), .2f to Color(0x8C120208), 1f to Color(0x8C120208)))
+    val density = LocalDensity.current
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val w = maxWidth
+        val stripH = if (art != null) w * (art.height.toFloat() / art.width.toFloat()) else 0.dp
+        val overlap = 130.dp
+        // Capas del fondo: la tira de este don y, después, las texturas de niebla fundidas una con otra.
+        val layers = remember(art, fog1, fog2) {
+            buildList {
+                art?.let { add(it to false) }
+                if (fog1 != null && fog2 != null) {
+                    add(fog1 to false); add(fog2 to false); add(fog1 to true); add(fog2 to true); add(fog1 to false)
                 }
-            },
-    ) {
-        Column(
-            Modifier.fillMaxWidth().padding(horizontal = 26.dp).padding(top = 30.dp, bottom = 40.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            SpacedCaps("N.º 06  ·  Advertencia", roseHi, 12.sp)
-            PosterItalic("Prepárate para", roseHi, 30.sp)
-            SwordsTitle({ PosterName("La batalla", 56.sp, RoseText) })
-            SpacedCaps("Por tus dones", alarm, 13.sp)
-            // Aire para que se vea la escultura antes del texto.
-            Spacer(Modifier.height(400.dp))
-            Text(b?.intro.orEmpty(), style = serif, color = Ergos.Ink, textAlign = TextAlign.Center)
-            doms.forEach { s ->
-                val g = b?.gifts?.get(s.gift.code) ?: return@forEach
-                Spacer(Modifier.height(18.dp))
-                BattleDivider(rose, alarm)
-                Spacer(Modifier.height(8.dp))
-                PosterName(s.gift.name, 44.sp, RoseText)
-                SpacedCaps("La mentira", alarm, 12.sp)
-                PosterItalic("«${g.lie}»", Ergos.Ink, 31.sp)
-                Text(g.attack, style = sans, color = muted, textAlign = TextAlign.Center)
-                Spacer(Modifier.height(10.dp))
-                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        SwordIcon(20.dp, roseHi)
-                        Spacer(Modifier.width(8.dp))
-                        SpacedCaps("La verdad", roseHi, 12.sp, center = false)
+            }
+        }
+        Box(Modifier.fillMaxWidth().background(deepRed)) {
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .clipToBounds()
+                    .drawBehind {
+                        // Velo oscuro suave detrás del texto, sin bordes.
+                        val y0 = stripH.toPx() * .5f
+                        drawRect(Brush.verticalGradient(listOf(Color.Transparent, Color(0x66000000)), startY = y0, endY = y0 + 260.dp.toPx()))
+                    },
+            ) {
+                var y = 0.dp
+                layers.forEachIndexed { i, (bmp, flip) ->
+                    val h = w * (bmp.height.toFloat() / bmp.width.toFloat())
+                    val ovPx = with(density) { overlap.toPx() }
+                    Image(
+                        bitmap = bmp,
+                        contentDescription = null,
+                        contentScale = ContentScale.FillWidth,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(Alignment.Top, unbounded = true)
+                            .offset(y = y)
+                            .graphicsLayer {
+                                scaleY = if (flip) -1f else 1f
+                                compositingStrategy = CompositingStrategy.Offscreen
+                            }
+                            .drawWithContent {
+                                drawContent()
+                                if (i > 0) {
+                                    // Los primeros píxeles se funden con la capa de arriba (al revés si va volteada).
+                                    val brush = if (flip) Brush.verticalGradient(listOf(Color.Black, Color.Transparent), startY = size.height - ovPx, endY = size.height)
+                                    else Brush.verticalGradient(listOf(Color.Transparent, Color.Black), startY = 0f, endY = ovPx)
+                                    drawRect(brush, blendMode = BlendMode.DstIn)
+                                }
+                            },
+                    )
+                    y += h - overlap
+                }
+            }
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = 28.dp, end = 28.dp, top = if (art != null) stripH * .52f else 28.dp, bottom = 40.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(18.dp),
+            ) {
+                SpacedCaps("Advertencia", alarm, 12.sp)
+                OrnamentLine(rose, 40.dp)
+                PosterItalic("Prepárate para", roseHi, 24.sp)
+                PosterName("La batalla", 60.sp, RoseText)
+                PosterItalic("por tus dones", roseHi, 26.sp)
+                CrossedSwords(30.dp, rose)
+                Text(
+                    b?.intro.orEmpty(),
+                    style = MaterialTheme.typography.bodyLarge.copy(fontFamily = Cormorant, fontWeight = FontWeight.Medium, fontSize = 20.sp, lineHeight = 28.sp),
+                    color = Ergos.Ink2,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(6.dp))
+                doms.forEach { s ->
+                    val g = b?.gifts?.get(s.gift.code) ?: return@forEach
+                    val icon = rememberAssetImage("iconos/${s.gift.code}.png", 1)
+                    OrnamentLine(rose)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        if (icon != null) Image(icon, null, Modifier.size(26.dp), colorFilter = ColorFilter.tint(rose))
+                        PosterName(s.gift.name, 50.sp, RoseText)
+                        if (icon != null) Image(icon, null, Modifier.size(26.dp), colorFilter = ColorFilter.tint(rose))
                     }
-                    // La verdad como una cita: con una línea roja al costado, sin caja.
-                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-                        Box(Modifier.width(3.dp).fillMaxHeight().background(alarm))
-                        Spacer(Modifier.width(14.dp))
-                        Text(g.truth, style = serif, color = Ergos.Ink)
-                    }
-                    if (g.ref.isNotBlank()) {
-                        val title = com.dones.core.Bible.parse(g.ref)?.title ?: g.ref
-                        SpacedCaps(
-                            "$title  ·  Leer  ›", rose, 12.sp, center = false,
-                            modifier = Modifier
-                                .padding(start = 17.dp)
-                                .heightIn(min = 48.dp)
-                                .wrapContentHeight(Alignment.CenterVertically)
-                                .clickable(onClickLabel = "Leer el pasaje", role = Role.Button) { vm.openScripture(g.ref) },
-                        )
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(ErgosIcons.Shield, contentDescription = null, tint = roseHi, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.width(8.dp))
-                        SpacedCaps("Cómo resistir", roseHi, 12.sp, center = false)
-                    }
-                    Text(g.defense, style = sans, color = Ergos.Ink2)
+                    LabelRow(alarm, "La mentira") { Icon(ErgosIcons.Close, null, tint = alarm, modifier = Modifier.size(18.dp)) }
+                    PosterItalic("«${g.lie}»", rose, 31.sp)
+                    Text(g.attack, style = battleBody(20), color = Ergos.Ink2, textAlign = TextAlign.Center)
+                    Spacer(Modifier.height(4.dp))
+                    LabelRow(roseHi, "La verdad") { SwordIcon(18.dp, roseHi) }
+                    Text(g.truth, style = battleBody(24).copy(fontWeight = FontWeight.Bold), color = Ergos.Ink, textAlign = TextAlign.Center)
+                    if (g.ref.isNotBlank()) RefChip(g.ref, onClick = { vm.openScripture(g.ref) })
+                    Spacer(Modifier.height(4.dp))
+                    LabelRow(roseHi, "Cómo resistir") { Icon(ErgosIcons.Shield, null, tint = roseHi, modifier = Modifier.size(18.dp)) }
+                    Text(g.defense, style = battleBody(20), color = Ergos.Ink2, textAlign = TextAlign.Center)
+                    Spacer(Modifier.height(10.dp))
+                }
+                if (b != null) {
+                    OrnamentLine(rose)
+                    PosterItalic(b.closing, Ergos.Ink, 20.sp)
+                    if (b.closingRef.isNotBlank()) SpacedCaps("${b.closingRef}  ·  RVR1960", rose, 11.sp)
                 }
             }
             if (b != null) {
@@ -587,15 +606,27 @@ private fun BattleSection(vm: DonesViewModel) {
     DoorCard(ErgosIcons.Scroll, "Mis documentos y certificado", onClick = { vm.open(Overlay.Documents) }, subtitle = "Abrir o enviar por WhatsApp")
 }
 
-/** Separador de la batalla: línea fina con un rombo rojo al centro. */
 @Composable
-private fun BattleDivider(line: Color, gem: Color, short: Boolean = false) {
-    Canvas(Modifier.fillMaxWidth(if (short) .5f else 1f).height(14.dp)) {
-        val y = size.height / 2
-        val c = size.width / 2
-        val r = 6.dp.toPx()
-        drawLine(line.copy(alpha = .8f), Offset(0f, y), Offset(c - r * 2.2f, y), 1.5.dp.toPx())
-        drawLine(line.copy(alpha = .8f), Offset(c + r * 2.2f, y), Offset(size.width, y), 1.5.dp.toPx())
-        drawPath(Path().apply { moveTo(c, y - r); lineTo(c + r, y); lineTo(c, y + r); lineTo(c - r, y); close() }, gem)
+private fun battleBody(size: Int): TextStyle =
+    MaterialTheme.typography.bodyLarge.copy(fontFamily = Cormorant, fontWeight = FontWeight.Medium, fontSize = size.sp, lineHeight = (size * 1.4f).sp)
+
+/** Línea fina con un rombo al centro, para separar a cada don. */
+@Composable
+private fun OrnamentLine(color: Color, width: Dp = 70.dp) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.width(width).height(1.dp).background(color.copy(alpha = .55f)))
+        Box(Modifier.padding(horizontal = 10.dp).size(7.dp).rotate(45f).background(color))
+        Box(Modifier.width(width).height(1.dp).background(color.copy(alpha = .55f)))
+    }
+}
+
+/** Rótulo centrado con una línea fina a cada lado. */
+@Composable
+private fun LabelRow(color: Color, text: String, icon: @Composable () -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(Modifier.weight(1f).height(1.dp).background(color.copy(alpha = .45f)))
+        icon()
+        SpacedCaps(text, color, 12.sp)
+        Box(Modifier.weight(1f).height(1.dp).background(color.copy(alpha = .45f)))
     }
 }

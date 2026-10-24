@@ -566,8 +566,8 @@ internal object ResultsPdf {
         })
 
         // Rótulos tipo ficha
-        pen.shadowed("N.º ${"%02d".format(number)}  ·  TU PERSONAJE BÍBLICO", M, 80f, pen.geistSemi, 7f, Ergos.CREAM, Align.LEFT, 2.2f)
-        pen.shadowed("${ch.ref.uppercase(es)}  ·  RVR1960", W - M, 80f, pen.geistSemi, 7f, Ergos.CREAM, Align.RIGHT, 2.2f)
+        pen.shadowed("N.º ${"%02d".format(number)}  ·  TU PERSONAJE BÍBLICO", M, 80f, pen.geistSemi, 8.4f, Ergos.CREAM, Align.LEFT, 2.2f)
+        pen.shadowed("${ch.ref.uppercase(es)}  ·  RVR1960", W - M, 80f, pen.geistSemi, 8.4f, Ergos.CREAM, Align.RIGHT, 2.2f)
         c.drawLine(M, 88f, W - M, 88f, pen.solid(Ergos.CREAM, .5f, .5f))
 
         // Bloque de texto
@@ -585,9 +585,9 @@ internal object ResultsPdf {
         val note = pen.wrap(
             "Este resultado es un punto de partida para la oración y la experimentación. " +
                 "Confírmalo con personas que te conocen, con tu pastor y con los líderes de tu iglesia.",
-            pen.geist, 7.6f, if (center) W - 2 * M - 60f else bw,
+            pen.geist, 8.6f, if (center) W - 2 * M - 60f else bw,
         )
-        val noteTop = BOTTOM - note.size * 10f + 4f
+        val noteTop = BOTTOM - note.size * 11.4f + 4f
         val items = result.dominant.map { it.gift.name }
         val words = th.words.take(3).map { it.uppercase(es) }
 
@@ -607,7 +607,7 @@ internal object ResultsPdf {
             // Tres palabras en píldoras unidas por una línea
             y += 26f
             if (words.isNotEmpty()) {
-                var fs = 7.4f
+                var fs = 9f
                 val link = 12f
                 fun total() = words.sumOf { (pen.measure(it, pen.geistSemi, fs, 1.4f) + 16f).toDouble() }.toFloat() + link * (words.size - 1)
                 while (total() > bw && fs > 5.6f) fs -= .3f
@@ -632,11 +632,11 @@ internal object ResultsPdf {
             y += 32f
             quote.forEach { if (draw) pen.shadowed(it, ax, y, pen.corMed, qs, Ergos.INK, al); y += qs * 1.22f }
             y += 2f
-            if (draw) pen.shadowed("—  ${ch.ref}  ·  RVR1960", ax, y, pen.geistSemi, 7.4f, Ergos.ACCENT, al, 1.6f)
+            if (draw) pen.shadowed("—  ${ch.ref}  ·  RVR1960", ax, y, pen.geistSemi, 8.8f, Ergos.ACCENT, al, 1.6f)
             // Su historia
             y += 26f
-            if (draw) pen.shadowed("SU HISTORIA, TU LLAMADO", ax, y, pen.geistSemi, 7.2f, th.accent, al, 2f)
-            val bs = 11.8f * k
+            if (draw) pen.shadowed("SU HISTORIA, TU LLAMADO", ax, y, pen.geistSemi, 8.8f, th.accent, al, 2f)
+            val bs = 12.6f * k
             val body = pen.wrap(ch.text + extra, pen.corMed, bs, bw)
             y += 15f
             body.forEach { if (draw) pen.shadowed(it, bx, y, pen.corMed, bs, Ergos.INK); y += bs * 1.26f }
@@ -647,16 +647,16 @@ internal object ResultsPdf {
             if (draw) {
                 emblem(pen, code, th, bx + 24f, y + 26f, 19f)
                 if (motto.isNotEmpty()) {
-                    pen.shadowed("SU LEMA", bx + 68f, y + 14f, pen.geistSemi, 6.8f, th.accent, Align.LEFT, 2f)
+                    pen.shadowed("SU LEMA", bx + 68f, y + 14f, pen.geistSemi, 8.2f, th.accent, Align.LEFT, 2f)
                     var my = y + 32f
                     motto.forEach { pen.shadowed(it, bx + 68f, my, pen.italic, 13f * k, Ergos.CREAM); my += 15f * k }
                 }
             }
             y += rowH + 8f
             // Dones dominantes
-            if (draw) pen.shadowed("TUS DONES DOMINANTES", ax, y + 4f, pen.geistSemi, 7f, Ergos.CREAM, al, 2f)
+            if (draw) pen.shadowed("TUS DONES DOMINANTES", ax, y + 4f, pen.geistSemi, 8.6f, Ergos.CREAM, al, 2f)
             y += 14f
-            val ps = 9f * k
+            val ps = 10.5f * k
             val pw = items.map { pen.measure(it, pen.geistSemi, ps) + 22f }
             var row = mutableListOf<Int>()
             var rowW = 0f
@@ -687,7 +687,7 @@ internal object ResultsPdf {
         lay(k, true)
 
         var ny2 = noteTop
-        note.forEach { pen.shadowed(it, ax, ny2, pen.geist, 7.6f, Ergos.MUTED, al); ny2 += 10f }
+        note.forEach { pen.shadowed(it, ax, ny2, pen.geist, 8.6f, Ergos.MUTED, al); ny2 += 11.4f }
     }
 
     // ------------------------------------------------------------------ Hoja 6: la batalla por tus dones
@@ -801,7 +801,7 @@ internal object ResultsPdf {
         val topLimit = if (poster) 168f else bannerTop + bannerH + 18f
 
         val others = doms.drop(1).filter { b.gifts.containsKey(it.gift.code) }
-        val closing = pen.wrap(b.closing, pen.corMed, 10.5f, tw)
+        val closing = pen.wrap(b.closing, pen.italic, 12f, tw)
         val cardGap = 10f
         val cardW = if (others.size == 2) (tw - cardGap) / 2 else tw
         val glow = Red.ROSE_HI
@@ -820,28 +820,29 @@ internal object ResultsPdf {
                 y += 19f * k
             }
             if (d != null) {
-                val nm = main.gift.name.uppercase(es)
-                val nsz = 11.5f * k
-                txt(nm, W / 2, y, pen.geistSemi, nsz, glow, Align.CENTER, 2.4f)
+                val nm = main.gift.name
+                val nsz = pen.fitFraktur(nm, 30f * k, tw - 90f)
                 if (draw) {
-                    val w = pen.measure(nm, pen.geistSemi, nsz, 2.4f)
-                    giftIcon(pen, code, W / 2 - w / 2 - 15f * k, y - 4f * k, 7.5f * k, glow)
-                    giftIcon(pen, code, W / 2 + w / 2 + 15f * k, y - 4f * k, 7.5f * k, glow)
+                    pen.frakturText(nm, W / 2 + 1.5f, y + 1.5f, nsz, pen.solid(0xFF000000.toInt(), .55f), Align.CENTER)
+                    pen.frakturText(nm, W / 2, y, nsz, rose(y - nsz * .8f, y + 6f), Align.CENTER)
+                    val w = pen.measureFraktur(nm, nsz)
+                    giftIcon(pen, code, W / 2 - w / 2 - 20f * k, y - nsz * .3f, 9f * k, glow)
+                    giftIcon(pen, code, W / 2 + w / 2 + 20f * k, y - nsz * .3f, 9f * k, glow)
                 }
-                y += 24f * k
+                y += nsz * .5f + 20f * k
                 row(Glyph.Lie, "LA MENTIRA", Red.ALARM)
                 pen.wrap("«${d.lie}»", pen.corBold, 22f * k, tw).forEach { txt(it, W / 2, y, pen.corBold, 22f * k, Red.ROSE); y += 25f * k }
                 y += 4f * k
-                pen.wrap(d.attack, pen.geist, 10.6f * k, tw).forEach { txt(it, W / 2, y, pen.geist, 10.6f * k, Ergos.INK2); y += 14.2f * k }
+                pen.wrap(d.attack, pen.corMed, 13f * k, tw).forEach { txt(it, W / 2, y, pen.corMed, 13f * k, Ergos.INK2); y += 15.4f * k }
                 y += 4f * k
                 if (draw) c.drawLine(W / 2 - 34f, y, W / 2 + 34f, y, pen.solid(Red.ROSE, .6f, .8f))
                 y += 18f * k
                 row(Glyph.Sword, "LA VERDAD", glow)
-                pen.wrap(d.truth, pen.corMed, 14.5f * k, tw).forEach { txt(it, W / 2, y, pen.corMed, 14.5f * k, Ergos.INK); y += 17f * k }
+                pen.wrap(d.truth, pen.corBold, 15.5f * k, tw).forEach { txt(it, W / 2, y, pen.corBold, 15.5f * k, Ergos.INK); y += 18f * k }
                 txt(d.ref, W / 2, y + 1f, pen.geistSemi, 9.5f * k, Red.ROSE)
                 y += 22f * k
                 row(Glyph.Shield, "CÓMO RESISTIR", glow)
-                pen.wrap(d.defense, pen.geist, 10.6f * k, tw).forEach { txt(it, W / 2, y, pen.geist, 10.6f * k, Ergos.INK2); y += 14.2f * k }
+                pen.wrap(d.defense, pen.corMed, 13f * k, tw).forEach { txt(it, W / 2, y, pen.corMed, 13f * k, Ergos.INK2); y += 15.4f * k }
                 y += 10f * k
             }
             if (others.isNotEmpty()) {
@@ -849,32 +850,29 @@ internal object ResultsPdf {
                 fun cardH(s: GiftScore): Float {
                     val g = b.gifts.getValue(s.gift.code)
                     return 14f * k + 20f * k + pen.wrap("«${g.lie}»", pen.corBold, 13.5f * k, iw).size * 16f * k +
-                        pen.wrap(g.defense, pen.geist, 9.2f * k, iw).size * 12f * k + 14f * k
+                        pen.wrap(g.defense, pen.corMed, 11f * k, iw).size * 13f * k + 14f * k
                 }
                 val h = others.maxOf { cardH(it) }
                 others.forEachIndexed { i, s ->
                     val g = b.gifts.getValue(s.gift.code)
                     val x = M + i * (cardW + cardGap)
-                    if (draw) {
-                        rrect(pen, x, y, x + cardW, y + h, 8f, pen.solid(Red.CARD, .85f))
-                        rrect(pen, x, y, x + cardW, y + h, 8f, pen.solid(Red.ROSE, .55f, .8f))
-                    }
+                    if (draw && i == 0 && others.size == 2) c.drawLine(M + cardW + cardGap / 2, y + 4f, M + cardW + cardGap / 2, y + h - 6f, pen.solid(Red.ROSE, .55f, 1f))
                     var yy = y + 20f * k
-                    txt(s.gift.name.uppercase(es), x + cardW / 2, yy, pen.geistSemi, 8.6f * k, glow, Align.CENTER, 1.6f)
+                    if (draw) pen.frakturText(s.gift.name, x + cardW / 2, yy, pen.fitFraktur(s.gift.name, 17f * k, cardW - 50f), pen.solid(glow), Align.CENTER)
                     if (draw) giftIcon(pen, s.gift.code, x + 15f, yy - 3f * k, 6.5f * k, glow)
                     yy += 18f * k
                     pen.wrap("«${g.lie}»", pen.corBold, 13.5f * k, iw).forEach { txt(it, x + cardW / 2, yy, pen.corBold, 13.5f * k, Red.ROSE); yy += 16f * k }
                     yy += 4f * k
-                    pen.wrap(g.defense, pen.geist, 9.2f * k, iw).forEach { txt(it, x + cardW / 2, yy, pen.geist, 9.2f * k, Ergos.INK2); yy += 12f * k }
+                    pen.wrap(g.defense, pen.corMed, 11f * k, iw).forEach { txt(it, x + cardW / 2, yy, pen.corMed, 11f * k, Ergos.INK2); yy += 13f * k }
                 }
                 y += h + 14f * k
             }
-            closing.forEach { txt(it, W / 2, y, pen.corMed, 10.5f * k, Ergos.INK); y += 13f * k }
+            closing.forEach { txt(it, W / 2, y, pen.italic, 12f * k, Ergos.INK); y += 14.5f * k }
             txt(b.closingRef.uppercase(es), W / 2, y + 2f, pen.geistSemi, 8f * k, Red.ROSE, Align.CENTER, 1.5f)
             return y + 2f
         }
 
-        var k = 1.08f
+        var k = 1f
         while (k > .7f && BOTTOM - (lay(k, 0f, false)) < topLimit) k -= .02f
         val startY = (BOTTOM - lay(k, 0f, false)).coerceAtLeast(topLimit)
 
@@ -882,9 +880,9 @@ internal object ResultsPdf {
             val y0 = startY - 130f
             val y1 = startY - 12f
             c.drawRect(0f, y0, W, H, Paint().apply {
-                shader = LinearGradient(0f, y0, 0f, y1, intArrayOf(Ergos.withAlpha(Red.BG2, 0f), Ergos.withAlpha(Red.BG2, .94f)), null, Shader.TileMode.CLAMP)
+                shader = LinearGradient(0f, y0, 0f, y1, intArrayOf(Ergos.withAlpha(Red.BG2, 0f), Ergos.withAlpha(Red.BG2, .88f)), null, Shader.TileMode.CLAMP)
             })
-            c.drawRect(0f, y1, W, H, pen.solid(Red.BG2, .94f))
+            c.drawRect(0f, y1, W, H, pen.solid(Red.BG2, .88f))
             c.drawRect(0f, 0f, W, 170f, Paint().apply {
                 shader = LinearGradient(0f, 0f, 0f, 170f, Ergos.withAlpha(Red.BG2, .85f), Ergos.withAlpha(Red.BG2, 0f), Shader.TileMode.CLAMP)
             })
@@ -893,10 +891,8 @@ internal object ResultsPdf {
         // Encabezado: aviso, título y espadas cruzadas
         val py = 74f
         val aw = pen.measure("ADVERTENCIA", pen.geistSemi, 8.5f, 3f) + 38f
-        rrect(pen, W / 2 - aw / 2, py - 12f, W / 2 + aw / 2, py + 7f, 9.5f, pen.solid(0xFF000000.toInt(), .45f))
-        rrect(pen, W / 2 - aw / 2, py - 12f, W / 2 + aw / 2, py + 7f, 9.5f, pen.solid(Red.ALARM, .9f, .9f))
-        pen.diamond(W / 2 - aw / 2 + 11f, py - 2.5f, 2.8f, pen.solid(Red.ALARM))
-        pen.diamond(W / 2 + aw / 2 - 11f, py - 2.5f, 2.8f, pen.solid(Red.ALARM))
+        c.drawLine(W / 2 - aw / 2 - 50f, py - 3f, W / 2 - aw / 2 + 6f, py - 3f, pen.solid(Red.ALARM, .9f, 1f))
+        c.drawLine(W / 2 + aw / 2 - 6f, py - 3f, W / 2 + aw / 2 + 50f, py - 3f, pen.solid(Red.ALARM, .9f, 1f))
         pen.text("ADVERTENCIA", W / 2, py, pen.geistSemi, 8.5f, pen.solid(Red.ROSE_HI), Align.CENTER, 3f)
         val title = "La batalla por tus dones"
         val ty = 122f
