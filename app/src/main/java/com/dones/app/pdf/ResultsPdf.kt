@@ -586,13 +586,6 @@ internal object ResultsPdf {
         val quote = pen.wrap("«${ch.quote}»", pen.corMed, 16f, W - 2 * M - 40f)
         var y = ib - 40f - (quote.size - 1) * 19f
         quote.forEach { pen.text(it, W / 2, y, pen.corMed, 16f, pen.solid(Ergos.CREAM), Align.CENTER); y += 19f }
-        barcode(pen, M, ib - 22f, 70f, 9f, pen.solid(Ergos.CREAM, .55f))
-        run {
-            val x = W - M - 9f
-            val yb = ib - 22f
-            val p = pen.solid(Ergos.CREAM, .55f, .6f)
-            c.drawRect(x, yb, x + 9f, yb + 9f, p); c.drawLine(x, yb, x + 9f, yb + 9f, p); c.drawLine(x + 9f, yb, x, yb + 9f, p)
-        }
 
         // Separador
         y = ib + 14f
