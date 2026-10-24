@@ -1,0 +1,182 @@
+{
+ "intro": "Haber descubierto tus dones es un regalo, pero también debes esperar resistencia: al enemigo le conviene un creyente que nunca use lo que Dios le dio. «Sed sobrios, y velad… al cual resistid firmes en la fe» (1 P 5:8-9).",
+ "closing": "El enemigo es real, pero ya fue derrotado en la cruz (Col 2:15). Fortalécete en el Señor, vístete de toda la armadura de Dios y permanece firme junto a tu comunidad de fe.",
+ "closingRef": "Ef 6:10-11",
+ "gifts": {
+  "A": {
+   "attack": "Intentará hacerte callar por miedo al rechazo, o empujarte a hablar con dureza y sin amor, para que tu palabra hiera en vez de edificar.",
+   "lie": "Nadie quiere escuchar lo que digo",
+   "truth": "Quien profetiza habla para edificación, exhortación y consolación; tu voz, dicha con amor, es necesaria en la iglesia.",
+   "ref": "1 Co 14:3",
+   "defense": "Ora antes de hablar y somete lo que recibes al discernimiento de líderes de confianza."
+  },
+  "B": {
+   "attack": "Intentará agotarte cargando por tu cuenta los problemas de todos, hasta que el cansancio y la amargura te hagan abandonar a quienes cuidas.",
+   "lie": "Si yo no lo sostengo, todo se cae",
+   "truth": "Cristo es el Príncipe de los pastores; tú cuidas la grey de Dios bajo su cuidado, no en su lugar, y él te recompensará.",
+   "ref": "1 P 5:2-4",
+   "defense": "Comparte la carga con otros, toma descanso y entrega en oración a cada persona."
+  },
+  "C": {
+   "attack": "Intentará inflarte de orgullo por lo que sabes, o convencerte de que debes saberlo todo antes de enseñar, para que nunca empieces.",
+   "lie": "Todavía no sé lo suficiente para enseñar",
+   "truth": "Toda la Escritura es útil para enseñar y te prepara para toda buena obra; Dios usa a quien estudia con humildad.",
+   "ref": "2 Ti 3:16-17",
+   "defense": "Prepara con oración, enseña lo que ya sabes y sigue aprendiendo de otros."
+  },
+  "D": {
+   "attack": "Intentará que confíes en tu propia prudencia más que en Dios, y que tus consejos nazcan solo de la experiencia y no de la oración.",
+   "lie": "Con mi experiencia me basta",
+   "truth": "Fíate del Señor de todo tu corazón y no te apoyes en tu propia prudencia; él enderezará tus veredas.",
+   "ref": "Pr 3:5-6",
+   "defense": "Antes de aconsejar, pide sabiduría a Dios y busca apoyo en la Escritura."
+  },
+  "E": {
+   "attack": "Intentará que el saber te aleje de las personas y que uses lo que conoces para ganar discusiones, no para servir con amor y paciencia a tu prójimo.",
+   "lie": "Saber más me hace mejor que otros",
+   "truth": "El conocimiento envanece, pero el amor edifica; todo lo que Dios te ha dejado conocer es para servir a los demás.",
+   "ref": "1 Co 8:1",
+   "defense": "Comparte lo que sabes con sencillez y pregúntate si tu aporte edifica a otros."
+  },
+  "F": {
+   "attack": "Intentará desanimarte cuando no veas cambios en quienes animas, o hacer que tus palabras suenen a crítica en lugar de aliento, hasta que prefieras callar.",
+   "lie": "Mis palabras no cambian nada",
+   "truth": "Dios nos manda exhortarnos unos a otros cada día; tu aliento protege a otros de endurecerse por el engaño del pecado.",
+   "ref": "He 3:13",
+   "defense": "Sigue animando con paciencia y deja en manos de Dios los resultados."
+  },
+  "G": {
+   "attack": "Intentará llenarte de sospecha hacia todos, o hacerte callar lo que percibes por temor a juzgar mal o a causar división, dejando a la iglesia sin advertencia.",
+   "lie": "Es mejor no decir lo que percibo",
+   "truth": "Dios nos llama a probar los espíritus si son de Dios; lo que percibes, compartido con amor, protege a la iglesia.",
+   "ref": "1 Jn 4:1",
+   "defense": "Comparte lo que percibes con humildad y en privado, con un líder de confianza."
+  },
+  "H": {
+   "attack": "Intentará sembrar en ti temor a la escasez, o que des buscando reconocimiento, para que tu generosidad se apague o pierda su gozo y su sencillez.",
+   "lie": "Si doy, me va a faltar",
+   "truth": "Dios ama al dador alegre y es poderoso para hacer que abunde en ti toda gracia, teniendo siempre lo suficiente.",
+   "ref": "2 Co 9:7-8",
+   "defense": "Da en secreto, con un plan y con oración, confiando en la provisión de Dios."
+  },
+  "I": {
+   "attack": "Intentará convencerte de que tu trabajo silencioso no vale nada, comparándote con quienes tienen dones más visibles, hasta que dejes de servir.",
+   "lie": "Lo que hago no tiene importancia",
+   "truth": "Los miembros del cuerpo que parecen más débiles son los más necesarios; Dios ve y valora tu servicio escondido.",
+   "ref": "1 Co 12:22",
+   "defense": "Agradece a Dios cada tarea y recuerda que sirves al Señor, no a los aplausos."
+  },
+  "J": {
+   "attack": "Intentará abrumarte con el dolor ajeno hasta agotarte, o hacerte sentir culpa por no poder aliviar todo sufrimiento, hasta que te alejes de quienes sufren.",
+   "lie": "Si no lo resuelvo, he fallado",
+   "truth": "Dios es Padre de misericordias y Dios de toda consolación; él te consuela para que puedas consolar a otros.",
+   "ref": "2 Co 1:3-4",
+   "defense": "Acompaña sin cargar todo por tu cuenta; descansa y entrega a cada persona a Dios."
+  },
+  "K": {
+   "attack": "Intentará asustarte con lo desconocido y la incomodidad, o hacerte creer que a tu edad ya no te corresponde salir hacia otros pueblos y culturas.",
+   "lie": "Ya no tengo edad para esto",
+   "truth": "Jesús envía a hacer discípulos de todas las naciones y promete estar contigo todos los días, hasta el fin del mundo.",
+   "ref": "Mt 28:19-20",
+   "defense": "Ora por un pueblo o lugar concreto y da un primer paso junto a tu iglesia."
+  },
+  "L": {
+   "attack": "Intentará que temas el rechazo o el qué dirán, hasta que guardes silencio sobre Jesús por vergüenza, por comodidad o por pensar que otro lo hará mejor.",
+   "lie": "Se van a burlar de mí si hablo",
+   "truth": "No te avergüences del evangelio, porque es poder de Dios para salvación a todo aquel que cree; tu testimonio sencillo puede abrir corazones.",
+   "ref": "Ro 1:16",
+   "defense": "Ora cada día por una persona y busca la ocasión de contarle tu historia con Cristo."
+  },
+  "M": {
+   "attack": "Intentará que pienses que tu casa, tu mesa o tu tiempo no son suficientes, y que la vergüenza o el cansancio te impidan abrir la puerta.",
+   "lie": "Mi casa no está a la altura",
+   "truth": "No te olvides de la hospitalidad; Dios no pide perfección, sino un corazón abierto para recibir a otros en su nombre.",
+   "ref": "He 13:2",
+   "defense": "Invita a alguien esta semana a una comida sencilla, sin esperar que todo esté perfecto."
+  },
+  "N": {
+   "attack": "Intentará desgastarte con la espera y las oraciones aún sin respuesta, para que la duda apague poco a poco tu confianza en las promesas de Dios.",
+   "lie": "Dios no va a responder esta vez",
+   "truth": "Sin fe es imposible agradar a Dios; el que se acerca debe creer que él existe y que recompensa a los que le buscan.",
+   "ref": "He 11:6",
+   "defense": "Anota lo que Dios ya ha hecho en tu vida y persevera orando junto a otros."
+  },
+  "O": {
+   "attack": "Intentará que la autoridad te envanezca o que la crítica te paralice, para que dejes de servir, te aísles o lideres por tu cuenta sin escuchar a otros.",
+   "lie": "Todo depende de mí",
+   "truth": "El que quiera hacerse grande entre ustedes será su servidor; Jesús no vino para ser servido, sino para servir.",
+   "ref": "Mc 10:43-45",
+   "defense": "Rodéate de personas que te digan la verdad y rinde cuentas con regularidad."
+  },
+  "P": {
+   "attack": "Intentará que la eficiencia valga más que las personas, o que te frustres y endurezcas cuando otros no siguen tus planes o tus tiempos.",
+   "lie": "Si no está todo en orden, fracasé",
+   "truth": "Dios no es Dios de confusión, sino de paz; tu servicio de orden ayuda a que todo en la iglesia se haga decentemente.",
+   "ref": "1 Co 14:33, 40",
+   "defense": "Planifica con oración y recuerda que cada tarea existe para servir a personas."
+  },
+  "Q": {
+   "attack": "Intentará que busques lo espectacular para recibir gloria, o que la falta de resultados visibles te haga dudar del poder y la bondad de Dios.",
+   "lie": "Si no ocurre nada, Dios no está",
+   "truth": "Dios es poderoso para hacer todas las cosas mucho más abundantemente de lo que pedimos o entendemos; a él sea la gloria.",
+   "ref": "Ef 3:20-21",
+   "defense": "Ora con humildad, da siempre la gloria a Dios y deja los resultados en sus manos."
+  },
+  "R": {
+   "attack": "Intentará desanimarte cuando alguien no sana, o hacerte creer que la sanidad depende de tu fuerza o de tu fe, y cargarte con una culpa que no te corresponde.",
+   "lie": "Si no sanan, es culpa mía",
+   "truth": "La oración de fe salvará al enfermo y el Señor lo levantará; la sanidad es obra de Dios, no un mérito tuyo.",
+   "ref": "Stg 5:15",
+   "defense": "Ora por los enfermos junto a otros y acompáñalos con amor, sanen o no."
+  },
+  "S": {
+   "attack": "Intentará que te avergüences de este don o que lo uses para destacar, en lugar de edificarte en oración y edificar con orden a la iglesia.",
+   "lie": "Esto es raro, mejor lo escondo",
+   "truth": "El que habla en lengua extraña se edifica a sí mismo; Dios da cada don para provecho de todos y para usarlo con orden.",
+   "ref": "1 Co 14:4",
+   "defense": "Usa este don en tu oración personal y, en público, solo con interpretación y orden."
+  },
+  "T": {
+   "attack": "Intentará que dudes de lo que Dios te muestra y calles por temor a equivocarte o a quedar en evidencia ante otros, privando a la iglesia de entender el mensaje.",
+   "lie": "Seguro me lo estoy inventando",
+   "truth": "Pablo exhorta a pedir en oración el poder interpretar; Dios usa tu don para que la iglesia entienda y sea edificada.",
+   "ref": "1 Co 14:13",
+   "defense": "Pide a Dios claridad y somete lo que interpretas al discernimiento de la iglesia."
+  },
+  "U": {
+   "attack": "Intentará hacerte sentir superior por lo que dejaste, o tentarte a volver a la falsa seguridad de las posesiones y del afán por acumular.",
+   "lie": "Necesito más para estar en paz",
+   "truth": "Gran ganancia es la piedad acompañada de contentamiento; teniendo sustento y abrigo, estemos contentos con esto.",
+   "ref": "1 Ti 6:6-8",
+   "defense": "Vive con sencillez y gratitud, sin juzgar a quienes viven de otra manera."
+  },
+  "V": {
+   "attack": "Intentará que la soledad se vuelva tristeza o aislamiento, y que sientas que te falta algo frente a quienes tienen pareja e hijos, hasta que te encierres en ti.",
+   "lie": "Mi vida vale menos sin pareja",
+   "truth": "Quien vive sin casarse puede ocuparse de las cosas del Señor con un corazón indiviso; tu entrega es un regalo para él.",
+   "ref": "1 Co 7:32-35",
+   "defense": "Cultiva amistades profundas en la iglesia y no enfrentes la soledad en silencio."
+  },
+  "W": {
+   "attack": "Intentará cansarte con oraciones que parecen no tener respuesta, o llenar tu agenda para que no te quede tiempo de orar por quienes Dios puso en tu corazón.",
+   "lie": "Orar no cambia nada",
+   "truth": "La oración eficaz del justo puede mucho; cada vez que intercedes, Dios obra aunque todavía no lo veas.",
+   "ref": "Stg 5:16",
+   "defense": "Fija un horario de oración y lleva un registro de peticiones y respuestas."
+  },
+  "X": {
+   "attack": "Intentará atemorizarte, o tentarte a enfrentarlo con tus fuerzas y a buscar protagonismo, olvidando que la victoria ya es de Cristo.",
+   "lie": "Esto es demasiado peligroso para mí",
+   "truth": "Mayor es el que está en ti que el que está en el mundo; tu autoridad viene de Cristo, que ya venció, y no de ti.",
+   "ref": "1 Jn 4:4",
+   "defense": "Nunca ministres sin compañía: ora, ayuna y actúa bajo la cobertura de tu iglesia."
+  },
+  "Y": {
+   "attack": "Intentará que sirvas por obligación o para ganar aprobación, hasta que el activismo te deje sin gozo, sin descanso y sin tiempo con Dios.",
+   "lie": "Si no lo hago yo, nadie lo hará",
+   "truth": "Todo lo que hagas, hazlo de corazón, como para el Señor y no para los hombres; él ve y recompensa tu servicio.",
+   "ref": "Col 3:23-24",
+   "defense": "Aprende a decir que no a tiempo y reserva cada semana un momento a solas con Dios."
+  }
+ }
+}

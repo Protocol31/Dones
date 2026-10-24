@@ -1,0 +1,404 @@
+{
+  "gifts": {
+    "A": {
+      "life": "Sueles percibir con claridad lo que Dios quiere decirle a su pueblo en un momento preciso. Te duele la tibieza y te mueve la verdad; a veces una palabra tuya llega justo a tiempo y otros sienten que Dios les habló directamente al corazón.",
+      "traits": [
+        "Escuchas a Dios con atención",
+        "Hablas la verdad con valentía",
+        "Te duele la tibieza espiritual"
+      ],
+      "serve": "Puedes servir en equipos de oración, compartir palabras de edificación en cultos y retiros, y apoyar a los pastores con discernimiento.",
+      "care": "Cuida de hablar siempre con amor y humildad, y deja que la iglesia examine lo que compartes a la luz de la Escritura.",
+      "character": {
+        "name": "Isaías",
+        "ref": "Is 6:8",
+        "quote": "Después oí la voz del Señor, que decía: ¿A quién enviaré, y quién irá por nosotros? Entonces respondí yo: Heme aquí, envíame a mí.",
+        "text": "Como Isaías, tú has visto algo de la santidad de Dios y no puedes guardar silencio. Él purificó sus labios antes de enviarlo, y también a ti te prepara con su gracia para hablar en su nombre. Tu disponibilidad vale más que tu elocuencia: cuando dices «heme aquí», Dios puede usar tu voz para despertar, consolar y llamar a su pueblo a volver a Él."
+      }
+    },
+    "B": {
+      "life": "Sueles preocuparte por las personas a largo plazo: recuerdas sus nombres, sus luchas y sus avances. Te nace acompañar, visitar y orar por un grupo con constancia, y quienes están a tu cuidado se sienten conocidos, protegidos y guiados.",
+      "traits": [
+        "Acompañas a otros con constancia",
+        "Recuerdas las historias de cada uno",
+        "Proteges a quienes se alejan"
+      ],
+      "serve": "Puedes guiar un grupo pequeño o célula, acompañar a nuevos creyentes, visitar enfermos y ancianos, o ser mentor de matrimonios y jóvenes.",
+      "care": "Cuida tu propia alma y tu descanso; no eres el Buen Pastor, solo su ayudante, y también necesitas ser pastoreado.",
+      "character": {
+        "name": "Abel",
+        "ref": "Gn 4:4",
+        "quote": "Y Abel trajo también de los primogénitos de sus ovejas, de lo más gordo de ellas. Y miró Jehová con agrado a Abel y a su ofrenda;",
+        "text": "Como Abel, tú eres pastor de corazón: cuidas a quienes Dios pone a tu cargo y le ofreces lo mejor de ti, no lo que sobra. Dios miró con agrado su ofrenda porque nacía de la fe, y aunque su vida fue breve, «muerto, aún habla por ella». Tu cuidado fiel y silencioso también deja huella: Dios usa tu corazón de pastor para que nadie de su rebaño camine solo."
+      }
+    },
+    "C": {
+      "life": "Sueles disfrutar al estudiar la Biblia y sientes una alegría especial cuando alguien por fin entiende. Organizas las ideas con claridad, buscas ejemplos sencillos y las personas suelen decir que contigo la fe se vuelve más comprensible y práctica.",
+      "traits": [
+        "Explicas con claridad y paciencia",
+        "Amas estudiar la Palabra",
+        "Te alegra que otros aprendan"
+      ],
+      "serve": "Puedes enseñar en la escuela dominical, guiar estudios bíblicos, preparar a catecúmenos y candidatos a confirmación, o formar a nuevos maestros.",
+      "care": "Cuida que el conocimiento no te envanezca; enseña primero con tu vida y sigue aprendiendo con humildad.",
+      "character": {
+        "name": "Esdras",
+        "ref": "Esd 7:10",
+        "quote": "Porque Esdras había preparado su corazón para inquirir la ley de Jehová y para cumplirla, y para enseñar en Israel sus estatutos y decretos.",
+        "text": "Como Esdras, tú no te conformas con saber: primero buscas, luego obedeces y después enseñas. Ese orden es tu tesoro, porque lo que transmites nace de un corazón que ha sido transformado por la Palabra. Dios puede usar tu paciencia y tu claridad para que su pueblo vuelva a amar las Escrituras y a vivirlas con gozo en lo cotidiano."
+      }
+    },
+    "D": {
+      "life": "Sueles ver con sencillez el camino a seguir cuando otros se enredan. Las personas te buscan para pedir consejo, porque sabes aplicar la verdad de Dios a situaciones concretas, y tus palabras suelen traer calma, equilibrio y una salida práctica.",
+      "traits": [
+        "Encuentras soluciones sensatas",
+        "Te buscan para pedir consejo",
+        "Aplicas la Biblia a la vida"
+      ],
+      "serve": "Puedes aconsejar a personas y familias, participar en el consejo parroquial, mediar en conflictos o acompañar decisiones importantes de la comunidad.",
+      "care": "Cuida de no responder con prisa; pide sabiduría a Dios cada día y escucha bien antes de aconsejar.",
+      "character": {
+        "name": "Salomón",
+        "ref": "1 R 3:9",
+        "quote": "Da, pues, a tu siervo corazón entendido para juzgar a tu pueblo, y para discernir entre lo bueno y lo malo; porque ¿quién podrá gobernar este tu pueblo tan grande?",
+        "text": "Como Salomón, tú sabes que la sabiduría verdadera no se fabrica: se pide. Él pudo pedir riquezas, pero pidió un corazón entendido para servir al pueblo, y a Dios le agradó. Cada vez que reconoces tu necesidad y clamas por dirección, Él te concede luz para otros. Tu consejo puede ser un regalo de paz para muchos, mientras permanezcas humilde a sus pies."
+      }
+    },
+    "E": {
+      "life": "Sueles hacer preguntas, investigar y conectar ideas que otros pasan por alto. Disfrutas leer, comparar y profundizar en la fe, y cuando compartes lo que descubres, la comunidad entiende mejor su historia, su doctrina y los desafíos de su tiempo.",
+      "traits": [
+        "Investigas con curiosidad y orden",
+        "Conectas ideas con facilidad",
+        "Aclaras lo que parece confuso"
+      ],
+      "serve": "Puedes preparar materiales de estudio, apoyar a pastores y maestros con investigación, cuidar la biblioteca o escribir recursos para la congregación.",
+      "care": "Cuida que el saber esté al servicio del amor; el conocimiento envanece, pero el amor edifica (1 Co 8:1).",
+      "character": {
+        "name": "Daniel",
+        "ref": "Dn 1:17",
+        "quote": "A estos cuatro muchachos Dios les dio conocimiento e inteligencia en todas las letras y ciencias; y Daniel tuvo entendimiento en toda visión y sueños.",
+        "text": "Como Daniel, tú has recibido de Dios una mente despierta y un deseo de comprender. Él estudió en Babilonia sin perder su fidelidad, y su conocimiento sirvió para dar gloria al Dios verdadero. Lo que aprendes no es solo para ti: es una lámpara para tu comunidad. Cuando lo pones a sus pies, Dios lo convierte en claridad y esperanza para otros."
+      }
+    },
+    "F": {
+      "life": "Sueles notar enseguida a quien está desanimado y te nace acercarte con una palabra oportuna. Sabes animar sin juzgar y aconsejar con esperanza; muchas personas salen de una conversación contigo con fuerzas renovadas para seguir adelante con Dios.",
+      "traits": [
+        "Ves potencial en los demás",
+        "Animas con palabras oportunas",
+        "Das esperanza en la dificultad"
+      ],
+      "serve": "Puedes acompañar a nuevos creyentes, visitar a quienes atraviesan crisis, escribir mensajes de aliento o servir en consejería y grupos de apoyo.",
+      "care": "Cuida de no decir solo lo agradable; el verdadero ánimo también invita con amor a crecer y a cambiar.",
+      "character": {
+        "name": "Bernabé",
+        "ref": "Hch 11:23",
+        "quote": "Este, cuando llegó, y vio la gracia de Dios, se regocijó, y exhortó a todos a que con propósito de corazón permaneciesen fieles al Señor.",
+        "text": "Como Bernabé, el «hijo de consolación», tú sabes ver la gracia de Dios en los demás y alegrarte por ella. Él creyó en Pablo cuando otros desconfiaban, y le dio a Juan Marcos una segunda oportunidad. Así también tú puedes ser la voz que levanta a quien está a punto de rendirse. Dios usa tu aliento para sostener la fe de muchos."
+      }
+    },
+    "G": {
+      "life": "Sueles percibir cuando algo no está bien, aunque todo parezca correcto en la superficie. Distingues con facilidad la verdad del error y lo genuino de lo aparente, y otros valoran tu capacidad de ver con claridad cuando hay confusión o engaño.",
+      "traits": [
+        "Percibes lo que hay detrás",
+        "Distingues la verdad del error",
+        "No te dejas llevar por apariencias"
+      ],
+      "serve": "Puedes servir en equipos de oración, apoyar a líderes en decisiones, ayudar a evaluar enseñanzas o acompañar procesos de consejería pastoral.",
+      "care": "Cuida tu corazón de la sospecha y el juicio; usa este don con discreción, oración y mucho amor.",
+      "character": {
+        "name": "Samuel",
+        "ref": "1 S 16:7",
+        "quote": "Y Jehová respondió a Samuel: No mires a su parecer, ni a lo grande de su estatura, porque yo lo desecho; porque Jehová no mira lo que mira el hombre; pues el hombre mira lo que está delante de sus ojos, pero Jehová mira el corazón.",
+        "text": "Como Samuel, tú aprendes a mirar más allá de las apariencias. Él esperaba un rey alto y fuerte, pero Dios le enseñó a ver el corazón de un joven pastor. Ese mismo Señor afina tu mirada para que distingas lo verdadero de lo falso. Tu don es una protección para la iglesia cuando lo vives cerca de Dios, con humildad y en oración constante."
+      }
+    },
+    "H": {
+      "life": "Sueles alegrarte cuando puedes compartir lo que tienes. Ves una necesidad y piensas cómo ayudar con tus recursos, a menudo sin que nadie lo sepa. Para ti dar no es una carga sino un gozo, y otros reciben tu generosidad como un reflejo del cuidado de Dios.",
+      "traits": [
+        "Das con alegría y liberalidad",
+        "Ves necesidades materiales enseguida",
+        "Administras pensando en el Reino"
+      ],
+      "serve": "Puedes apoyar proyectos de misión y ayuda social, cubrir necesidades de familias en crisis, financiar becas o animar a otros a la mayordomía.",
+      "care": "Cuida de dar en secreto y con sabiduría, sin buscar control ni reconocimiento a cambio de tu generosidad.",
+      "character": {
+        "name": "Zaqueo",
+        "ref": "Lc 19:8",
+        "quote": "Entonces Zaqueo, puesto en pie, dijo al Señor: He aquí, Señor, la mitad de mis bienes doy a los pobres; y si en algo he defraudado a alguno, se lo devuelvo cuadruplicado.",
+        "text": "Como Zaqueo, tú sabes que la generosidad nace de un encuentro con Jesús. Él fue buscado y amado antes de cambiar, y su gratitud se transformó en manos abiertas. Tu dar no es para ganar el favor de Dios, sino una respuesta a la gracia que ya recibiste. A través de ti, Dios provee, sostiene y alegra a muchos que esperan su bondad."
+      }
+    },
+    "I": {
+      "life": "Sueles darte cuenta de lo que hace falta para que otros puedan servir mejor. Te gusta trabajar detrás de escena, apoyar a quienes lideran y hacer las tareas que nadie ve; las personas a tu lado se sienten respaldadas y su ministerio rinde más.",
+      "traits": [
+        "Apoyas sin buscar protagonismo",
+        "Haces fácil el trabajo ajeno",
+        "Eres fiel en lo pequeño"
+      ],
+      "serve": "Puedes asistir a pastores y líderes, preparar el templo para el culto, apoyar en secretaría, sonido o logística de actividades y eventos.",
+      "care": "Cuida de aprender a decir que no a tiempo; tu valor no depende de cuánto haces, sino del amor de Dios.",
+      "character": {
+        "name": "Rut",
+        "ref": "Rt 1:16",
+        "quote": "Respondió Rut: No me ruegues que te deje, y me aparte de ti; porque a dondequiera que tú fueres, iré yo, y dondequiera que vivieres, viviré. Tu pueblo será mi pueblo, y tu Dios mi Dios.",
+        "text": "Como Rut, tú eliges acompañar y sostener a otros con lealtad. Ella dejó su tierra para caminar junto a Noemí y trabajó con humildad en los campos, sin imaginar que Dios la incluiría en la historia de la redención. Tu ayuda silenciosa tampoco pasa inadvertida para Él. En tu fidelidad cotidiana, Dios va tejiendo una historia más grande de lo que ves."
+      }
+    },
+    "J": {
+      "life": "Sueles sentir en carne propia el dolor de quien sufre y no puedes quedarte indiferente. Te acercas a los enfermos, los solos y los olvidados con paciencia y ternura, y tu presencia suele ser para ellos un alivio concreto del amor de Cristo.",
+      "traits": [
+        "Sientes el dolor ajeno",
+        "Te acercas a los que sufren",
+        "Sirves con ternura y alegría"
+      ],
+      "serve": "Puedes visitar hospitales, hogares de ancianos o cárceles, acompañar a personas en duelo, o servir en ollas comunes y ministerios de ayuda social.",
+      "care": "Cuida tus fuerzas y pon límites sanos; no puedes cargar todo el dolor del mundo, eso lo hace Cristo.",
+      "character": {
+        "name": "Dorcas (Tabita)",
+        "ref": "Hch 9:36",
+        "quote": "Había entonces en Jope una discípula llamada Tabita, que traducido quiere decir, Dorcas. Esta abundaba en buenas obras y en limosnas que hacía.",
+        "text": "Como Dorcas, tú expresas el amor de Dios con tus manos. Ella cosía túnicas y vestidos para las viudas, y cuando murió, todos lloraban mostrando lo que había hecho por ellos. Tu misericordia deja huellas igual de profundas en la vida de los que sufren. Cada gesto de compasión es una semilla del Reino, y Dios la hace florecer en esperanza."
+      }
+    },
+    "K": {
+      "life": "Sueles sentirte a gusto entre personas de otra cultura, idioma o realidad social. Te interesa entender cómo piensan y viven otros, y te adaptas con facilidad para compartir tu fe; quienes son distintos a ti se sienten respetados y bienvenidos.",
+      "traits": [
+        "Te adaptas a otras culturas",
+        "Cruzas fronteras por el evangelio",
+        "Respetas al que es diferente"
+      ],
+      "serve": "Puedes servir a migrantes en tu ciudad, apoyar misiones en otras regiones, aprender un idioma para evangelizar o participar en viajes misioneros.",
+      "care": "Cuida de no perder tus raíces ni tu comunidad; todo misionero necesita una iglesia que ore y lo sostenga.",
+      "character": {
+        "name": "Pablo",
+        "ref": "Hch 13:2",
+        "quote": "Ministrando éstos al Señor, y ayunando, dijo el Espíritu Santo: Apartadme a Bernabé y a Saulo para la obra a que los he llamado.",
+        "text": "Como Pablo, tú has recibido del Espíritu un llamado a llevar a Cristo más allá de lo conocido. Él se hizo a todos para ganar a algunos, y cruzó mares y culturas sostenido por la oración de su iglesia. Dios puede usar tu apertura y tu valentía para que el evangelio llegue a quienes aún no lo han oído. Tu llamado es parte de su misión en el mundo."
+      }
+    },
+    "L": {
+      "life": "Sueles hablar de Jesús con naturalidad, y las conversaciones contigo derivan con facilidad hacia la fe. Te alegra ver a alguien abrir su corazón a Cristo, y muchas personas que nunca entraron a una iglesia se sienten cómodas preguntándote sobre Dios.",
+      "traits": [
+        "Hablas de Jesús con naturalidad",
+        "Te interesan quienes no creen",
+        "Invitas a seguir a Cristo"
+      ],
+      "serve": "Puedes liderar cursos Alfa o de introducción a la fe, organizar actividades evangelísticas, visitar barrios o acompañar a nuevos convertidos.",
+      "care": "Cuida de no ver a las personas como metas; acompáñalas con paciencia hasta que se integren a la comunidad.",
+      "character": {
+        "name": "Felipe",
+        "ref": "Hch 8:35",
+        "quote": "Entonces Felipe, abriendo su boca, y comenzando desde esta escritura, le anunció el evangelio de Jesús.",
+        "text": "Como Felipe, tú estás atento a la voz del Espíritu que te envía a lugares inesperados. Él dejó un avivamiento en Samaria para hablar con un solo hombre en un camino desierto, y partió desde su pregunta para anunciarle a Jesús. Así también Dios te pone delante de personas con hambre de Él. Tu sencillez y tu valentía pueden abrir caminos de salvación."
+      }
+    },
+    "M": {
+      "life": "Sueles abrir tu casa y tu mesa con alegría. Te gusta recibir, hacer que el otro se sienta en casa y notar al recién llegado; quienes pasan por tu hogar o te encuentran en la iglesia se sienten acogidos, valorados y parte de una familia.",
+      "traits": [
+        "Recibes a otros con calidez",
+        "Notas al que llega por primera vez",
+        "Haces de tu casa un refugio"
+      ],
+      "serve": "Puedes servir en el equipo de bienvenida, organizar almuerzos y cafés de comunión, hospedar misioneros o recibir grupos pequeños en tu hogar.",
+      "care": "Cuida de no agotarte buscando la perfección; lo que más importa es el amor, no lo impecable de la mesa.",
+      "character": {
+        "name": "Lot",
+        "ref": "Gn 19:2",
+        "quote": "y dijo: Ahora, mis señores, os ruego que vengáis a casa de vuestro siervo y os hospedéis, y lavaréis vuestros pies; y por la mañana os levantaréis, y seguiréis vuestro camino. Y ellos respondieron: No, que en la calle nos quedaremos esta noche.",
+        "text": "Como Lot, tú sabes que una puerta abierta puede ser un refugio. Al caer la tarde, Lot vio a dos forasteros en Sodoma, se levantó a recibirlos y les rogó que pasaran la noche en su casa, porque conocía lo peligrosa que era la calle de aquella ciudad. Les lavó los pies y les preparó de comer, y sin saberlo hospedaba ángeles (He 13:2). Tu hospitalidad protege y bendice más de lo que imaginas."
+      }
+    },
+    "N": {
+      "life": "Sueles confiar en las promesas de Dios cuando otros dudan. Ves posibilidades donde muchos ven obstáculos, y tu certeza serena anima a la comunidad a dar pasos audaces; las personas suelen sentir que contigo es más fácil creer.",
+      "traits": [
+        "Confías cuando otros dudan",
+        "Ves posibilidades en lo imposible",
+        "Animas a dar pasos de fe"
+      ],
+      "serve": "Puedes orar por proyectos nuevos de la iglesia, animar a los líderes en momentos de incertidumbre o impulsar iniciativas que requieren confiar en Dios.",
+      "care": "Cuida de escuchar también a los que dudan; la fe verdadera es paciente y camina junto a los demás.",
+      "character": {
+        "name": "Abraham",
+        "ref": "He 11:8",
+        "quote": "Por la fe Abraham, siendo llamado, obedeció para salir al lugar que había de recibir como herencia; y salió sin saber a dónde iba.",
+        "text": "Como Abraham, tú sabes salir sin conocer todo el camino, porque conoces a quien te llama. Él esperó años una promesa que parecía imposible, y Dios fue fiel. Tu confianza no se apoya en tus fuerzas, sino en el carácter de Dios. Por eso tu fe puede ser un ancla para tu comunidad y una invitación a creer que Él todavía hace cosas nuevas."
+      }
+    },
+    "O": {
+      "life": "Sueles ver hacia dónde debe avanzar un grupo y te nace motivar a otros para llegar juntos. Las personas confían en tu dirección, se ordenan alrededor de una meta clara y descubren su lugar en el equipo cuando tú tomas la iniciativa.",
+      "traits": [
+        "Ves el rumbo con claridad",
+        "Motivas a otros a avanzar",
+        "Formas equipos que trabajan unidos"
+      ],
+      "serve": "Puedes coordinar un ministerio, integrar el consejo parroquial, liderar proyectos de la iglesia o formar y mentorear a nuevos líderes.",
+      "care": "Cuida de liderar sirviendo: escucha, delega y recuerda siempre que el pueblo es de Dios, no tuyo.",
+      "character": {
+        "name": "Moisés",
+        "ref": "Éx 3:10",
+        "quote": "Ven, por tanto, ahora, y te enviaré a Faraón, para que saques de Egipto a mi pueblo, los hijos de Israel.",
+        "text": "Como Moisés, quizá tú también te has sentido insuficiente frente al llamado. Él dudó de sus palabras y de sus fuerzas, pero Dios le prometió: «Yo estaré contigo». El liderazgo que Dios te da no depende de tu perfección, sino de su presencia. Cuando caminas cerca de Él, puedes guiar a otros hacia la libertad y la promesa que Él preparó para su pueblo."
+      }
+    },
+    "P": {
+      "life": "Sueles ver con claridad los pasos necesarios para que un proyecto funcione. Organizas tareas, recursos y plazos con naturalidad, y cuando estás a cargo las cosas fluyen; los demás se sienten tranquilos porque saben que nada importante se olvidará.",
+      "traits": [
+        "Organizas con orden y claridad",
+        "Conviertes metas en planes concretos",
+        "Cuidas los detalles importantes"
+      ],
+      "serve": "Puedes organizar eventos y retiros, apoyar la tesorería o la secretaría parroquial, coordinar calendarios o planificar proyectos de construcción.",
+      "care": "Cuida que la eficiencia no pese más que las personas; los planes sirven al amor y a la misión.",
+      "character": {
+        "name": "Nehemías",
+        "ref": "Neh 4:6",
+        "quote": "Edificamos, pues, el muro, y toda la muralla fue terminada hasta la mitad de su altura, porque el pueblo tuvo ánimo para trabajar.",
+        "text": "Como Nehemías, tú sabes orar y planificar a la vez. Él lloró por las ruinas de Jerusalén, pidió ayuda a Dios y luego organizó al pueblo, familia por familia, para reconstruir el muro. Tu orden es una forma de amor por la obra de Dios. Gracias a tu servicio, otros encuentran su lugar y lo que parecía imposible se levanta para su gloria."
+      }
+    },
+    "Q": {
+      "life": "Sueles orar con expectativa y con la convicción de que Dios sigue actuando con poder. Ante lo imposible no te rindes: clamas. A veces has visto respuestas que solo pueden explicarse por la mano de Dios, y eso fortalece la fe de quienes te rodean.",
+      "traits": [
+        "Oras esperando que Dios actúe",
+        "No te rindes ante lo imposible",
+        "Das gloria a Dios, no a ti"
+      ],
+      "serve": "Puedes servir en equipos de oración e intercesión, acompañar a personas en situaciones críticas y testificar con humildad de lo que Dios hace.",
+      "care": "Cuida de no buscar lo espectacular; el poder es de Dios, y Él actúa según su voluntad y su tiempo.",
+      "character": {
+        "name": "Elías",
+        "ref": "1 R 18:38",
+        "quote": "Entonces cayó fuego de Jehová, y consumió el holocausto, la leña, las piedras y el polvo, y aun lamió el agua que estaba en la zanja.",
+        "text": "Como Elías, tú sabes que el poder no está en ti, sino en el Dios que responde. Él oró con sencillez en el monte Carmelo, y el fuego del cielo mostró que Jehová es Dios. Elías era un hombre como nosotros, con temores y cansancio, y aun así Dios lo usó. Tu oración llena de fe puede ser un instrumento para que muchos vuelvan su corazón al Señor."
+      }
+    },
+    "R": {
+      "life": "Sueles sentir compasión por los enfermos y un deseo profundo de orar por ellos. Te acercas con fe y ternura, impones las manos o simplemente acompañas, y muchas personas han experimentado alivio, paz o sanidad después de tu oración.",
+      "traits": [
+        "Oras por los enfermos con fe",
+        "Acompañas el dolor con ternura",
+        "Confías en el poder de Dios"
+      ],
+      "serve": "Puedes servir en ministerios de oración por sanidad, visitar enfermos en hospitales y hogares, o participar en cultos de unción según la tradición de tu iglesia.",
+      "care": "Cuida de no prometer resultados; ora con fe y deja la respuesta en manos de Dios, con humildad.",
+      "character": {
+        "name": "Eliseo",
+        "ref": "2 R 5:14",
+        "quote": "Él entonces descendió, y se zambulló siete veces en el Jordán, conforme a la palabra del varón de Dios; y su carne se volvió como la carne de un niño, y quedó limpio.",
+        "text": "Como Eliseo, tú eres un instrumento por medio del cual Dios muestra su compasión. Él no buscó fama ni regalos cuando Naamán fue sanado, sino que todo apuntara al Dios de Israel. Tu oración por los enfermos nace del mismo corazón de Cristo, que tocaba y sanaba. Dios puede usarte para traer alivio, restauración y fe, para su gloria y no la tuya."
+      }
+    },
+    "S": {
+      "life": "Sueles experimentar la oración como un encuentro profundo donde las palabras propias se quedan cortas. Hablar a Dios en lenguas te edifica y renueva, y en ocasiones, con interpretación, el Espíritu usa este don para animar a la comunidad.",
+      "traits": [
+        "Oras desde lo profundo del espíritu",
+        "Te edifica la oración en lenguas",
+        "Buscas la presencia de Dios"
+      ],
+      "serve": "Puedes servir en oración privada por la iglesia, en grupos de intercesión y, cuando haya interpretación, en reuniones de alabanza ordenadas.",
+      "care": "Cuida de usar este don con orden y amor, como enseña 1 Co 14, sin hacer sentir a otros de menos.",
+      "character": {
+        "name": "Cornelio",
+        "ref": "Hch 10:46",
+        "quote": "Porque los oían que hablaban en lenguas, y que magnificaban a Dios.",
+        "text": "Como Cornelio y su casa, tú has experimentado que el Espíritu Santo se derrama con generosidad. Él era un hombre piadoso que oraba siempre, y Dios respondió llenando de su presencia a todos los que oían la Palabra. Tu don es un recordatorio de que el evangelio es para todos. Cuando lo vives con humildad, tu oración se convierte en alabanza que magnifica a Dios."
+      }
+    },
+    "T": {
+      "life": "Sueles entender con claridad el sentido de lo que el Espíritu dice cuando alguien habla en lenguas, y sientes la responsabilidad de comunicarlo con fidelidad. Tu aporte ayuda a que la comunidad comprenda, se edifique y adore con entendimiento.",
+      "traits": [
+        "Traduces lo espiritual en claridad",
+        "Comunicas con fidelidad y cuidado",
+        "Buscas la edificación de todos"
+      ],
+      "serve": "Puedes servir en reuniones de oración y alabanza donde se usan las lenguas, ayudando a mantener el orden y la edificación de la iglesia.",
+      "care": "Cuida de no añadir tus propias ideas; habla con humildad y deja que la iglesia examine lo dicho.",
+      "character": {
+        "name": "José",
+        "ref": "Gn 41:16",
+        "quote": "Respondió José a Faraón, diciendo: No está en mí; Dios será el que dé respuesta propicia a Faraón.",
+        "text": "Como José, tú sabes que la interpretación no viene de tu ingenio, sino de Dios. Ante el faraón, él no se atribuyó el mérito, sino que señaló al Señor como la fuente de toda respuesta. Esa humildad te hace confiable. Dios puede usarte para que otros entiendan su voz, y para que su pueblo reciba dirección, consuelo y esperanza."
+      }
+    },
+    "U": {
+      "life": "Sueles sentirte libre cuando vives con poco. Las comodidades no te atan, y eliges con alegría un estilo de vida sencillo para estar disponible para Dios y cercano a los pobres; otros ven en ti una libertad que los desafía y los inspira.",
+      "traits": [
+        "Vives con sencillez y gozo",
+        "No te atan las comodidades",
+        "Te identificas con los pobres"
+      ],
+      "serve": "Puedes servir en misiones entre comunidades vulnerables, en ministerios con personas en situación de calle o modelando una vida sencilla y generosa.",
+      "care": "Cuida de no juzgar a quienes viven distinto; tu sencillez es un llamado personal, no una medida para otros.",
+      "character": {
+        "name": "Juan el Bautista",
+        "ref": "Mt 3:4",
+        "quote": "Y Juan estaba vestido de pelo de camello, y tenía un cinto de cuero alrededor de sus lomos; y su comida era langostas y miel silvestre.",
+        "text": "Como Juan el Bautista, tú has descubierto que no necesitas mucho para cumplir tu llamado. Su vida sencilla en el desierto le dio libertad para preparar el camino del Señor y decir: «Es necesario que él crezca, y que yo mengüe». Tu desprendimiento también señala a Cristo. Dios puede usar tu sencillez para recordar a todos que Él es nuestro verdadero tesoro."
+      }
+    },
+    "V": {
+      "life": "Sueles vivir tu soltería con paz y plenitud, no como una carencia. Disfrutas de la libertad para dedicar tiempo y energía al Reino, y otros notan tu disponibilidad, tu estabilidad y la manera en que amas a muchos como si fueran tu familia.",
+      "traits": [
+        "Vives la soltería con plenitud",
+        "Tienes disponibilidad para el Reino",
+        "Amas a muchos como familia"
+      ],
+      "serve": "Puedes servir en misiones, en ministerios que requieren tiempo y movilidad, acompañar a jóvenes y adultos solteros o apoyar donde haya más necesidad.",
+      "care": "Cuida de no aislarte; cultiva amistades profundas y una comunidad que te conozca y te sostenga.",
+      "character": {
+        "name": "Jeremías",
+        "ref": "Jer 16:2",
+        "quote": "No tomarás para ti mujer, ni tendrás hijos ni hijas en este lugar.",
+        "text": "Como Jeremías, tú has recibido de Dios un llamado particular que también incluye tu estado de vida. Él no se casó, y su vida entera se volvió un mensaje para su pueblo en tiempos difíciles. Tu soltería no es un vacío, sino un espacio que Dios llena con propósito. Él te da libertad para amar a muchos y servir sin divisiones, para su gloria."
+      }
+    },
+    "W": {
+      "life": "Sueles orar por largo tiempo y sin cansarte, y muchas veces recuerdas pedidos que otros ya olvidaron. Sientes la carga de presentar a otros delante de Dios, y con frecuencia ves respuestas concretas que confirman que Él escucha tu clamor.",
+      "traits": [
+        "Oras con perseverancia y gozo",
+        "Llevas a otros ante Dios",
+        "Ves respuestas a tus oraciones"
+      ],
+      "serve": "Puedes servir en la cadena de oración, en vigilias y grupos de intercesión, orando por pastores, misioneros, enfermos y necesidades de la comunidad.",
+      "care": "Cuida de no cargar todo con ansiedad; ora con confianza y descansa en que Dios responde a su tiempo.",
+      "character": {
+        "name": "Ana la profetisa",
+        "ref": "Lc 2:37",
+        "quote": "y era viuda hacía ochenta y cuatro años; y no se apartaba del templo, sirviendo de noche y de día con ayunos y oraciones.",
+        "text": "Como Ana, tú sabes que la oración perseverante es un servicio silencioso y poderoso. Ella pasó décadas orando en el templo, y Dios le concedió ver al Mesías y hablar de Él a todos los que esperaban la redención. Tu fidelidad en la oración no es un tiempo perdido. Dios escucha cada clamor tuyo y prepara respuestas que darán esperanza a muchos."
+      }
+    },
+    "X": {
+      "life": "Sueles percibir cuando hay una opresión espiritual detrás de ciertas luchas, y no sientes miedo ante ella. Oras con autoridad en el nombre de Jesús, y las personas que acompañas experimentan alivio, paz y una libertad que solo Cristo puede dar.",
+      "traits": [
+        "Oras con autoridad en Cristo",
+        "Percibes la opresión espiritual",
+        "Traes paz donde hay tormento"
+      ],
+      "serve": "Puedes servir junto a pastores en oración por personas oprimidas, en equipos de consejería y liberación, siempre con supervisión y cobertura de la iglesia.",
+      "care": "Cuida de no actuar a solas ni buscar protagonismo; sirve en equipo, con ayuno, oración y humildad.",
+      "character": {
+        "name": "David",
+        "ref": "1 S 16:23",
+        "quote": "Y cuando el espíritu malo de parte de Dios venía sobre Saúl, David tomaba el arpa y tocaba con su mano; y Saúl tenía alivio y estaba mejor, y el espíritu malo se apartaba de él.",
+        "text": "Como David, tú puedes ser un instrumento de alivio para quienes viven atormentados. Con su arpa y su corazón entregado a Dios, él traía paz a Saúl en sus horas más oscuras. Tu autoridad no viene de ti, sino del nombre de Jesús, que venció al mal en la cruz. Dios puede usarte para que muchos encuentren libertad, descanso y una vida nueva en Él."
+      }
+    },
+    "Y": {
+      "life": "Sueles ver lo que hace falta y ponerte manos a la obra sin esperar que te lo pidan. Disfrutas de las tareas prácticas, resuelves con lo que hay y te alegra que todo funcione; otros saben que pueden contar contigo cuando hay algo que hacer.",
+      "traits": [
+        "Ves lo que hace falta",
+        "Resuelves con lo que tienes",
+        "Sirves con alegría práctica"
+      ],
+      "serve": "Puedes servir en mantención del templo, cocina y eventos, decoración, transporte, preparación del altar o ayudando en cualquier necesidad práctica.",
+      "care": "Cuida que el hacer no te aleje de los pies de Jesús; tu servicio nace de estar primero con Él.",
+      "character": {
+        "name": "Marta",
+        "ref": "Lc 10:38",
+        "quote": "Aconteció que yendo de camino, entró en una aldea; y una mujer llamada Marta le recibió en su casa.",
+        "text": "Como Marta, tú tienes un corazón listo para servir con tus manos. Ella recibió a Jesús en su casa y se ocupó de todo para atenderlo bien. Jesús amaba a Marta, y también te ama a ti, no por lo que haces, sino por quien eres. Cuando tu servicio brota de estar a sus pies, cada tarea sencilla se vuelve una ofrenda que alegra su corazón."
+      }
+    }
+  }
+}

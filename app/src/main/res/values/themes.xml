@@ -1,0 +1,7 @@
+<resources>
+    <!-- Fondo noche de Ergos desde el primer instante (sin destello blanco al abrir). -->
+    <style name="Theme.Dones" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/ergos_night</item>
+        <item name="android:colorBackground">@color/ergos_night</item>
+    </style>
+</resources>
