@@ -10,6 +10,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -466,47 +467,61 @@ private fun BattleSection(vm: DonesViewModel) {
         } ?: "batalla/default.jpg"
     }
     val art = rememberAssetImage(path, 2)
-    Eyebrow("Advertencia", icon = ErgosIcons.Shield, color = Ergos.Negative)
-    if (art != null) {
-        val shape = RoundedCornerShape(16.dp)
+    // Opción B: la imagen larga queda de fondo (a todo el ancho, sin recortar ni estirar), baja fundiéndose a
+    // rojo oscuro y todo el texto se desliza por encima.
+    val deepRed = Color(0xFF2A0618)
+    val shape = RoundedCornerShape(16.dp)
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val imgH = if (art != null) maxWidth * (art.height.toFloat() / art.width.toFloat()) else 0.dp
         Box(
             Modifier
                 .fillMaxWidth()
-                .aspectRatio(art.width.toFloat() / art.height.toFloat())
                 .clip(shape)
+                .background(deepRed)
                 .border(1.5.dp, Ergos.Negative.copy(alpha = .7f), shape),
         ) {
-            Image(
-                bitmap = art,
-                contentDescription = "La batalla por tus dones",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.matchParentSize(),
-            )
-            Box(
+            if (art != null) {
+                Image(
+                    bitmap = art,
+                    contentDescription = null,
+                    contentScale = ContentScale.FillWidth,
+                    modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
+                )
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(imgH)
+                        .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent, deepRed))),
+                )
+            }
+            Column(
                 Modifier
-                    .matchParentSize()
-                    .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent, Color(0xCC2A0618)))),
-            )
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = imgH * .5f + 12.dp, bottom = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Eyebrow("Advertencia", icon = ErgosIcons.Shield, color = Ergos.Negative)
+                SectionIntro("La batalla por tus dones", b?.intro.orEmpty())
+                doms.forEach { s ->
+                    val g = b?.gifts?.get(s.gift.code) ?: return@forEach
+                    ErgosCard(background = Color(0xFF2A0F1C), border = Ergos.Negative.copy(alpha = .7f), padding = 18.dp) {
+                        Text(s.gift.name, style = MaterialTheme.typography.titleLarge, color = Ergos.Ink)
+                        Eyebrow("La mentira", icon = ErgosIcons.Close, color = Ergos.Negative)
+                        Text("«${g.lie}»", style = MaterialTheme.typography.headlineSmall, color = Ergos.Ink)
+                        Body(g.attack, color = Ergos.Ink2)
+                        Eyebrow("La verdad", icon = ErgosIcons.Check, color = Ergos.Positive)
+                        Body(g.truth)
+                        if (g.ref.isNotBlank()) RefChip(g.ref, onClick = { vm.openScripture(g.ref) })
+                        Eyebrow("Cómo resistir", icon = ErgosIcons.Shield)
+                        Body(g.defense)
+                    }
+                }
+                if (b != null) {
+                    Body(b.closing, center = true, color = Ergos.Ink2)
+                    if (b.closingRef.isNotBlank()) Hint(b.closingRef, center = true, modifier = Modifier.fillMaxWidth())
+                }
+            }
         }
-    }
-    SectionIntro("La batalla por tus dones", b?.intro.orEmpty())
-    doms.forEach { s ->
-        val g = b?.gifts?.get(s.gift.code) ?: return@forEach
-        ErgosCard(background = Color(0xFF2A0F1C), border = Ergos.Negative.copy(alpha = .7f), padding = 18.dp) {
-            Text(s.gift.name, style = MaterialTheme.typography.titleLarge, color = Ergos.Ink)
-            Eyebrow("La mentira", icon = ErgosIcons.Close, color = Ergos.Negative)
-            Text("«${g.lie}»", style = MaterialTheme.typography.headlineSmall, color = Ergos.Ink)
-            Body(g.attack, color = Ergos.Ink2)
-            Eyebrow("La verdad", icon = ErgosIcons.Check, color = Ergos.Positive)
-            Body(g.truth)
-            if (g.ref.isNotBlank()) RefChip(g.ref, onClick = { vm.openScripture(g.ref) })
-            Eyebrow("Cómo resistir", icon = ErgosIcons.Shield)
-            Body(g.defense)
-        }
-    }
-    if (b != null) {
-        Body(b.closing, center = true, color = Ergos.Ink2)
-        if (b.closingRef.isNotBlank()) Hint(b.closingRef, center = true, modifier = Modifier.fillMaxWidth())
     }
     DoorCard(ErgosIcons.Scroll, "Mis documentos y certificado", onClick = { vm.open(Overlay.Documents) }, subtitle = "Abrir o enviar por WhatsApp")
 }
