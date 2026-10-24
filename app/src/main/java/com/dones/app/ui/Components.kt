@@ -7,6 +7,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.remember
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -53,6 +63,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -86,12 +97,14 @@ fun Screen(
     // así queda casi toda la pantalla para el texto y los espacios para escribir.
     val typing = WindowInsets.isImeVisible
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        FogBackdrop()
         Column(
             Modifier
                 .fillMaxSize()
                 .background(NightGlow)
                 .safeDrawingPadding(),
         ) {
+            // (la niebla va detrás de todo, ver FogBackdrop)
             if (!typing) top?.invoke()
             Column(
                 modifier = Modifier
@@ -106,17 +119,34 @@ fun Screen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .drawBehind {
-                            // Línea fina que separa los botones del contenido.
-                            drawLine(Ergos.Line, Offset(0f, 0f), Offset(size.width, 0f), 1.dp.toPx())
-                        }
-                        .background(Ergos.Night.copy(alpha = .55f))
+                        .background(Brush.verticalGradient(listOf(Color.Transparent, Ergos.Night.copy(alpha = .78f))))
                         .padding(horizontal = 24.dp, vertical = 14.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     content = bottom,
                 )
             }
         }
+    }
+}
+
+/** Niebla violeta de fondo: las mismas texturas de la batalla, teñidas de violeta y muy suaves. */
+@Composable
+fun FogBackdrop() {
+    val context = LocalContext.current
+    val fog: ImageBitmap? = remember {
+        runCatching {
+            val opts = BitmapFactory.Options().apply { inSampleSize = 2 }
+            context.assets.open("batalla-fondo/niebla-1.jpg").use { BitmapFactory.decodeStream(it, null, opts) }?.asImageBitmap()
+        }.getOrNull()
+    }
+    if (fog != null) {
+        Image(
+            bitmap = fog,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            colorFilter = ColorFilter.tint(Ergos.Violet, BlendMode.Modulate),
+            modifier = Modifier.fillMaxSize().alpha(.38f),
+        )
     }
 }
 
@@ -262,19 +292,12 @@ fun ProgressHeader(label: String, fraction: Float, icon: ImageVector? = null, co
             Eyebrow(label, icon = icon, color = Ergos.Gold, modifier = Modifier.weight(1f))
             if (count != null) Text(count, style = MaterialTheme.typography.labelMedium, color = Ergos.Ink2)
         }
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .background(Ergos.Line),
-        ) {
+        Box(Modifier.fillMaxWidth().height(3.dp).background(Ergos.Violet.copy(alpha = .25f))) {
             Box(
                 Modifier
                     .fillMaxWidth(fraction.coerceIn(0f, 1f))
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(Brush.horizontalGradient(listOf(Ergos.Gold, Ergos.GoldHi))),
+                    .height(3.dp)
+                    .background(Ergos.Violet),
             )
         }
     }
@@ -282,7 +305,7 @@ fun ProgressHeader(label: String, fraction: Float, icon: ImageVector? = null, co
 
 // ---------- Tarjetas ----------
 
-/** Tarjeta de Ergos: fondo de superficie, borde fino y, si se quiere, esquina ornamental. */
+/** Bloque de contenido sin recuadro: solo aire y una línea muy fina debajo. */
 @Composable
 fun ErgosCard(
     modifier: Modifier = Modifier,
@@ -295,16 +318,29 @@ fun ErgosCard(
 ) {
     val base = modifier
         .fillMaxWidth()
-        .clip(CardShape)
-        .background(background)
-        .border(1.dp, border, CardShape)
+        .drawBehind {
+            drawLine(Ergos.Violet.copy(alpha = .22f), Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
+        }
     Box(if (onClick != null) base.clickable(role = Role.Button, onClick = onClick) else base) {
-        if (ornament) CornerOrnament()
-        Column(Modifier.padding(padding), verticalArrangement = Arrangement.spacedBy(10.dp), content = content)
+        Column(Modifier.padding(vertical = padding), verticalArrangement = Arrangement.spacedBy(10.dp), content = content)
     }
 }
 
-/** Fila grande para tocar: cuadro violeta con ícono, título, detalle y flecha (las "puertas" de Ergos). */
+/** Rombo con un ícono dentro, en trazo fino. */
+@Composable
+private fun DiamondIcon(icon: ImageVector, size: Dp = 52.dp, tint: Color = Ergos.AccentText) {
+    Box(Modifier.size(size), contentAlignment = Alignment.Center) {
+        Canvas(Modifier.matchParentSize()) {
+            val k = this.size.width / 64f
+            val d = Path().apply { moveTo(32 * k, 3 * k); lineTo(61 * k, 32 * k); lineTo(32 * k, 61 * k); lineTo(3 * k, 32 * k); close() }
+            drawPath(d, Ergos.Violet.copy(alpha = .14f))
+            drawPath(d, tint.copy(alpha = .8f), style = Stroke(1.3f * k))
+        }
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(size * .42f))
+    }
+}
+
+/** Fila grande para tocar, sin recuadro: ícono en rombo, título, detalle y flecha, con una línea fina debajo. */
 @Composable
 fun DoorCard(
     icon: ImageVector,
@@ -313,50 +349,35 @@ fun DoorCard(
     subtitle: String? = null,
     highlighted: Boolean = false,
 ) {
-    val border = if (highlighted) Ergos.AccentText else Ergos.Violet.copy(alpha = .45f)
-    Box(
+    Row(
         Modifier
             .fillMaxWidth()
             .heightIn(min = 84.dp)
-            .clip(CardShape)
-            .background(if (highlighted) Ergos.Surface2 else Ergos.Surface)
-            .border(if (highlighted) 2.dp else 1.5.dp, border, CardShape)
-            .clickable(role = Role.Button, onClick = onClick),
-    ) {
-        if (highlighted) CornerOrnament(30.dp)
-        Row(
-            Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Box(
-                Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(Brush.verticalGradient(listOf(Ergos.ButtonTop, Ergos.ButtonBottom))),
-                contentAlignment = Alignment.Center,
-            ) { Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(30.dp)) }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(title, style = MaterialTheme.typography.titleMedium, color = Ergos.Ink)
-                if (subtitle != null) Text(subtitle, style = MaterialTheme.typography.labelMedium, color = Ergos.Muted)
+            .drawBehind {
+                drawLine(Ergos.Violet.copy(alpha = if (highlighted) .55f else .22f), Offset(0f, size.height), Offset(size.width, size.height), (if (highlighted) 1.5.dp else 1.dp).toPx())
             }
-            Icon(ErgosIcons.ChevronRight, contentDescription = null, tint = Ergos.AccentText, modifier = Modifier.size(24.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        DiamondIcon(icon, tint = if (highlighted) Ergos.Gold else Ergos.AccentText)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, color = Ergos.Ink)
+            if (subtitle != null) Text(subtitle, style = MaterialTheme.typography.labelMedium, color = Ergos.Muted)
         }
+        Icon(ErgosIcons.ChevronRight, contentDescription = null, tint = Ergos.AccentText, modifier = Modifier.size(24.dp))
     }
 }
 
-/** Cita bíblica como etiqueta que se toca para leerla: "📖 Efesios 4:11-14 · Leer ›". */
+/** Cita bíblica como enlace sin cápsula: "📖 Efesios 4:11-14 · Leer ›". */
 @Composable
 fun RefChip(text: String, onClick: (() -> Unit)? = null) {
     val title = com.dones.core.Bible.parse(text)?.title ?: text
     Row(
         Modifier
             .heightIn(min = 48.dp)
-            .clip(RoundedCornerShape(50))
-            .background(Ergos.VioletDeep.copy(alpha = .6f))
-            .border(1.dp, Ergos.Violet.copy(alpha = if (onClick != null) .8f else .5f), RoundedCornerShape(50))
-            .then(if (onClick != null) Modifier.clickable(onClickLabel = "Leer el pasaje", role = Role.Button, onClick = onClick) else Modifier)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .then(if (onClick != null) Modifier.clickable(onClickLabel = "Leer el pasaje", role = Role.Button, onClick = onClick) else Modifier),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -394,32 +415,21 @@ fun PrimaryButton(
     icon: ImageVector? = null,
     trailing: ImageVector? = null,
 ) {
-    val fill = if (enabled) Brush.verticalGradient(listOf(Ergos.ButtonTop, Ergos.ButtonBottom))
-    else Brush.verticalGradient(listOf(Ergos.Surface2, Ergos.Surface2))
+    val fill = if (enabled) Brush.horizontalGradient(listOf(Ergos.ButtonBottom, Ergos.ButtonTop))
+    else Brush.horizontalGradient(listOf(Ergos.Surface2, Ergos.Surface2))
     Box(
         Modifier
             .fillMaxWidth()
             .heightIn(min = BigTouch)
-            .then(if (enabled) Modifier.shadow(14.dp, ButtonShape, ambientColor = Ergos.Violet, spotColor = Ergos.Violet) else Modifier)
             .clip(ButtonShape)
             .background(fill)
-            .drawBehind {
-                // Brillo fino arriba, como el botón principal de Ergos.
-                if (enabled) drawRoundRect(
-                    Color.White.copy(alpha = .28f),
-                    topLeft = Offset(0f, 0f),
-                    size = Size(size.width, size.height),
-                    cornerRadius = CornerRadius(14.dp.toPx()),
-                    style = Stroke(1.dp.toPx()),
-                    alpha = .6f,
-                )
-            }
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = 20.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center,
     ) { ButtonContent(text, icon, trailing, if (enabled) Color.White else Ergos.Muted) }
 }
 
+/** Botón secundario: solo texto violeta claro, sin recuadro. */
 @Composable
 fun SecondaryButton(text: String, onClick: () -> Unit, icon: ImageVector? = null, trailing: ImageVector? = null) {
     Box(
@@ -427,44 +437,53 @@ fun SecondaryButton(text: String, onClick: () -> Unit, icon: ImageVector? = null
             .fillMaxWidth()
             .heightIn(min = BigTouch)
             .clip(ButtonShape)
-            .background(Ergos.Surface.copy(alpha = 0.7f))
-            .border(BorderStroke(1.dp, Ergos.LineStrong), ButtonShape)
             .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = 20.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center,
-    ) { ButtonContent(text, icon, trailing, Ergos.Ink) }
+    ) { ButtonContent(text, icon, trailing, Ergos.AccentText) }
 }
 
-/** Opción de respuesta: ancho completo, con un círculo que se marca con ✓ al elegirla (no solo el color). */
+/** Opción de respuesta: fila con un rombo que se llena al elegirla y una línea fina debajo. */
 @Composable
 fun ChoiceButton(text: String, selected: Boolean, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
             .heightIn(min = BigTouch)
-            .clip(ButtonShape)
-            .background(if (selected) Ergos.VioletDeep else Ergos.Surface.copy(alpha = 0.7f))
-            .border(if (selected) 2.dp else 1.dp, if (selected) Ergos.Gold else Ergos.LineStrong, ButtonShape)
+            .drawBehind {
+                drawLine(
+                    if (selected) Ergos.Violet.copy(alpha = .8f) else Ergos.Violet.copy(alpha = .22f),
+                    Offset(0f, size.height), Offset(size.width, size.height),
+                    (if (selected) 2.dp else 1.dp).toPx(),
+                )
+            }
             .semantics {
                 this.selected = selected
                 role = Role.RadioButton
             }
             .clickable(onClick = onClick)
-            .padding(horizontal = 18.dp, vertical = 12.dp),
+            .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Box(
-            Modifier
-                .size(30.dp)
-                .clip(CircleShape)
-                .background(if (selected) Ergos.Gold else Color.Transparent)
-                .border(2.dp, if (selected) Ergos.Gold else Ergos.LineStrong, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (selected) Icon(ErgosIcons.Check, contentDescription = null, tint = Ergos.Night, modifier = Modifier.size(20.dp))
+        Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
+            Canvas(Modifier.matchParentSize()) {
+                val r = size.width / 2f
+                val d = Path().apply {
+                    moveTo(r, 0f); lineTo(size.width, r); lineTo(r, size.height); lineTo(0f, r); close()
+                }
+                if (selected) drawPath(d, Ergos.Violet)
+                drawPath(d, if (selected) Ergos.VioletHi else Ergos.LineStrong, style = Stroke(2.dp.toPx()))
+            }
+            if (selected) Icon(ErgosIcons.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
         }
-        Text(text, style = MaterialTheme.typography.labelLarge, color = Ergos.Ink, modifier = Modifier.weight(1f))
+        Text(
+            text,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (selected) Ergos.Ink else Ergos.Ink2,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 

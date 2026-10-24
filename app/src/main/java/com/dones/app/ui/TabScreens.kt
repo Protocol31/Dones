@@ -102,7 +102,6 @@ fun MainTabBar(vm: DonesViewModel) {
 
 @Composable
 private fun TabItem(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, selected: Boolean, dim: Boolean, modifier: Modifier, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(10.dp)
     val color = when {
         selected -> Ergos.Ink
         dim -> Ergos.Muted.copy(alpha = .6f)
@@ -110,24 +109,22 @@ private fun TabItem(label: String, icon: androidx.compose.ui.graphics.vector.Ima
     }
     Column(
         modifier
-            .heightIn(min = 62.dp)
-            .clip(shape)
-            .background(if (selected) Ergos.Surface2 else Ergos.Surface.copy(alpha = .5f))
-            .border(if (selected) 2.dp else 1.dp, if (selected) Ergos.VioletHi else Ergos.Line, shape)
+            .heightIn(min = 56.dp)
             .clickable(role = Role.Tab, onClick = onClick)
             .padding(horizontal = 4.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = if (selected) Ergos.AccentText else color, modifier = Modifier.size(24.dp))
         Text(
-            label,
-            style = MaterialTheme.typography.labelMedium.copy(fontSize = 15.sp, lineHeight = 19.sp),
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-            color = color,
+            label.uppercase(),
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 15.sp, letterSpacing = 1.6.sp),
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            color = if (selected) Ergos.VioletHi else color,
             maxLines = 1,
             textAlign = TextAlign.Center,
         )
+        Spacer(Modifier.height(6.dp))
+        Box(Modifier.width(34.dp).height(2.dp).background(if (selected) Ergos.Violet else Color.Transparent))
     }
 }
 
@@ -223,29 +220,27 @@ private fun SectionChips(selected: Int, scroll: ScrollState, onSelect: (Int) -> 
         Modifier
             .fillMaxWidth()
             .horizontalScroll(scroll)
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = 18.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(22.dp),
     ) {
         sectionNames.forEachIndexed { i, name ->
             val on = i == selected
-            val shape = RoundedCornerShape(24.dp)
-            Box(
+            Column(
                 Modifier
-                    .heightIn(min = 48.dp)
-                    .clip(shape)
-                    .background(if (on) Ergos.ButtonBottom else Ergos.Surface)
-                    .border(1.5.dp, if (on) Ergos.VioletHi else Ergos.Line, shape)
-                    .clickable(role = Role.Tab, onClick = { onSelect(i) })
-                    .padding(horizontal = 18.dp),
-                contentAlignment = Alignment.Center,
+                    .heightIn(min = 52.dp)
+                    .clickable(role = Role.Tab, onClick = { onSelect(i) }),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
                 Text(
-                    name,
-                    style = MaterialTheme.typography.labelMedium.copy(fontSize = 16.sp, lineHeight = 20.sp),
-                    fontWeight = if (on) FontWeight.SemiBold else FontWeight.Normal,
-                    color = if (on) Color.White else Ergos.Ink2,
+                    name.uppercase(),
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 15.sp, letterSpacing = 1.6.sp),
+                    fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium,
+                    color = if (on) Ergos.VioletHi else Ergos.Ink2,
                     maxLines = 1,
                 )
+                Spacer(Modifier.height(6.dp))
+                Box(Modifier.fillMaxWidth().height(2.dp).background(if (on) Ergos.Violet else Color.Transparent))
             }
         }
     }
@@ -302,7 +297,7 @@ private fun CurveTab(vm: DonesViewModel) {
         "Tu curva completa",
         "Cada don se midió con 5 frases de hasta 3 puntos: el máximo es 15. Los dones con pocos puntos no son una falla: allí otros miembros del cuerpo te completan, porque «ni el ojo puede decir a la mano: No te necesito» (1 Co 12:21).",
     )
-    CurveGroup(vm, "Dominantes", result.dominant, Ergos.Gold)
+    CurveGroup(vm, "Dominantes", result.dominant, Ergos.Violet)
     CurveGroup(vm, "Subordinados", result.subordinate, Ergos.VioletHi)
     CurveGroup(vm, "Tus otros dones", others, Ergos.LineStrong)
 }
@@ -326,13 +321,12 @@ private fun CurveGroup(vm: DonesViewModel, title: String, scores: List<GiftScore
                     Body("${s.rank}. ${s.gift.name}", Modifier.weight(1f))
                     Text("${s.raw} de ${s.max}", style = MaterialTheme.typography.labelLarge, color = Ergos.Ink2)
                 }
-                Box(Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(6.dp)).background(Ergos.Line)) {
+                Box(Modifier.fillMaxWidth().height(4.dp).background(Ergos.Violet.copy(alpha = .2f))) {
                     Box(
                         Modifier
                             .fillMaxWidth(s.fraction.toFloat().coerceIn(0f, 1f))
-                            .height(12.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Brush.horizontalGradient(listOf(color.copy(alpha = .75f), color))),
+                            .height(4.dp)
+                            .background(Brush.horizontalGradient(listOf(color.copy(alpha = .7f), color))),
                     )
                 }
             }
@@ -418,6 +412,13 @@ private fun CharacterSection(vm: DonesViewModel, texts: PdfTexts) {
         1 -> " Además, Dios puso en ti el don de ${others[0]}: juntos forman tu manera única de servir."
         else -> " Además, Dios puso en ti los dones de ${others.dropLast(1).joinToString(", ")} y ${others.last()}: juntos forman tu manera única de servir."
     }
+    val number = vm.content.gifts.indexOfFirst { it.code == code } + 1
+    // El nombre arriba, sobre el espacio vacío; la escultura se funde con el fondo, sin marco.
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        SpacedCaps("N.º ${"%02d".format(number)}  ·  Tu personaje bíblico", Ergos.Ink2, 12.sp)
+        PosterItalic("Eres como", Ergos.Ink, 28.sp)
+        PosterName(ch.name, 64.sp)
+    }
     if (art != null) {
         Image(
             bitmap = art,
@@ -426,15 +427,20 @@ private fun CharacterSection(vm: DonesViewModel, texts: PdfTexts) {
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(art.width.toFloat() / art.height.toFloat())
-                .clip(RoundedCornerShape(12.dp)),
+                .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
+                .drawWithContent {
+                    drawContent()
+                    drawRect(
+                        Brush.verticalGradient(
+                            0f to Color.Transparent, .12f to Color.Black, .8f to Color.Black, 1f to Color.Transparent,
+                        ),
+                        blendMode = androidx.compose.ui.graphics.BlendMode.DstIn,
+                    )
+                },
         )
     }
-    val number = vm.content.gifts.indexOfFirst { it.code == code } + 1
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SpacedCaps("N.º ${"%02d".format(number)}  ·  Tu personaje bíblico", Ergos.Ink2, 12.sp)
-        PosterItalic("Eres como", Ergos.Ink, 30.sp)
-        PosterName(ch.name, 68.sp)
-        if (th.words.isNotEmpty()) LinkedChips(th.words.take(3), th.accent)
+    if (th.words.isNotEmpty()) {
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { LinkedChips(th.words.take(3), th.accent) }
     }
     // El versículo, tal cual, como en el PDF: comilla grande, texto serif y la cita en versalitas.
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
