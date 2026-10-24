@@ -84,7 +84,8 @@ private val ErgosTypography = Typography(
     headlineSmall = TextStyle(fontFamily = Cormorant, fontWeight = FontWeight.SemiBold, fontSize = 31.sp, lineHeight = 38.sp),
     titleLarge = TextStyle(fontFamily = Cormorant, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 34.sp),
     titleMedium = TextStyle(fontFamily = Geist, fontWeight = FontWeight.Medium, fontSize = 22.sp, lineHeight = 30.sp),
-    bodyLarge = TextStyle(fontFamily = Geist, fontSize = 21.sp, lineHeight = 31.sp),
+    // Texto corrido en serif, grande y aireado (mockup «app nueva»).
+    bodyLarge = TextStyle(fontFamily = Cormorant, fontWeight = FontWeight.Medium, fontSize = 23.sp, lineHeight = 32.sp),
     bodyMedium = TextStyle(fontFamily = Geist, fontSize = 20.sp, lineHeight = 28.sp),
     labelLarge = TextStyle(fontFamily = Geist, fontWeight = FontWeight.Medium, fontSize = 21.sp, lineHeight = 28.sp),
     labelMedium = TextStyle(fontFamily = Geist, fontSize = 18.sp, lineHeight = 25.sp),

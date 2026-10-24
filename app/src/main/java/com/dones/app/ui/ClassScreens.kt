@@ -1,5 +1,23 @@
 package com.dones.app.ui
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.unit.sp
+import androidx.compose.material3.TextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -71,35 +89,33 @@ fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
     val mustCheck = page.blanks.isNotEmpty() && !checked
     // No se avanza sin responder.
     val answered = LessonGate.canContinue(page, values, selected)
+    val total = vm.lesson.pages.size
     Screen(
-        top = {
-            ProgressHeader(
-                label = page.section,
-                icon = sectionIcon(page.section),
-                count = "${v.positionInSection} de ${v.sectionSize}",
-                fraction = v.positionInSection / v.sectionSize.toFloat(),
-            )
-        },
         bottom = {
             if (!answered) LessonGate.hint(page)?.let { Hint(it) }
-            if (mustCheck) {
-                PrimaryButton(
-                    "Revisar mis respuestas", icon = ErgosIcons.Check, enabled = answered,
-                    onClick = { vm.saveNotes(key, values.toList()); checked = true },
-                )
-            } else {
-                PrimaryButton("Siguiente", trailing = ErgosIcons.ChevronRight, enabled = answered, onClick = {
-                    if (page.write || page.blanks.isNotEmpty()) vm.saveNotes(key, values.toList())
-                    if (page.choices.isNotEmpty()) vm.saveNotes(key, listOf(selected.joinToString("\n")))
-                    vm.nextPage()
-                })
-            }
-            if (key > 0) BackLink("Anterior", onClick = vm::previousPage)
+            PageNav(
+                progress = (key + 1) / total.toFloat(),
+                label = "Página ${key + 1} de $total",
+                onPrevious = if (key > 0) vm::previousPage else null,
+                nextLabel = if (mustCheck) "Revisar" else "Siguiente",
+                nextEnabled = answered,
+                onNext = {
+                    if (mustCheck) {
+                        vm.saveNotes(key, values.toList()); checked = true
+                    } else {
+                        if (page.write || page.blanks.isNotEmpty()) vm.saveNotes(key, values.toList())
+                        if (page.choices.isNotEmpty()) vm.saveNotes(key, listOf(selected.joinToString("\n")))
+                        vm.nextPage()
+                    }
+                },
+            )
         },
     ) {
+        // Arriba, como en el mockup: la sección en versalitas doradas, el título gótico y el adorno.
+        Eyebrow(page.section)
         page.title?.let {
             Title(it)
-            Ornament(width = 160.dp)
+            Ornament(width = 64.dp)
         }
         page.ref?.let { r -> RefChip(r, onClick = { vm.openScripture(r) }) }
         Text(
@@ -157,7 +173,7 @@ fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
         if (page.write) {
             ErgosCard {
                 Eyebrow("Escribe tu respuesta", icon = ErgosIcons.Pencil)
-                OutlinedTextField(
+                TextField(
                     value = values[0],
                     onValueChange = { values[0] = it },
                     minLines = 4,
@@ -182,7 +198,7 @@ private fun BlankField(value: String, onValueChange: (String) -> Unit, label: St
     val focus = LocalFocusManager.current
     val ok = Blanks.isCorrect(expected, value)
     val state: Boolean? = if (checked) ok else null
-    OutlinedTextField(
+    TextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
@@ -216,30 +232,22 @@ private fun BlankField(value: String, onValueChange: (String) -> Unit, label: St
     }
 }
 
-/** Colores del campo: violeta normal, verde si acertó, rojo si no. */
+/** Colores del campo: sin caja, solo una línea abajo; violeta normal, verde si acertó, rojo si no. */
 @Composable
-internal fun ergosFieldColors(correct: Boolean?) = when (correct) {
-    null -> OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = Ergos.VioletHi,
-        unfocusedBorderColor = Ergos.LineStrong,
-        focusedLabelColor = Ergos.AccentText,
-        unfocusedLabelColor = Ergos.Muted,
-        cursorColor = Ergos.VioletHi,
-        focusedContainerColor = Ergos.Night.copy(alpha = .5f),
-        unfocusedContainerColor = Ergos.Night.copy(alpha = .5f),
+internal fun ergosFieldColors(correct: Boolean?): androidx.compose.material3.TextFieldColors {
+    val c = when (correct) { null -> Ergos.VioletHi; true -> Ergos.Positive; false -> Ergos.Negative }
+    return androidx.compose.material3.TextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        disabledContainerColor = Color.Transparent,
+        focusedIndicatorColor = c,
+        unfocusedIndicatorColor = if (correct == null) Ergos.Muted else c,
+        focusedLabelColor = if (correct == null) Ergos.AccentText else c,
+        unfocusedLabelColor = if (correct == null) Ergos.Muted else c,
+        cursorColor = c,
+        focusedTextColor = Ergos.Ink,
+        unfocusedTextColor = Ergos.Ink,
     )
-    else -> {
-        val c = if (correct) Ergos.Positive else Ergos.Negative
-        OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = c,
-            unfocusedBorderColor = c,
-            focusedLabelColor = c,
-            unfocusedLabelColor = c,
-            cursorColor = c,
-            focusedContainerColor = c.copy(alpha = .08f),
-            unfocusedContainerColor = c.copy(alpha = .08f),
-        )
-    }
 }
 
 /**
@@ -283,32 +291,57 @@ fun QuestionScreen(vm: DonesViewModel, q: ParticipantView.Question, inQuiz: Bool
     }
     val selected = pending ?: q.currentAnswer
     Screen(
-        top = {
-            ProgressHeader(
-                label = "Cuestionario · bloque ${q.block} de ${q.totalBlocks}",
-                icon = ErgosIcons.Bars,
-                count = "${q.positionInBlock} de ${q.blockSize}",
-                fraction = q.positionInBlock / q.blockSize.toFloat(),
-            )
-        },
         bottom = {
             val prev = q.previousItem
-            if (prev != null) BackLink("Anterior", onClick = { vm.goBackTo(prev) })
-            else if (!inQuiz) BackLink("Anterior", onClick = vm::previousPage)
+            PageNav(
+                onPrevious = when {
+                    prev != null -> ({ vm.goBackTo(prev) })
+                    !inQuiz -> vm::previousPage
+                    else -> null
+                },
+                label = "Bloque ${q.block} de ${q.totalBlocks}",
+            )
         },
     ) {
-        ErgosCard(ornament = true, background = Ergos.Surface2, border = Ergos.Violet.copy(alpha = .45f), padding = 22.dp) {
-            Eyebrow("Afirmación ${q.item.n}", icon = ErgosIcons.Sparkle)
-            Text("“${q.item.text}”", style = MaterialTheme.typography.headlineSmall, color = Ergos.Ink)
+        // Mockup: «PREGUNTA 6 DE 25» con una línea fina, la pregunta en cursiva y la afirmación grande en serif.
+        Eyebrow("Pregunta ${q.positionInBlock} de ${q.blockSize}")
+        Box(Modifier.fillMaxWidth().height(2.dp).background(Ergos.Line.copy(alpha = .7f))) {
+            Box(Modifier.fillMaxWidth(q.positionInBlock / q.blockSize.toFloat()).height(2.dp).background(Ergos.Violet))
         }
-        Body(vm.content.prompt, color = Ergos.Ink2)
+        Text(vm.content.prompt, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = CormorantItalic, fontStyle = FontStyle.Italic, fontWeight = FontWeight.SemiBold, fontSize = 21.sp), color = Ergos.AccentText)
+        Text(q.item.text, style = MaterialTheme.typography.headlineSmall.copy(fontSize = 31.sp, lineHeight = 40.sp), color = Ergos.Ink)
+        Spacer(Modifier.height(4.dp))
         vm.content.scale.forEach { option ->
-            ChoiceButton(
+            RadioOption(
                 text = option.label,
                 selected = selected == option.value,
                 onClick = { if (pending == null) pending = option.value },
             )
         }
+    }
+}
+
+/** Opción con un círculo (mockup): vacío, o lleno de violeta al elegirla; texto grande en serif. */
+@Composable
+private fun RadioOption(text: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = BigTouch)
+            .clip(RoundedCornerShape(12.dp))
+            .semantics { this.selected = selected; role = Role.RadioButton }
+            .clickable(onClick = onClick)
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(18.dp),
+    ) {
+        Box(
+            Modifier.size(28.dp).border(2.dp, if (selected) Ergos.VioletHi else Ergos.Muted, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (selected) Box(Modifier.size(14.dp).clip(CircleShape).background(Ergos.VioletHi))
+        }
+        Text(text, style = MaterialTheme.typography.headlineSmall.copy(fontSize = 27.sp, fontWeight = FontWeight.Medium), color = if (selected) Color.White else Ergos.Ink)
     }
 }
 

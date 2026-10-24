@@ -1,5 +1,11 @@
 package com.dones.app.ui
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,27 +40,50 @@ private fun progressLabel(vm: DonesViewModel, p: ParticipantState): String {
     return page.houtsBlock?.let { "Va en: preguntas, bloque $it de ${vm.content.blocks.size}" } ?: "Va en: ${page.section}"
 }
 
-// W0: "¿Quién eres?" — los perfiles guardados en este teléfono.
+// W0: "¿Quién va a responder hoy?" — los perfiles guardados en este teléfono (mockup).
 @Composable
 fun ProfilesScreen(vm: DonesViewModel) {
-    Screen(bottom = { SecondaryButton("Soy una persona nueva", icon = ErgosIcons.Plus, onClick = vm::startNewProfile) }) {
-        PageHeader(
-            title = "¿Quién eres?",
-            icon = ErgosIcons.People,
-            eyebrow = "Llamados",
-            subtitle = "Toca tu nombre para seguir donde quedaste.",
-        )
-        vm.book.profiles.sortedByDescending { it.id == vm.book.activeId }.forEach { p ->
-            DoorCard(
-                icon = ErgosIcons.Person,
-                title = p.name.ifBlank { "Persona sin nombre" },
-                subtitle = progressLabel(vm, p),
-                highlighted = p.id == vm.book.activeId,
-                onClick = { vm.selectProfile(p.id) },
+    Screen(
+        bottom = {
+            Text(
+                "Iglesia Anglicana San Andrés",
+                style = MaterialTheme.typography.bodyLarge.copy(fontFamily = CormorantItalic, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, fontSize = 17.sp),
+                color = Ergos.Muted,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
+        },
+    ) {
+        Column(Modifier.fillMaxWidth().padding(top = 24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Ornament(width = 40.dp, color = Ergos.VioletHi)
+            PosterName("Llamados", 58.sp, androidx.compose.ui.graphics.SolidColor(Ergos.Ink))
+            Eyebrow("Descubriendo mi ministerio")
+            Ornament(width = 140.dp)
+            Spacer(Modifier.size(6.dp))
+            PosterItalic("¿Quién va a responder hoy?", Ergos.Ink2, 26.sp)
         }
+        Column(Modifier.fillMaxWidth()) {
+            vm.book.profiles.sortedByDescending { it.id == vm.book.activeId }.forEach { p ->
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 80.dp)
+                        .clickable(role = androidx.compose.ui.semantics.Role.Button) { vm.selectProfile(p.id) }
+                        .padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(p.name.ifBlank { "Persona sin nombre" }, style = MaterialTheme.typography.headlineSmall, color = Ergos.Ink)
+                        Text(progressLabel(vm, p).uppercase(), style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp, letterSpacing = 1.8.sp), color = Ergos.Muted)
+                    }
+                    androidx.compose.material3.Icon(ErgosIcons.ChevronRight, contentDescription = null, tint = Ergos.AccentText, modifier = Modifier.size(24.dp))
+                }
+                Box(Modifier.fillMaxWidth().height(1.dp).background(Ergos.Line))
+            }
+        }
+        BackLink("Agregar a otra persona", icon = ErgosIcons.Plus, onClick = vm::startNewProfile)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            androidx.compose.material3.Icon(ErgosIcons.Shield, contentDescription = null, tint = Ergos.Muted, modifier = Modifier.size(22.dp))
+            androidx.compose.material3.Icon(ErgosIcons.Shield, contentDescription = null, tint = Ergos.Muted, modifier = Modifier.size(20.dp))
             Hint("Tus datos y respuestas se guardan solo en este teléfono.")
         }
     }

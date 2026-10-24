@@ -126,6 +126,7 @@ object ErgosIcons {
     val ChevronRight = icon("siguiente", line("M9 5.5 15.5 12 9 18.5", 2f))
     val ChevronLeft = icon("anterior", line("M15 5.5 8.5 12 15 18.5", 2f))
     val ArrowRight = icon("avanzar", line("M4.5 12h15M14 6.5l5.5 5.5-5.5 5.5", 1.8f))
+    val ArrowLeft = icon("volver", line("M19.5 12h-15M10 6.5 4.5 12l5.5 5.5", 1.8f))
     val Check = icon("correcto", line("M4.5 12.5 9.5 17.5 19.5 6.5", 2.2f))
     val Close = icon("incorrecto", line("M6.5 6.5l11 11M17.5 6.5l-11 11", 2.2f))
     val Plus = icon("agregar", line("M12 5v14M5 12h14", 2f))

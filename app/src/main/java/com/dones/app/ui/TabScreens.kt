@@ -102,32 +102,30 @@ fun MainTabBar(vm: DonesViewModel) {
 
 @Composable
 private fun TabItem(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, selected: Boolean, dim: Boolean, modifier: Modifier, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(10.dp)
     val color = when {
         selected -> Ergos.Ink
-        dim -> Ergos.Muted.copy(alpha = .6f)
+        dim -> Ergos.Muted.copy(alpha = .55f)
         else -> Ergos.Muted
     }
     Column(
         modifier
-            .heightIn(min = 62.dp)
-            .clip(shape)
-            .background(if (selected) Ergos.Surface2 else Ergos.Surface.copy(alpha = .5f))
-            .border(if (selected) 2.dp else 1.dp, if (selected) Ergos.VioletHi else Ergos.Line, shape)
+            .heightIn(min = 56.dp)
+            .clip(RoundedCornerShape(10.dp))
             .clickable(role = Role.Tab, onClick = onClick)
-            .padding(horizontal = 4.dp, vertical = 6.dp),
+            .padding(horizontal = 2.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = if (selected) Ergos.AccentText else color, modifier = Modifier.size(24.dp))
         Text(
-            label,
-            style = MaterialTheme.typography.labelMedium.copy(fontSize = 15.sp, lineHeight = 19.sp),
+            label.uppercase(Locale("es")),
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 13.sp, letterSpacing = 2.sp),
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
             color = color,
             maxLines = 1,
             textAlign = TextAlign.Center,
         )
+        Spacer(Modifier.height(8.dp))
+        Box(Modifier.width(if (selected) 56.dp else 0.dp).height(2.dp).background(Ergos.VioletHi))
     }
 }
 
@@ -199,9 +197,13 @@ fun ResultsTabScreen(vm: DonesViewModel) {
         ) {
             when (section) {
                 0 -> {
-                    SectionIntro("Tus dones dominantes", "Son los que Dios ha puesto con más fuerza en ti.")
-                    if (result.dominant.isEmpty()) Body("Todavía no hay suficientes respuestas para mostrar tus dones.")
-                    result.dominant.forEach { GiftBlock(vm, texts, it) }
+                    if (result.dominant.isEmpty()) {
+                        SectionIntro("Tus dones dominantes", "Son los que Dios ha puesto con más fuerza en ti.")
+                        Body("Todavía no hay suficientes respuestas para mostrar tus dones.")
+                    } else {
+                        DominantHero(vm, texts)
+                        result.dominant.forEach { GiftBlock(vm, texts, it) }
+                    }
                 }
                 1 -> {
                     SectionIntro("Tus dones subordinados", "Acompañan y fortalecen a tus dones dominantes. Son herramientas que Dios también puso en tus manos.")
@@ -228,24 +230,25 @@ private fun SectionChips(selected: Int, scroll: ScrollState, onSelect: (Int) -> 
     ) {
         sectionNames.forEachIndexed { i, name ->
             val on = i == selected
-            val shape = RoundedCornerShape(24.dp)
-            Box(
+            // Sin cápsula: texto, y la sección elegida con una línea brillante debajo.
+            Column(
                 Modifier
                     .heightIn(min = 48.dp)
-                    .clip(shape)
-                    .background(if (on) Ergos.ButtonBottom else Ergos.Surface)
-                    .border(1.5.dp, if (on) Ergos.VioletHi else Ergos.Line, shape)
+                    .clip(RoundedCornerShape(10.dp))
                     .clickable(role = Role.Tab, onClick = { onSelect(i) })
-                    .padding(horizontal = 18.dp),
-                contentAlignment = Alignment.Center,
+                    .padding(horizontal = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
                 Text(
                     name,
                     style = MaterialTheme.typography.labelMedium.copy(fontSize = 16.sp, lineHeight = 20.sp),
                     fontWeight = if (on) FontWeight.SemiBold else FontWeight.Normal,
-                    color = if (on) Color.White else Ergos.Ink2,
+                    color = if (on) Color.White else Ergos.Muted,
                     maxLines = 1,
                 )
+                Spacer(Modifier.height(6.dp))
+                Box(Modifier.width(if (on) 36.dp else 0.dp).height(2.dp).background(Ergos.VioletHi))
             }
         }
     }
@@ -398,6 +401,83 @@ private fun rememberAssetImage(path: String?, sample: Int): ImageBitmap? {
     }
 }
 
+/** La imagen ocupa todo el ancho (sale del margen de 24 dp de la pantalla). */
+private fun Modifier.bleed(side: Dp = 24.dp) = layout { m, c ->
+    val extra = side.roundToPx() * 2
+    val p = m.measure(c.copy(minWidth = c.maxWidth + extra, maxWidth = c.maxWidth + extra))
+    layout(c.maxWidth, p.height) { p.place(-extra / 2, 0) }
+}
+
+/** Escultura a todo el ancho, fundida con el fondo arriba y abajo; el texto va encima, en el espacio vacío. */
+@Composable
+private fun SculptureHero(
+    art: ImageBitmap,
+    description: String,
+    top: (@Composable androidx.compose.foundation.layout.BoxScope.() -> Unit)? = null,
+    bottom: (@Composable androidx.compose.foundation.layout.BoxScope.() -> Unit)? = null,
+) {
+    Box(Modifier.fillMaxWidth().bleed()) {
+        Image(
+            bitmap = art,
+            contentDescription = description,
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier.fillMaxWidth().aspectRatio(art.width.toFloat() / art.height.toFloat()),
+        )
+        Box(
+            Modifier.matchParentSize().drawBehind {
+                drawRect(Brush.verticalGradient(0f to Ergos.Night.copy(alpha = .55f), .22f to Color.Transparent))
+                drawRect(Brush.verticalGradient(.55f to Color.Transparent, .82f to Ergos.Night.copy(alpha = .7f), 1f to Ergos.Night))
+            },
+        )
+        top?.let { Box(Modifier.matchParentSize().padding(horizontal = 24.dp, vertical = 18.dp), content = it) }
+        bottom?.let { Box(Modifier.matchParentSize().padding(horizontal = 24.dp, vertical = 12.dp), content = it) }
+    }
+}
+
+/** Lado libre de la escultura (left/right/bottom), para poner el nombre donde no tapa la figura. */
+private fun textSide(context: Context, code: String): String = runCatching {
+    JSONObject(context.assets.open("esculturas-texto.json").bufferedReader().use { it.readText() }).optString(code, "bottom")
+}.getOrDefault("bottom")
+
+@Composable
+private fun DominantHero(vm: DonesViewModel, texts: PdfTexts) {
+    val context = LocalContext.current
+    val result = vm.result
+    val top = result.dominant.first()
+    val code = top.gift.code
+    val ch = texts.gifts[code]?.character
+    val art = rememberAssetImage(remember(code) { findAsset(context, "esculturas", code) }, 2)
+    if (art != null) {
+        SculptureHero(art, "Escultura de ${ch?.name ?: top.gift.name}", bottom = {
+            Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                SpacedCaps("Tu don dominante", Ergos.Gold, 12.sp)
+                if (ch != null) PosterName(ch.name, 58.sp, androidx.compose.ui.graphics.SolidColor(Ergos.Ink))
+                PosterItalic(top.gift.name, Ergos.AccentText, 26.sp)
+            }
+        })
+    } else {
+        SectionIntro("Tus dones dominantes", "Son los que Dios ha puesto con más fuerza en ti.")
+    }
+    // Barras finas con el puntaje, sin cajas.
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Eyebrow("Tus dones dominantes")
+        result.dominant.forEach { s ->
+            Column(
+                Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(role = Role.Button) { vm.open(Overlay.GiftDetail(s.gift.code)) },
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+                    Text(s.gift.name, style = MaterialTheme.typography.headlineSmall, color = Ergos.Ink, modifier = Modifier.weight(1f))
+                    Text("${s.raw} / ${s.max}", style = MaterialTheme.typography.labelLarge, color = Ergos.Ink2)
+                }
+                Box(Modifier.fillMaxWidth().height(3.dp).background(Ergos.Line)) {
+                    Box(Modifier.fillMaxWidth(s.fraction.toFloat().coerceIn(0f, 1f)).height(3.dp).background(Ergos.VioletHi))
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun CharacterSection(vm: DonesViewModel, texts: PdfTexts) {
     val context = LocalContext.current
@@ -410,6 +490,7 @@ private fun CharacterSection(vm: DonesViewModel, texts: PdfTexts) {
         return
     }
     val th = remember(code) { charTheme(context, code) }
+    val side = remember(code) { textSide(context, code) }
     val art = rememberAssetImage(remember(code) { findAsset(context, "esculturas", code) }, 2)
     val icon = rememberAssetImage("iconos/$code.png", 1)
     val others = result.dominant.drop(1).map { it.gift.name }
@@ -418,50 +499,52 @@ private fun CharacterSection(vm: DonesViewModel, texts: PdfTexts) {
         1 -> " Además, Dios puso en ti el don de ${others[0]}: juntos forman tu manera única de servir."
         else -> " Además, Dios puso en ti los dones de ${others.dropLast(1).joinToString(", ")} y ${others.last()}: juntos forman tu manera única de servir."
     }
-    if (art != null) {
-        Image(
-            bitmap = art,
-            contentDescription = "Escultura de ${ch.name}",
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(art.width.toFloat() / art.height.toFloat())
-                .clip(RoundedCornerShape(12.dp)),
-        )
-    }
     val number = vm.content.gifts.indexOfFirst { it.code == code } + 1
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SpacedCaps("N.º ${"%02d".format(number)}  ·  Tu personaje bíblico", Ergos.Ink2, 12.sp)
-        PosterItalic("Eres como", Ergos.Ink, 30.sp)
-        PosterName(ch.name, 68.sp)
-        if (th.words.isNotEmpty()) LinkedChips(th.words.take(3), th.accent)
+    val nameBlock: @Composable (Alignment.Horizontal) -> Unit = { align ->
+        Column(horizontalAlignment = align, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            SpacedCaps("N.º ${"%02d".format(number)}  ·  Tu personaje", Ergos.Gold, 12.sp)
+            PosterItalic("Eres como", Ergos.Ink2, 28.sp)
+            PosterName(ch.name, 64.sp, androidx.compose.ui.graphics.SolidColor(Ergos.Ink))
+        }
     }
-    // El versículo, tal cual, como en el PDF: comilla grande, texto serif y la cita en versalitas.
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text("“", style = TextStyle(fontFamily = Cormorant, fontWeight = FontWeight.Bold, fontSize = 64.sp, lineHeight = 64.sp, brush = GoldText), modifier = Modifier.height(44.dp))
-        Text(ch.quote, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = Cormorant, fontWeight = FontWeight.Medium, lineHeight = 36.sp), color = Ergos.Ink)
-        SpacedCaps("—  ${ch.ref}  ·  RVR1960", th.accent, 12.sp, center = false)
-        RefChip(ch.ref, onClick = { vm.openScripture(ch.ref) })
+    val verse: @Composable () -> Unit = {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            PosterItalic("«${ch.quote}»", Ergos.Ink, 24.sp)
+            SpacedCaps("${ch.ref}  ·  RVR1960", Ergos.Gold, 12.sp)
+        }
     }
+    if (art != null) {
+        // Mockup aprobado: el nombre arriba, en el espacio vacío; el versículo abajo, sobre la imagen.
+        val align = when (side) { "left" -> Alignment.TopStart; "right" -> Alignment.TopEnd; else -> Alignment.TopCenter }
+        val hAlign = when (side) { "left" -> Alignment.Start; "right" -> Alignment.End; else -> Alignment.CenterHorizontally }
+        SculptureHero(
+            art, "Escultura de ${ch.name}",
+            top = { Box(Modifier.align(align)) { nameBlock(hAlign) } },
+            bottom = { Box(Modifier.align(Alignment.BottomCenter)) { verse() } },
+        )
+    } else {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) { nameBlock(Alignment.CenterHorizontally) }
+        verse()
+    }
+    if (th.words.isNotEmpty()) LinkedChips(th.words.take(3), th.accent)
+    RefChip(ch.ref, onClick = { vm.openScripture(ch.ref) })
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SpacedCaps("↘↘  Su historia, tu llamado", th.accent, 12.sp, center = false)
-        Text(ch.text + extra, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = Cormorant, fontWeight = FontWeight.Medium, fontSize = 23.sp, lineHeight = 33.sp), color = Ergos.Ink)
+        Eyebrow("Su historia, tu llamado")
+        Body(ch.text + extra)
     }
     if (th.motto.isNotEmpty()) {
-        ErgosCard(padding = 18.dp) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                if (icon != null) {
-                    Image(bitmap = icon, contentDescription = null, colorFilter = ColorFilter.tint(th.accent), modifier = Modifier.size(56.dp))
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    SpacedCaps("Su lema", th.accent, 12.sp, center = false)
-                    PosterItalic("«${th.motto}»", Ergos.Ink, 26.sp, center = false)
-                }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            if (icon != null) {
+                Image(bitmap = icon, contentDescription = null, colorFilter = ColorFilter.tint(Ergos.Gold), modifier = Modifier.size(52.dp))
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Eyebrow("Su lema")
+                PosterItalic("«${th.motto}»", Ergos.Ink, 26.sp, center = false)
             }
         }
     }
-    ErgosCard(padding = 18.dp) {
-        Eyebrow("Tus dones dominantes", icon = ErgosIcons.Heart)
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Eyebrow("Tus dones dominantes")
         Body(result.dominant.joinToString("  ·  ") { it.gift.name }, color = Ergos.Ink2)
     }
 }

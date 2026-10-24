@@ -1,5 +1,6 @@
 package com.dones.app.ui
 
+import androidx.compose.material3.TextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -60,7 +61,7 @@ fun NameScreen(vm: DonesViewModel) {
         },
     ) {
         StepHeader(1, ErgosIcons.Person, "¿Cuál es tu nombre completo?", "Así aparecerá en tu certificado.")
-        OutlinedTextField(
+        TextField(
             value = name,
             onValueChange = { name = it },
             colors = ergosFieldColors(null),
@@ -114,7 +115,7 @@ fun WhatsappScreen(vm: DonesViewModel) {
     ) {
         StepHeader(4, ErgosIcons.Chat, "¿Cuál es tu WhatsApp?", "Ahí te llegarán tus resultados y tu certificado.")
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedTextField(
+            TextField(
                 value = country,
                 onValueChange = { v -> country = "+" + v.filter { it.isDigit() }.take(3) },
                 colors = ergosFieldColors(null),
@@ -123,7 +124,7 @@ fun WhatsappScreen(vm: DonesViewModel) {
                 textStyle = MaterialTheme.typography.bodyLarge,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             )
-            OutlinedTextField(
+            TextField(
                 value = number,
                 onValueChange = { v -> number = v.filter { it.isDigit() || it == ' ' }.take(15) },
                 colors = ergosFieldColors(null),
