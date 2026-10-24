@@ -86,8 +86,7 @@ fun HomeScreen(vm: DonesViewModel) {
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
-            containerColor = Ergos.Surface,
-            shape = StoneShape,
+            containerColor = Ergos.Surface2,
             icon = { androidx.compose.material3.Icon(ErgosIcons.Trash, contentDescription = null, tint = Ergos.Negative) },
             title = { Text("¿Borrar tu perfil?") },
             text = { Text("Se borran tus respuestas, lo que escribiste y tus PDFs de este teléfono. No se puede deshacer.") },
