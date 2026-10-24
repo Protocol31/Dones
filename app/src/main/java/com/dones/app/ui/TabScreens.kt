@@ -454,23 +454,45 @@ private fun BattleSection(vm: DonesViewModel) {
     val result = vm.result
     val doms = (result.dominant.ifEmpty { result.ranking.take(1) }).take(3)
     val code = doms.firstOrNull()?.gift?.code
-    val path = remember(code) { (code?.let { findAsset(context, "batalla", it) }) ?: "batalla/default.jpg" }
-    val art = rememberAssetImage(path, 1)
-    SectionIntro("La batalla por tus dones", b?.intro.orEmpty())
+    // Imagen larga de la app: assets/batalla/<código>-…-app.jpg; si no, una sin sufijo; si no, la general.
+    val path = remember(code) {
+        code?.let { c ->
+            runCatching {
+                context.assets.list("batalla")?.filter { it.startsWith("$c-") || it.startsWith("$c.") }?.let { l ->
+                    l.firstOrNull { it.substringBeforeLast('.').endsWith("-app") }
+                        ?: l.firstOrNull { !it.substringBeforeLast('.').endsWith("-pdf") }
+                }
+            }.getOrNull()?.let { "batalla/$it" }
+        } ?: "batalla/default.jpg"
+    }
+    val art = rememberAssetImage(path, 2)
+    Eyebrow("Advertencia", icon = ErgosIcons.Shield, color = Ergos.Negative)
     if (art != null) {
-        Image(
-            bitmap = art,
-            contentDescription = "La batalla por tus dones",
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
+        val shape = RoundedCornerShape(16.dp)
+        Box(
+            Modifier
                 .fillMaxWidth()
                 .aspectRatio(art.width.toFloat() / art.height.toFloat())
-                .clip(RoundedCornerShape(12.dp)),
-        )
+                .clip(shape)
+                .border(1.5.dp, Ergos.Negative.copy(alpha = .7f), shape),
+        ) {
+            Image(
+                bitmap = art,
+                contentDescription = "La batalla por tus dones",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize(),
+            )
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent, Color(0xCC2A0618)))),
+            )
+        }
     }
+    SectionIntro("La batalla por tus dones", b?.intro.orEmpty())
     doms.forEach { s ->
         val g = b?.gifts?.get(s.gift.code) ?: return@forEach
-        ErgosCard(border = Ergos.Negative.copy(alpha = .55f), padding = 18.dp) {
+        ErgosCard(background = Color(0xFF2A0F1C), border = Ergos.Negative.copy(alpha = .7f), padding = 18.dp) {
             Text(s.gift.name, style = MaterialTheme.typography.titleLarge, color = Ergos.Ink)
             Eyebrow("La mentira", icon = ErgosIcons.Close, color = Ergos.Negative)
             Text("«${g.lie}»", style = MaterialTheme.typography.headlineSmall, color = Ergos.Ink)

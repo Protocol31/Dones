@@ -188,9 +188,9 @@ internal object ResultsPdf {
 
         // ---------------------------------------------------------------- Hoja 6: la batalla por tus dones
         if (battleText != null) {
-            newPage(red = true)
-            runningHead(Red.MUTED)
+            newPage(red = true, frame = false)
             battle(context, pen, battleText, result)
+            pen.goldFrame(W, H)
         }
 
         page?.let { doc.finishPage(it) }
@@ -719,109 +719,194 @@ internal object ResultsPdf {
         shader = LinearGradient(0f, y0, 0f, y1, intArrayOf(Ergos.WHITE, Red.ROSE_HI, Red.ROSE), floatArrayOf(0f, .5f, 1f), Shader.TileMode.CLAMP)
     }
 
+    /** Imagen de este don en assets/batalla/: <código>-…-<tipo>.jpg; si no, una sin sufijo; si no, null. */
+    private fun battleArt(context: Context, code: String, kind: String): Bitmap? = runCatching {
+        val all = (context.assets.list("batalla") ?: emptyArray())
+            .filter { (it.startsWith("$code-") || it.startsWith("$code.")) && it.substringAfterLast('.').lowercase() in setOf("png", "jpg", "jpeg", "webp") }
+        fun stem(n: String) = n.substringBeforeLast('.')
+        val name = all.firstOrNull { stem(it).endsWith("-$kind") }
+            ?: all.firstOrNull { !stem(it).endsWith("-pdf") && !stem(it).endsWith("-app") }
+            ?: return null
+        val full = context.assets.open("batalla/$name").use { BitmapFactory.decodeStream(it) } ?: return null
+        val s = 2400f / max(full.width, full.height)
+        if (s >= 1f) full else Bitmap.createScaledBitmap(full, (full.width * s).roundToInt(), (full.height * s).roundToInt(), true)
+    }.getOrNull()
+
+    private enum class Glyph { Swords, Lie, Sword, Shield }
+
+    /** Íconos de batalla dibujados con trazos: espadas cruzadas, mentira, espada de la verdad y escudo. */
+    private fun glyph(pen: Pen, g: Glyph, cx: Float, cy: Float, r: Float, color: Int) {
+        val c = pen.canvas
+        val line = pen.solid(color, 1f, max(1.2f, r * .24f))
+        when (g) {
+            Glyph.Swords -> for (s in listOf(-1f, 1f)) {
+                c.drawLine(cx - s * r, cy + r, cx + s * r, cy - r, line)
+                val gx = cx - s * r * .4f
+                val gy = cy + r * .4f
+                c.drawLine(gx - r * .4f, gy - r * .4f * s, gx + r * .4f, gy + r * .4f * s, line)
+            }
+            Glyph.Lie -> {
+                c.drawCircle(cx, cy, r * .9f, line)
+                c.drawLine(cx - r * .42f, cy - r * .42f, cx + r * .42f, cy + r * .42f, line)
+                c.drawLine(cx + r * .42f, cy - r * .42f, cx - r * .42f, cy + r * .42f, line)
+            }
+            Glyph.Sword -> {
+                c.drawLine(cx, cy - r, cx, cy + r * .35f, line)
+                c.drawLine(cx - r * .5f, cy + r * .35f, cx + r * .5f, cy + r * .35f, line)
+                c.drawLine(cx, cy + r * .35f, cx, cy + r, line)
+            }
+            Glyph.Shield -> c.drawPath(Path().apply {
+                moveTo(cx - r * .8f, cy - r); lineTo(cx + r * .8f, cy - r); lineTo(cx + r * .8f, cy)
+                quadTo(cx + r * .8f, cy + r * .7f, cx, cy + r); quadTo(cx - r * .8f, cy + r * .7f, cx - r * .8f, cy); close()
+            }, line)
+        }
+    }
+
+    /** Ícono del personaje de ese don (assets/iconos/<código>.png) teñido con [color]. */
+    private fun giftIcon(pen: Pen, code: String, cx: Float, cy: Float, s: Float, color: Int) {
+        val icon = pen.asset("iconos/$code.png") ?: return
+        pen.canvas.drawBitmap(icon, Rect(0, 0, icon.width, icon.height), RectF(cx - s, cy - s, cx + s, cy + s), Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+            colorFilter = android.graphics.PorterDuffColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN)
+        })
+    }
+
+    /** Hoja 6: igual que la 5 (ilustración a sangre y el texto encima), pero roja y de batalla. */
     private fun battle(context: Context, pen: Pen, b: BattleText, result: HoutsResult) {
         val c = pen.canvas
-        var y = 80f
-        // Aviso
-        val aw = pen.measure("ADVERTENCIA", pen.geistSemi, 7.5f, 3f) + 34f
-        rrect(pen, W / 2 - aw / 2, y - 11f, W / 2 + aw / 2, y + 6f, 8.5f, pen.solid(0xFF000000.toInt(), .25f))
-        rrect(pen, W / 2 - aw / 2, y - 11f, W / 2 + aw / 2, y + 6f, 8.5f, pen.solid(Ergos.VIOLET_HI, .9f, .8f))
-        pen.diamond(W / 2 - aw / 2 + 10f, y - 2.5f, 2.6f, pen.solid(Red.ALARM))
-        pen.diamond(W / 2 + aw / 2 - 10f, y - 2.5f, 2.6f, pen.solid(Red.ALARM))
-        pen.text("ADVERTENCIA", W / 2, y, pen.geistSemi, 7.5f, pen.solid(Red.ROSE_HI), Align.CENTER, 3f)
-        y += 36f
-        val title = "La batalla por tus dones"
-        pen.text(title, W / 2 + 1.5f, y + 2f, pen.fraktur, 32f, pen.solid(0xFF000000.toInt(), .35f), Align.CENTER)
-        pen.text(title, W / 2, y, pen.fraktur, 32f, rose(y - 26f, y + 6f), Align.CENTER)
-        y += 14f
-
-        // Ilustración: la del don principal si existe (assets/batalla/<código>-…), si no la general.
+        val es = Locale("es")
         val doms = (result.dominant.ifEmpty { result.ranking.take(1) }).take(3)
-        val code = doms.firstOrNull()?.gift?.code
-        val own = code?.let { assetImage(context, "batalla", it, 1500) }
-        val art = own ?: assetImage(context, "batalla", "default", 1500)
-        val ax = M - 8f
-        val aW = W - 2 * ax
-        val ah = 214f
-        val ay = y
-        if (art != null) {
-            c.save()
-            c.clipPath(Path().apply { addRoundRect(RectF(ax, ay, ax + aW, ay + ah), 8f, 8f, Path.Direction.CW) })
-            drawCover(pen, art, RectF(ax, ay, ax + aW, ay + ah))
-            c.restore()
-            rrect(pen, ax, ay, ax + aW, ay + ah, 8f, pen.sheen(ay, ay + ah, 1.6f))
-            rrect(pen, ax - 4f, ay - 4f, ax + aW + 4f, ay + ah + 4f, 11f, pen.solid(Ergos.VIOLET_HI, .5f, .6f))
-            y = ay + ah + 2f
-            if (own == null) {
-                val cap = "LAS AVES DEL CAMINO  ·  MT 13:4, 19"
-                val pw = pen.measure(cap, pen.geistSemi, 7.5f, 2f) + 36f
-                rrect(pen, W / 2 - pw / 2, y - 12f, W / 2 + pw / 2, y + 12f, 12f, pen.solid(Red.BG2))
-                rrect(pen, W / 2 - pw / 2, y - 12f, W / 2 + pw / 2, y + 12f, 12f, pen.sheen(y - 12f, y + 12f, 1.1f))
-                pen.text(cap, W / 2, y + 3f, pen.geistSemi, 7.5f, pen.solid(Red.ROSE_HI), Align.CENTER, 2f)
-            }
-            y += 32f
-        } else {
-            y += 10f
-        }
-
+        val main = doms.firstOrNull() ?: return
+        val code = main.gift.code
+        val d = b.gifts[code]
+        val own = battleArt(context, code, "pdf")
+        val poster = own != null && own.height >= own.width
         val tw = W - 2 * M
-        pen.wrap(b.intro, pen.corMed, 12.5f, tw).forEach { pen.text(it, W / 2, y, pen.corMed, 12.5f, pen.solid(Ergos.INK), Align.CENTER); y += 15.5f }
-        y += 4f
 
-        // Una columna por don dominante (hasta tres).
-        val list = doms.filter { b.gifts.containsKey(it.gift.code) }
-        val closing = pen.wrap(b.closing, pen.corMed, 12f, tw)
-        val closeH = closing.size * 14.5f + 26f
-        if (list.isNotEmpty()) {
-            val n = list.size
-            val colGap = 10f
-            val cx0 = M - 8f
-            val cw = (W - 2 * cx0 - colGap * (n - 1)) / n
-            val colTop = y
-            val avail = BOTTOM - closeH - colTop
-
-            fun column(s: GiftScore, x: Float, k: Float, draw: Boolean): Float {
-                val d = b.gifts.getValue(s.gift.code)
-                val pad = 10f
-                val iw = cw - 2 * pad
-                fun t(str: String, tx: Float, ty: Float, face: Typeface, size: Float, color: Int, align: Align = Align.LEFT, sp: Float = 0f) {
-                    if (draw) pen.text(str, tx, ty, face, size, pen.solid(color), align, sp)
-                }
-                var yy = colTop + 18f * k
-                t(s.gift.name.uppercase(Locale("es")), x + cw / 2, yy, pen.geistSemi, 8f * k, Red.ROSE_HI, Align.CENTER, 1.4f)
-                yy += 18f * k
-                pen.wrap("«${d.lie}»", pen.corBold, 13f * k, iw).forEach { t(it, x + cw / 2, yy, pen.corBold, 13f * k, Red.ROSE, Align.CENTER); yy += 15f * k }
-                t("LA MENTIRA", x + cw / 2, yy + 1f, pen.geistSemi, 6.5f * k, Red.ALARM, Align.CENTER, 1.5f)
-                yy += 14f * k
-                pen.wrap(d.attack, pen.geist, 8.2f * k, iw).forEach { t(it, x + pad, yy, pen.geist, 8.2f * k, Ergos.INK2); yy += 10.6f * k }
-                yy += 4f * k
-                if (draw) c.drawLine(x + 12f, yy, x + cw - 12f, yy, pen.solid(Ergos.VIOLET_HI, .45f, .6f))
-                yy += 12f * k
-                t("LA VERDAD", x + pad, yy, pen.geistSemi, 6.5f * k, Red.ROSE_HI, Align.LEFT, 1.5f)
-                yy += 12f * k
-                pen.wrap(d.truth, pen.corMed, 11f * k, iw).forEach { t(it, x + pad, yy, pen.corMed, 11f * k, Ergos.INK); yy += 12.6f * k }
-                t(d.ref, x + pad, yy + 1f, pen.geistSemi, 7.5f * k, Red.ROSE)
-                yy += 15f * k
-                t("CÓMO RESISTIR", x + pad, yy, pen.geistSemi, 6.5f * k, Red.ROSE_HI, Align.LEFT, 1.5f)
-                yy += 12f * k
-                pen.wrap(d.defense, pen.geist, 8.2f * k, iw).forEach { t(it, x + pad, yy, pen.geist, 8.2f * k, Ergos.INK2); yy += 10.6f * k }
-                return yy + 6f * k - colTop
+        // Ilustración: a sangre si es vertical; si no, una franja arriba.
+        val bannerTop = 150f
+        val bannerH = 180f
+        if (own != null && poster) {
+            drawCover(pen, own, RectF(0f, 0f, W, H))
+        } else {
+            val art = own ?: assetImage(context, "batalla", "default", 1500)
+            if (art != null) {
+                val r = RectF(M - 8f, bannerTop, W - M + 8f, bannerTop + bannerH)
+                c.save()
+                c.clipPath(Path().apply { addRoundRect(r, 8f, 8f, Path.Direction.CW) })
+                drawCover(pen, art, r)
+                c.restore()
+                rrect(pen, r.left - 3f, r.top - 3f, r.right + 3f, r.bottom + 3f, 10f, pen.solid(Ergos.VIOLET_HI, .5f, .6f))
             }
-
-            fun height(k: Float) = list.mapIndexed { i, s -> column(s, cx0 + i * (cw + colGap), k, false) }.max()
-            var k = if (n == 1) 1.15f else 1.08f
-            while (k > .66f && height(k) > avail) k -= .02f
-            val boxH = height(k)
-            list.forEachIndexed { i, s ->
-                val x = cx0 + i * (cw + colGap)
-                rrect(pen, x, colTop, x + cw, colTop + boxH, 8f, pen.solid(Red.CARD, .78f))
-                rrect(pen, x, colTop, x + cw, colTop + boxH, 8f, pen.solid(Ergos.VIOLET_HI, .75f, .8f))
-                column(s, x, k, true)
-            }
-            y = colTop + boxH + 22f
         }
-        closing.forEach { pen.text(it, W / 2, y, pen.corMed, 12f, pen.solid(Ergos.INK), Align.CENTER); y += 14.5f }
-        pen.text(b.closingRef.uppercase(Locale("es")), W / 2, y + 2f, pen.geistSemi, 7.5f, pen.solid(Red.ROSE), Align.CENTER, 1.5f)
+        val topLimit = if (poster) 168f else bannerTop + bannerH + 18f
+
+        val others = doms.drop(1).filter { b.gifts.containsKey(it.gift.code) }
+        val closing = pen.wrap(b.closing, pen.corMed, 10.5f, tw)
+        val cardGap = 10f
+        val cardW = if (others.size == 2) (tw - cardGap) / 2 else tw
+        val glow = Red.ROSE_HI
+
+        /** Dibuja (o solo mide) el bloque con la letra a escala k, desde y; devuelve dónde termina. */
+        fun lay(k: Float, startY: Float, draw: Boolean): Float {
+            var y = startY
+            fun txt(s: String, x: Float, ty: Float, face: Typeface, size: Float, color: Int, align: Align = Align.CENTER, sp: Float = 0f) {
+                if (draw) pen.text(s, x, ty, face, size, pen.solid(color), align, sp)
+            }
+            fun row(g: Glyph, s: String, color: Int) {
+                val size = 8.8f * k
+                val w = pen.measure(s, pen.geistSemi, size, 2f)
+                txt(s, W / 2 + 9f * k, y, pen.geistSemi, size, color, Align.CENTER, 2f)
+                if (draw) glyph(pen, g, W / 2 - w / 2 + 9f * k - 12f * k, y - 3.4f * k, 5.6f * k, color)
+                y += 19f * k
+            }
+            if (d != null) {
+                val nm = main.gift.name.uppercase(es)
+                val nsz = 11.5f * k
+                txt(nm, W / 2, y, pen.geistSemi, nsz, glow, Align.CENTER, 2.4f)
+                if (draw) {
+                    val w = pen.measure(nm, pen.geistSemi, nsz, 2.4f)
+                    giftIcon(pen, code, W / 2 - w / 2 - 15f * k, y - 4f * k, 7.5f * k, glow)
+                    giftIcon(pen, code, W / 2 + w / 2 + 15f * k, y - 4f * k, 7.5f * k, glow)
+                }
+                y += 24f * k
+                row(Glyph.Lie, "LA MENTIRA", Red.ALARM)
+                pen.wrap("«${d.lie}»", pen.corBold, 22f * k, tw).forEach { txt(it, W / 2, y, pen.corBold, 22f * k, Red.ROSE); y += 25f * k }
+                y += 4f * k
+                pen.wrap(d.attack, pen.geist, 10.6f * k, tw).forEach { txt(it, W / 2, y, pen.geist, 10.6f * k, Ergos.INK2); y += 14.2f * k }
+                y += 4f * k
+                if (draw) c.drawLine(W / 2 - 34f, y, W / 2 + 34f, y, pen.solid(Red.ROSE, .6f, .8f))
+                y += 18f * k
+                row(Glyph.Sword, "LA VERDAD", glow)
+                pen.wrap(d.truth, pen.corMed, 14.5f * k, tw).forEach { txt(it, W / 2, y, pen.corMed, 14.5f * k, Ergos.INK); y += 17f * k }
+                txt(d.ref, W / 2, y + 1f, pen.geistSemi, 9.5f * k, Red.ROSE)
+                y += 22f * k
+                row(Glyph.Shield, "CÓMO RESISTIR", glow)
+                pen.wrap(d.defense, pen.geist, 10.6f * k, tw).forEach { txt(it, W / 2, y, pen.geist, 10.6f * k, Ergos.INK2); y += 14.2f * k }
+                y += 10f * k
+            }
+            if (others.isNotEmpty()) {
+                val iw = cardW - 20f
+                fun cardH(s: GiftScore): Float {
+                    val g = b.gifts.getValue(s.gift.code)
+                    return 14f * k + 20f * k + pen.wrap("«${g.lie}»", pen.corBold, 13.5f * k, iw).size * 16f * k +
+                        pen.wrap(g.defense, pen.geist, 9.2f * k, iw).size * 12f * k + 14f * k
+                }
+                val h = others.maxOf { cardH(it) }
+                others.forEachIndexed { i, s ->
+                    val g = b.gifts.getValue(s.gift.code)
+                    val x = M + i * (cardW + cardGap)
+                    if (draw) {
+                        rrect(pen, x, y, x + cardW, y + h, 8f, pen.solid(Red.CARD, .85f))
+                        rrect(pen, x, y, x + cardW, y + h, 8f, pen.solid(Red.ROSE, .55f, .8f))
+                    }
+                    var yy = y + 20f * k
+                    txt(s.gift.name.uppercase(es), x + cardW / 2, yy, pen.geistSemi, 8.6f * k, glow, Align.CENTER, 1.6f)
+                    if (draw) giftIcon(pen, s.gift.code, x + 15f, yy - 3f * k, 6.5f * k, glow)
+                    yy += 18f * k
+                    pen.wrap("«${g.lie}»", pen.corBold, 13.5f * k, iw).forEach { txt(it, x + cardW / 2, yy, pen.corBold, 13.5f * k, Red.ROSE); yy += 16f * k }
+                    yy += 4f * k
+                    pen.wrap(g.defense, pen.geist, 9.2f * k, iw).forEach { txt(it, x + cardW / 2, yy, pen.geist, 9.2f * k, Ergos.INK2); yy += 12f * k }
+                }
+                y += h + 14f * k
+            }
+            closing.forEach { txt(it, W / 2, y, pen.corMed, 10.5f * k, Ergos.INK); y += 13f * k }
+            txt(b.closingRef.uppercase(es), W / 2, y + 2f, pen.geistSemi, 8f * k, Red.ROSE, Align.CENTER, 1.5f)
+            return y + 2f
+        }
+
+        var k = 1.08f
+        while (k > .7f && BOTTOM - (lay(k, 0f, false)) < topLimit) k -= .02f
+        val startY = (BOTTOM - lay(k, 0f, false)).coerceAtLeast(topLimit)
+
+        if (poster) {
+            val y0 = startY - 130f
+            val y1 = startY - 12f
+            c.drawRect(0f, y0, W, H, Paint().apply {
+                shader = LinearGradient(0f, y0, 0f, y1, intArrayOf(Ergos.withAlpha(Red.BG2, 0f), Ergos.withAlpha(Red.BG2, .94f)), null, Shader.TileMode.CLAMP)
+            })
+            c.drawRect(0f, y1, W, H, pen.solid(Red.BG2, .94f))
+            c.drawRect(0f, 0f, W, 170f, Paint().apply {
+                shader = LinearGradient(0f, 0f, 0f, 170f, Ergos.withAlpha(Red.BG2, .85f), Ergos.withAlpha(Red.BG2, 0f), Shader.TileMode.CLAMP)
+            })
+        }
+
+        // Encabezado: aviso, título y espadas cruzadas
+        val py = 74f
+        val aw = pen.measure("ADVERTENCIA", pen.geistSemi, 8.5f, 3f) + 38f
+        rrect(pen, W / 2 - aw / 2, py - 12f, W / 2 + aw / 2, py + 7f, 9.5f, pen.solid(0xFF000000.toInt(), .45f))
+        rrect(pen, W / 2 - aw / 2, py - 12f, W / 2 + aw / 2, py + 7f, 9.5f, pen.solid(Red.ALARM, .9f, .9f))
+        pen.diamond(W / 2 - aw / 2 + 11f, py - 2.5f, 2.8f, pen.solid(Red.ALARM))
+        pen.diamond(W / 2 + aw / 2 - 11f, py - 2.5f, 2.8f, pen.solid(Red.ALARM))
+        pen.text("ADVERTENCIA", W / 2, py, pen.geistSemi, 8.5f, pen.solid(Red.ROSE_HI), Align.CENTER, 3f)
+        val title = "La batalla por tus dones"
+        val ty = 122f
+        val titleW = pen.measureFraktur(title, 38f)
+        pen.text(title, W / 2 + 1.8f, ty + 2f, pen.fraktur, 38f, pen.solid(0xFF000000.toInt(), .55f), Align.CENTER)
+        pen.text(title, W / 2, ty, pen.fraktur, 38f, rose(ty - 30f, ty + 8f), Align.CENTER)
+        glyph(pen, Glyph.Swords, W / 2 - titleW / 2 - 24f, ty - 11f, 12f, Red.ROSE_HI)
+        glyph(pen, Glyph.Swords, W / 2 + titleW / 2 + 24f, ty - 11f, 12f, Red.ROSE_HI)
+
+        lay(k, startY, true)
     }
 }
 
