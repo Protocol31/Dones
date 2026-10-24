@@ -64,7 +64,8 @@ fun ProfilesScreen(vm: DonesViewModel) {
 @Composable
 fun HomeScreen(vm: DonesViewModel) {
     val p = vm.participant
-    var confirmDelete by remember { mutableStateOf(false) }
+    // 0 = nada, 1 = primera pregunta, 2 = segunda (definitiva)
+    var confirmStep by remember { mutableStateOf(0) }
     Screen(bottom = { BackLink("Volver a la lección", onClick = vm::closeOverlay) }) {
         PageHeader(
             title = "Hola, ${p.name.trim().split(" ").firstOrNull().orEmpty()}",
@@ -80,20 +81,33 @@ fun HomeScreen(vm: DonesViewModel) {
             "Borrar mi perfil de este teléfono",
             icon = ErgosIcons.Trash,
             color = Ergos.Negative,
-            onClick = { confirmDelete = true },
+            onClick = { confirmStep = 1 },
         )
     }
-    if (confirmDelete) {
+    if (confirmStep == 1) {
         AlertDialog(
-            onDismissRequest = { confirmDelete = false },
+            onDismissRequest = { confirmStep = 0 },
             containerColor = Ergos.Surface2,
             icon = { androidx.compose.material3.Icon(ErgosIcons.Trash, contentDescription = null, tint = Ergos.Negative) },
             title = { Text("¿Borrar tu perfil?") },
             text = { Text("Se borran tus respuestas, lo que escribiste y tus PDFs de este teléfono. No se puede deshacer.") },
             confirmButton = {
-                TextButton(onClick = { confirmDelete = false; vm.deleteCurrentProfile() }) { Text("Sí, borrar", color = Ergos.Negative) }
+                TextButton(onClick = { confirmStep = 2 }) { Text("Sí, borrar", color = Ergos.Negative) }
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("No", color = Ergos.AccentText) } },
+            dismissButton = { TextButton(onClick = { confirmStep = 0 }) { Text("No, conservar", color = Ergos.AccentText) } },
+        )
+    }
+    if (confirmStep == 2) {
+        AlertDialog(
+            onDismissRequest = { confirmStep = 0 },
+            containerColor = Ergos.Surface2,
+            icon = { androidx.compose.material3.Icon(ErgosIcons.Trash, contentDescription = null, tint = Ergos.Negative) },
+            title = { Text("¿Seguro que quieres borrar a ${p.name.trim().ifBlank { "esta persona" }}?") },
+            text = { Text("Última pregunta: si borras este perfil, ya no se podrá recuperar. Toca «No, conservar» si fue sin querer.") },
+            confirmButton = {
+                TextButton(onClick = { confirmStep = 0; vm.deleteCurrentProfile() }) { Text("Sí, borrar para siempre", color = Ergos.Negative) }
+            },
+            dismissButton = { TextButton(onClick = { confirmStep = 0 }) { Text("No, conservar", color = Ergos.AccentText) } },
         )
     }
 }

@@ -18,6 +18,7 @@ import com.dones.core.ClassState
 import com.dones.core.HoutsContent
 import com.dones.core.HoutsResult
 import com.dones.core.HoutsScorer
+import com.dones.core.JoinCode
 import com.dones.core.JoinResult
 import com.dones.core.Lesson
 import com.dones.core.ParticipantFlow
@@ -32,7 +33,7 @@ import java.io.File
 import java.time.LocalDate
 
 /** Pantallas antes de entrar a la clase (una tarea por pantalla). Profiles: "¿Quién eres?". */
-enum class Onboarding { Profiles, JoinCode, Scanner, Connected, Purpose, Name, Age, Marital, WhatsApp, Review, Consent }
+enum class Onboarding { Profiles, Purpose, Name, Age, Marital, WhatsApp, Review, Consent }
 
 /** Las tres pestañas de arriba: lecciones de clase, el cuestionario de 125 afirmaciones y los resultados. */
 enum class MainTab { Lessons, Quiz, Results }
@@ -86,18 +87,20 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
         private set
     private var overlays by mutableStateOf(listOf<Overlay>())
     val overlay: Overlay? get() = overlays.lastOrNull()
-    var joinError by mutableStateOf<String?>(null)
-        private set
+    /** Todas las pantallas abiertas encima, de la primera a la última: así cada una conserva dónde iba. */
+    val overlayStack: List<Overlay> get() = overlays
     /** Pregunta ya respondida a la que la persona volvió con "‹ Anterior". */
     private var reviewItem by mutableStateOf<Int?>(null)
     private var questionShownAt = SystemClock.elapsedRealtime()
 
     init {
+        // Ya no se pide ningún código: cada persona hace el curso en su propio teléfono.
+        classState = (session.join(JoinCode.DEMO_CODE) as? JoinResult.Joined)?.state
         viewModelScope.launch { session.state.collect { classState = it } }
         // Al abrir la app: si ya hay perfiles en el teléfono, primero "¿Quién eres?".
         onboarding = if (book.profiles.isEmpty()) {
             participant = newProfile()
-            Onboarding.JoinCode
+            Onboarding.Purpose
         } else {
             Onboarding.Profiles
         }
@@ -105,71 +108,44 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------- Perfiles (guardados solo en el teléfono) ----------
 
-    private fun newProfile() = ParticipantState(id = storage.newId(), createdAtMillis = System.currentTimeMillis())
+    private fun newProfile() = ParticipantState(id = storage.newId(), createdAtMillis = System.currentTimeMillis(), classCode = JoinCode.DEMO_CODE)
 
     /** Elige su perfil y sigue exactamente donde quedó. */
     fun selectProfile(id: String) {
         val chosen = book.profiles.firstOrNull { it.id == id } ?: return
-        session.leave()
         book = book.select(id)
         storage.saveProfiles(book)
         participant = chosen
-        chosen.classCode?.let { session.join(it) }
         overlays = emptyList()
         reviewItem = null
         quizPause = null
         tab = MainTab.Lessons
-        joinError = null
-        onboarding = when {
-            chosen.classCode == null -> Onboarding.JoinCode
-            !chosen.onboardingDone -> Onboarding.Connected
-            else -> null
-        }
+        onboarding = if (!chosen.onboardingDone) Onboarding.Purpose else null
         if (onboarding == null) goToFurthest()
     }
 
     /** Persona nueva en este teléfono. */
     fun startNewProfile() {
-        session.leave()
         participant = newProfile()
         overlays = emptyList()
         reviewItem = null
         quizPause = null
         tab = MainTab.Lessons
-        joinError = null
-        onboarding = Onboarding.JoinCode
+        onboarding = Onboarding.Purpose
     }
 
     /** Vuelve a "¿Quién eres?" sin borrar nada. */
     fun switchProfile() {
         overlays = emptyList()
         reviewItem = null
-        onboarding = if (book.profiles.isEmpty()) Onboarding.JoinCode else Onboarding.Profiles
+        onboarding = if (book.profiles.isEmpty()) Onboarding.Purpose else Onboarding.Profiles
     }
-
-    // ---------- Conectarse a la clase ----------
-
-    fun submitCode(raw: String) {
-        when (val r = session.join(raw)) {
-            is JoinResult.Joined -> {
-                joinError = null
-                update { it.copy(classCode = r.state.info.code) }
-                onboarding = if (participant.onboardingDone) null else Onboarding.Connected
-            }
-            JoinResult.InvalidCode -> joinError = "El código tiene 6 números. Revísalo en la pantalla."
-            JoinResult.ClassNotFound -> joinError =
-                "No encontramos una clase con ese código. En este demo, usa el código de prueba 000000."
-        }
-    }
-
-    fun openScanner() { joinError = null; onboarding = Onboarding.Scanner }
-    fun onQrScanned(raw: String) { onboarding = Onboarding.JoinCode; submitCode(raw) }
 
     // ---------- Datos ----------
 
     fun goTo(step: Onboarding) { onboarding = step }
 
-    /** Desde la pantalla del código: volver a "¿Quién eres?" si hay perfiles guardados. */
+    /** Volver a "¿Quién eres?" si hay perfiles guardados. */
     val canGoToProfiles: Boolean get() = book.profiles.isNotEmpty()
 
     fun setName(name: String) {
@@ -201,9 +177,7 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
     /** Botón "‹ Volver" de las pantallas de datos. */
     fun onboardingBack() {
         onboarding = when (onboarding) {
-            Onboarding.Scanner -> Onboarding.JoinCode
-            Onboarding.JoinCode -> if (book.profiles.isNotEmpty()) Onboarding.Profiles else Onboarding.JoinCode
-            Onboarding.Purpose -> Onboarding.Connected
+            Onboarding.Purpose -> if (book.profiles.isNotEmpty()) Onboarding.Profiles else Onboarding.Purpose
             Onboarding.Name -> Onboarding.Purpose
             Onboarding.Age -> Onboarding.Name
             Onboarding.Marital -> Onboarding.Age
@@ -351,7 +325,6 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Borra el perfil de esta persona (respuestas, notas y PDFs) y vuelve a "¿Quién eres?". */
     fun deleteCurrentProfile() {
-        session.leave()
         storage.documentsDir(participant.id).deleteRecursively()
         book = book.remove(participant.id)
         storage.saveProfiles(book)
@@ -360,8 +333,7 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
         reviewItem = null
         quizPause = null
         tab = MainTab.Lessons
-        joinError = null
-        onboarding = if (book.profiles.isEmpty()) Onboarding.JoinCode else Onboarding.Profiles
+        onboarding = if (book.profiles.isEmpty()) Onboarding.Purpose else Onboarding.Profiles
     }
 
     // ---------- Resultados ----------

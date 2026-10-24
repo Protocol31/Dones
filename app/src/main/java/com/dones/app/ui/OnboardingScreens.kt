@@ -31,70 +31,16 @@ import com.dones.app.DonesViewModel
 import com.dones.app.Onboarding
 import com.dones.core.JoinCode
 
-// W1: primera pantalla de la app.
-@Composable
-fun JoinCodeScreen(vm: DonesViewModel) {
-    var code by rememberSaveable { mutableStateOf("") }
-    Screen(
-        bottom = {
-            PrimaryButton("Entrar", trailing = ErgosIcons.ChevronRight, onClick = { vm.submitCode(code) }, enabled = code.length == 6)
-            SecondaryButton("Leer el código QR con la cámara", icon = ErgosIcons.Qr, onClick = vm::openScanner)
-            if (vm.canGoToProfiles) BackLink("Volver", onClick = vm::switchProfile)
-        },
-    ) {
-        PageHeader(
-            title = "Entra a tu clase",
-            icon = ErgosIcons.Key,
-            eyebrow = "Llamados",
-            subtitle = "Escribe el código de 6 números que ves en la pantalla.",
-        )
-        OutlinedTextField(
-            value = code,
-            onValueChange = { new ->
-                code = new.filter { it.isDigit() }.take(6)
-                if (code.length == 6) vm.submitCode(code) // con el 6.º número entra solo
-            },
-            colors = ergosFieldColors(null),
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            textStyle = TextStyle(fontSize = 40.sp, letterSpacing = 12.sp, textAlign = TextAlign.Center),
-            placeholder = { Text("______", fontSize = 40.sp, letterSpacing = 12.sp) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Go),
-            keyboardActions = KeyboardActions(onGo = { vm.submitCode(code) }),
-        )
-        vm.joinError?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyLarge) }
-        Hint("Demo: el código de prueba es ${JoinCode.DEMO_CODE}.")
-    }
-}
-
-// W2: conectado.
-@Composable
-fun ConnectedScreen(vm: DonesViewModel) {
-    val info = vm.classState?.info
-    Screen(bottom = { PrimaryButton("Continuar", trailing = ErgosIcons.ChevronRight, onClick = { vm.goTo(Onboarding.Purpose) }) }) {
-        PageHeader(title = "¡Estás en la clase!", icon = ErgosIcons.Check, eyebrow = "Conectado")
-        info?.let {
-            ErgosCard(ornament = true) {
-                Eyebrow("Curso", icon = ErgosIcons.Book)
-                Text(it.courseName, style = MaterialTheme.typography.titleLarge)
-                Eyebrow("Iglesia", icon = ErgosIcons.Church)
-                Body(it.churchName)
-            }
-        }
-        Body("Antes de comenzar necesitamos 4 datos.", center = true, modifier = Modifier.fillMaxWidth())
-    }
-}
-
 // W2b: para qué son los datos.
 @Composable
 fun PurposeScreen(vm: DonesViewModel) {
     Screen(
         bottom = {
             PrimaryButton("Entendido", onClick = { vm.goTo(Onboarding.Name) })
-            BackLink(onClick = vm::onboardingBack)
+            if (vm.canGoToProfiles) BackLink(onClick = vm::onboardingBack)
         },
     ) {
-        PageHeader(title = "Para qué te pedimos datos", icon = ErgosIcons.Shield)
+        PageHeader(title = "Para qué te pedimos datos", icon = ErgosIcons.Shield, subtitle = "Antes de comenzar necesitamos 4 datos.")
         PurposeRow(ErgosIcons.Person, "Tu nombre", "Va en tu certificado.")
         PurposeRow(ErgosIcons.Chat, "Tu WhatsApp", "Para enviarte tus resultados y tu certificado.")
         PurposeRow(ErgosIcons.Rings, "Tu estado civil", "Para no mostrarte preguntas que no son para ti.")
