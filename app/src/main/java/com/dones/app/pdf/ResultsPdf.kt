@@ -770,139 +770,102 @@ internal object ResultsPdf {
         })
     }
 
-    /** Hoja 6: igual que la 5 (ilustración a sangre y el texto encima), pero roja y de batalla. */
+    /** Texto con un halo oscuro alrededor (trazo ancho y suave), para leerse sobre la ilustración sin taparla. */
+    private fun halo(pen: Pen, s: String, x: Float, y: Float, face: Typeface, size: Float, color: Int, align: Align = Align.CENTER, spacing: Float = 0f) {
+        val dark = 0xFF0C0204.toInt()
+        val outer = pen.solid(dark, .35f, size * .42f)
+        val inner = pen.solid(dark, .6f, size * .2f)
+        pen.text(s, x, y, face, size, outer, align, spacing)
+        pen.text(s, x, y, face, size, inner, align, spacing)
+        pen.text(s, x, y, face, size, pen.solid(color), align, spacing)
+    }
+
+    private fun haloFraktur(pen: Pen, s: String, x: Float, y: Float, size: Float, color: Int) {
+        val dark = 0xFF0C0204.toInt()
+        pen.frakturText(s, x, y, size, pen.solid(dark, .35f, size * .3f), Align.CENTER)
+        pen.frakturText(s, x, y, size, pen.solid(dark, .6f, size * .14f), Align.CENTER)
+        pen.frakturText(s, x, y, size, pen.solid(color), Align.CENTER)
+    }
+
+    /** Hoja 6: la ilustración pelada a sangre (como la hoja 5) y solo la tipografía encima, con halo. */
     private fun battle(context: Context, pen: Pen, b: BattleText, result: HoutsResult) {
         val c = pen.canvas
         val es = Locale("es")
-        val doms = (result.dominant.ifEmpty { result.ranking.take(1) }).take(3)
+        val doms = (result.dominant.ifEmpty { result.ranking.take(1) }).take(3).filter { b.gifts.containsKey(it.gift.code) }
         val main = doms.firstOrNull() ?: return
-        val code = main.gift.code
-        val d = b.gifts[code]
-        val own = battleArt(context, code, "pdf")
-        val poster = own != null && own.height >= own.width
+        val others = doms.drop(1)
+        val g = b.gifts.getValue(main.gift.code)
+
+        c.drawRect(0f, 0f, W, H, pen.solid(Red.BG2))
+        val art = battleArt(context, main.gift.code, "pdf") ?: assetImage(context, "batalla", "default", 1800)
+        if (art != null) drawCover(pen, art, RectF(0f, 0f, W, H))
+
+        // ---- Arriba, como en la hoja 5 ----
+        halo(pen, "N.º 06  ·  ADVERTENCIA", M, 80f, pen.geistSemi, 7f, Red.ROSE_HI, Align.LEFT, 2.2f)
+        halo(pen, "1 P 5:8-9  ·  RVR1960", W - M, 80f, pen.geistSemi, 7f, Red.ROSE_HI, Align.RIGHT, 2.2f)
+        c.drawLine(M, 88f, W - M, 88f, pen.solid(Red.ROSE, .55f, .5f))
+        halo(pen, "Prepárate para", W / 2, 118f, pen.italic, 21f, Red.ROSE_HI)
+        haloFraktur(pen, "La batalla", W / 2, 166f, 54f, Red.ROSE_HI)
+        halo(pen, "POR TUS DONES", W / 2, 186f, pen.geistSemi, 8.5f, Red.ALARM, Align.CENTER, 3.5f)
+
+        // ---- Abajo, sobre la niebla: el don principal grande y los otros en dos columnas ----
         val tw = W - 2 * M
-
-        // Ilustración: a sangre si es vertical; si no, una franja arriba.
-        val bannerTop = 150f
-        val bannerH = 180f
-        if (own != null && poster) {
-            drawCover(pen, own, RectF(0f, 0f, W, H))
-        } else {
-            val art = own ?: assetImage(context, "batalla", "default", 1500)
-            if (art != null) {
-                val r = RectF(M - 8f, bannerTop, W - M + 8f, bannerTop + bannerH)
-                c.save()
-                c.clipPath(Path().apply { addRoundRect(r, 8f, 8f, Path.Direction.CW) })
-                drawCover(pen, art, r)
-                c.restore()
-                rrect(pen, r.left - 3f, r.top - 3f, r.right + 3f, r.bottom + 3f, 10f, pen.solid(Ergos.VIOLET_HI, .5f, .6f))
-            }
+        fun ornament(y: Float, half: Float) {
+            c.drawLine(W / 2 - half, y, W / 2 - 12f, y, pen.solid(Red.ROSE, .9f, .8f))
+            c.drawLine(W / 2 + 12f, y, W / 2 + half, y, pen.solid(Red.ROSE, .9f, .8f))
+            pen.diamond(W / 2, y, 4.5f, pen.solid(Red.ALARM))
         }
-        val topLimit = if (poster) 168f else bannerTop + bannerH + 18f
 
-        val others = doms.drop(1).filter { b.gifts.containsKey(it.gift.code) }
-        val closing = pen.wrap(b.closing, pen.italic, 12f, tw)
-        val cardGap = 10f
-        val cardW = if (others.size == 2) (tw - cardGap) / 2 else tw
-        val glow = Red.ROSE_HI
-
-        /** Dibuja (o solo mide) el bloque con la letra a escala k, desde y; devuelve dónde termina. */
-        fun lay(k: Float, startY: Float, draw: Boolean): Float {
-            var y = startY
-            fun txt(s: String, x: Float, ty: Float, face: Typeface, size: Float, color: Int, align: Align = Align.CENTER, sp: Float = 0f) {
-                if (draw) pen.text(s, x, ty, face, size, pen.solid(color), align, sp)
-            }
-            fun row(g: Glyph, s: String, color: Int) {
-                val size = 8.8f * k
-                val w = pen.measure(s, pen.geistSemi, size, 2f)
-                txt(s, W / 2 + 9f * k, y, pen.geistSemi, size, color, Align.CENTER, 2f)
-                if (draw) glyph(pen, g, W / 2 - w / 2 + 9f * k - 12f * k, y - 3.4f * k, 5.6f * k, color)
-                y += 19f * k
-            }
-            if (d != null) {
-                val nm = main.gift.name
-                val nsz = pen.fitFraktur(nm, 30f * k, tw - 90f)
-                if (draw) {
-                    pen.frakturText(nm, W / 2 + 1.5f, y + 1.5f, nsz, pen.solid(0xFF000000.toInt(), .55f), Align.CENTER)
-                    pen.frakturText(nm, W / 2, y, nsz, rose(y - nsz * .8f, y + 6f), Align.CENTER)
-                    val w = pen.measureFraktur(nm, nsz)
-                    giftIcon(pen, code, W / 2 - w / 2 - 20f * k, y - nsz * .3f, 9f * k, glow)
-                    giftIcon(pen, code, W / 2 + w / 2 + 20f * k, y - nsz * .3f, 9f * k, glow)
-                }
-                y += nsz * .5f + 20f * k
-                row(Glyph.Lie, "LA MENTIRA", Red.ALARM)
-                pen.wrap("«${d.lie}»", pen.corBold, 22f * k, tw).forEach { txt(it, W / 2, y, pen.corBold, 22f * k, Red.ROSE); y += 25f * k }
-                y += 4f * k
-                pen.wrap(d.attack, pen.corMed, 13f * k, tw).forEach { txt(it, W / 2, y, pen.corMed, 13f * k, Ergos.INK2); y += 15.4f * k }
-                y += 4f * k
-                if (draw) c.drawLine(W / 2 - 34f, y, W / 2 + 34f, y, pen.solid(Red.ROSE, .6f, .8f))
-                y += 18f * k
-                row(Glyph.Sword, "LA VERDAD", glow)
-                pen.wrap(d.truth, pen.corBold, 15.5f * k, tw).forEach { txt(it, W / 2, y, pen.corBold, 15.5f * k, Ergos.INK); y += 18f * k }
-                txt(d.ref, W / 2, y + 1f, pen.geistSemi, 9.5f * k, Red.ROSE)
-                y += 22f * k
-                row(Glyph.Shield, "CÓMO RESISTIR", glow)
-                pen.wrap(d.defense, pen.corMed, 13f * k, tw).forEach { txt(it, W / 2, y, pen.corMed, 13f * k, Ergos.INK2); y += 15.4f * k }
-                y += 10f * k
-            }
+        fun lay(k: Float, draw: Boolean): Float {
+            var y = H * .565f
+            if (draw) ornament(y, tw / 2.6f)
+            y += 34f * k
+            val ns = pen.fitFraktur(main.gift.name, 34f * k, tw)
+            if (draw) haloFraktur(pen, main.gift.name, W / 2, y, ns, Red.ROSE_HI)
+            y += 20f * k
+            if (draw) halo(pen, "LA MENTIRA", W / 2, y, pen.geistSemi, 7f * k, Red.ALARM, Align.CENTER, 1.8f)
+            y += 20f * k
+            pen.wrap("«${g.lie}»", pen.italic, 19f * k, tw - 40f).forEach { if (draw) halo(pen, it, W / 2, y, pen.italic, 19f * k, Ergos.INK); y += 22f * k }
+            y += 4f * k
+            if (draw) halo(pen, "LA VERDAD", W / 2, y, pen.geistSemi, 7f * k, Red.ROSE_HI, Align.CENTER, 1.8f)
+            y += 17f * k
+            pen.wrap(g.truth, pen.corMed, 13.5f * k, tw - 20f).forEach { if (draw) halo(pen, it, W / 2, y, pen.corMed, 13.5f * k, Ergos.INK); y += 16f * k }
+            if (draw) halo(pen, "${g.ref.uppercase(es)}  ·  RVR1960", W / 2, y + 1f, pen.geistSemi, 6.6f * k, Red.ROSE, Align.CENTER, 1.5f)
+            y += 18f * k
+            if (draw) halo(pen, "CÓMO RESISTIR", W / 2, y, pen.geistSemi, 7f * k, Red.ROSE_HI, Align.CENTER, 1.8f)
+            y += 15f * k
+            pen.wrap(g.defense, pen.geist, 9.6f * k, tw - 60f).forEach { if (draw) halo(pen, it, W / 2, y, pen.geist, 9.6f * k, Ergos.INK2); y += 12.5f * k }
+            y += 12f * k
             if (others.isNotEmpty()) {
-                val iw = cardW - 20f
-                fun cardH(s: GiftScore): Float {
-                    val g = b.gifts.getValue(s.gift.code)
-                    return 14f * k + 20f * k + pen.wrap("«${g.lie}»", pen.corBold, 13.5f * k, iw).size * 16f * k +
-                        pen.wrap(g.defense, pen.corMed, 11f * k, iw).size * 13f * k + 14f * k
-                }
-                val h = others.maxOf { cardH(it) }
+                if (draw) ornament(y, tw / 2)
+                y += 22f * k
+                val gap = 24f
+                val cw = if (others.size == 1) tw * .7f else (tw - gap) / 2
+                var bottom = y
                 others.forEachIndexed { i, s ->
-                    val g = b.gifts.getValue(s.gift.code)
-                    val x = M + i * (cardW + cardGap)
-                    if (draw && i == 0 && others.size == 2) c.drawLine(M + cardW + cardGap / 2, y + 4f, M + cardW + cardGap / 2, y + h - 6f, pen.solid(Red.ROSE, .55f, 1f))
-                    var yy = y + 20f * k
-                    if (draw) pen.frakturText(s.gift.name, x + cardW / 2, yy, pen.fitFraktur(s.gift.name, 17f * k, cardW - 50f), pen.solid(glow), Align.CENTER)
-                    if (draw) giftIcon(pen, s.gift.code, x + 15f, yy - 3f * k, 6.5f * k, glow)
-                    yy += 18f * k
-                    pen.wrap("«${g.lie}»", pen.corBold, 13.5f * k, iw).forEach { txt(it, x + cardW / 2, yy, pen.corBold, 13.5f * k, Red.ROSE); yy += 16f * k }
-                    yy += 4f * k
-                    pen.wrap(g.defense, pen.corMed, 11f * k, iw).forEach { txt(it, x + cardW / 2, yy, pen.corMed, 11f * k, Ergos.INK2); yy += 13f * k }
+                    val og = b.gifts.getValue(s.gift.code)
+                    val x0 = if (others.size == 1) W / 2 - cw / 2 else M + i * (cw + gap)
+                    val cx = x0 + cw / 2
+                    var yy = y
+                    val fs = pen.fitFraktur(s.gift.name, 18f * k, cw)
+                    if (draw) haloFraktur(pen, s.gift.name, cx, yy, fs, Red.ROSE_HI)
+                    yy += 15f * k
+                    pen.wrap("«${og.lie}»", pen.italic, 12.5f * k, cw).forEach { if (draw) halo(pen, it, cx, yy, pen.italic, 12.5f * k, Ergos.INK); yy += 14.5f * k }
+                    yy += 2f
+                    pen.wrap(og.defense, pen.geist, 8.4f * k, cw).forEach { if (draw) halo(pen, it, cx, yy, pen.geist, 8.4f * k, Ergos.INK2); yy += 10.8f * k }
+                    bottom = max(bottom, yy)
                 }
-                y += h + 14f * k
+                y = bottom + 6f * k
             }
-            closing.forEach { txt(it, W / 2, y, pen.italic, 12f * k, Ergos.INK); y += 14.5f * k }
-            txt(b.closingRef.uppercase(es), W / 2, y + 2f, pen.geistSemi, 8f * k, Red.ROSE, Align.CENTER, 1.5f)
-            return y + 2f
+            y += 4f
+            pen.wrap(b.closing, pen.italic, 11.5f * k, tw - 40f).forEach { if (draw) halo(pen, it, W / 2, y, pen.italic, 11.5f * k, Ergos.INK); y += 14f * k }
+            if (draw) halo(pen, "${b.closingRef.uppercase(es)}  ·  RVR1960", W / 2, y + 2f, pen.geistSemi, 6.6f * k, Red.ROSE, Align.CENTER, 1.5f)
+            return y
         }
 
         var k = 1f
-        while (k > .7f && BOTTOM - (lay(k, 0f, false)) < topLimit) k -= .02f
-        val startY = (BOTTOM - lay(k, 0f, false)).coerceAtLeast(topLimit)
-
-        if (poster) {
-            val y0 = startY - 130f
-            val y1 = startY - 12f
-            c.drawRect(0f, y0, W, H, Paint().apply {
-                shader = LinearGradient(0f, y0, 0f, y1, intArrayOf(Ergos.withAlpha(Red.BG2, 0f), Ergos.withAlpha(Red.BG2, .88f)), null, Shader.TileMode.CLAMP)
-            })
-            c.drawRect(0f, y1, W, H, pen.solid(Red.BG2, .88f))
-            c.drawRect(0f, 0f, W, 170f, Paint().apply {
-                shader = LinearGradient(0f, 0f, 0f, 170f, Ergos.withAlpha(Red.BG2, .85f), Ergos.withAlpha(Red.BG2, 0f), Shader.TileMode.CLAMP)
-            })
-        }
-
-        // Encabezado: aviso, título y espadas cruzadas
-        val py = 74f
-        val aw = pen.measure("ADVERTENCIA", pen.geistSemi, 8.5f, 3f) + 38f
-        c.drawLine(W / 2 - aw / 2 - 50f, py - 3f, W / 2 - aw / 2 + 6f, py - 3f, pen.solid(Red.ALARM, .9f, 1f))
-        c.drawLine(W / 2 + aw / 2 - 6f, py - 3f, W / 2 + aw / 2 + 50f, py - 3f, pen.solid(Red.ALARM, .9f, 1f))
-        pen.text("ADVERTENCIA", W / 2, py, pen.geistSemi, 8.5f, pen.solid(Red.ROSE_HI), Align.CENTER, 3f)
-        val title = "La batalla por tus dones"
-        val ty = 122f
-        val titleW = pen.measureFraktur(title, 38f)
-        pen.text(title, W / 2 + 1.8f, ty + 2f, pen.fraktur, 38f, pen.solid(0xFF000000.toInt(), .55f), Align.CENTER)
-        pen.text(title, W / 2, ty, pen.fraktur, 38f, rose(ty - 30f, ty + 8f), Align.CENTER)
-        glyph(pen, Glyph.Swords, W / 2 - titleW / 2 - 24f, ty - 11f, 12f, Red.ROSE_HI)
-        glyph(pen, Glyph.Swords, W / 2 + titleW / 2 + 24f, ty - 11f, 12f, Red.ROSE_HI)
-
-        lay(k, startY, true)
+        while (k > .74f && lay(k, false) > BOTTOM + 4f) k -= .02f
+        lay(k, true)
     }
 }
 
