@@ -1,5 +1,15 @@
 package com.dones.app.ui
 
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import android.content.Context
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
@@ -400,32 +410,23 @@ private fun CharacterSection(vm: DonesViewModel, texts: PdfTexts) {
                 .clip(RoundedCornerShape(12.dp)),
         )
     }
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Eyebrow("Tu personaje bíblico", color = th.accent)
-        Text("Eres como", style = MaterialTheme.typography.titleLarge.copy(fontStyle = FontStyle.Italic), color = Ergos.Ink2)
-        Text(
-            ch.name,
-            style = MaterialTheme.typography.displaySmall.copy(fontFamily = Cormorant, fontWeight = FontWeight.Bold),
-            color = Ergos.Gold,
-            textAlign = TextAlign.Center,
-        )
-        if (th.words.isNotEmpty()) {
-            Text(
-                th.words.joinToString("   ·   ") { it.uppercase(Locale("es")) },
-                style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 1.5.sp),
-                color = th.accent,
-                textAlign = TextAlign.Center,
-            )
-        }
+    val number = vm.content.gifts.indexOfFirst { it.code == code } + 1
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SpacedCaps("N.º ${"%02d".format(number)}  ·  Tu personaje bíblico", Ergos.Ink2, 12.sp)
+        PosterItalic("Eres como", Ergos.Ink, 30.sp)
+        PosterName(ch.name, 68.sp)
+        if (th.words.isNotEmpty()) LinkedChips(th.words.take(3), th.accent)
     }
-    ErgosCard(ornament = true, background = Ergos.Surface2, border = th.accent.copy(alpha = .5f), padding = 20.dp) {
-        Text("«${ch.quote}»", style = MaterialTheme.typography.headlineSmall, color = Ergos.Ink)
+    // El versículo, tal cual, como en el PDF: comilla grande, texto serif y la cita en versalitas.
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text("“", style = TextStyle(fontFamily = Cormorant, fontWeight = FontWeight.Bold, fontSize = 64.sp, lineHeight = 40.sp, brush = GoldText))
+        Text(ch.quote, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = Cormorant, fontWeight = FontWeight.Medium, lineHeight = 36.sp), color = Ergos.Ink)
+        SpacedCaps("—  ${ch.ref}  ·  RVR1960", th.accent, 12.sp, center = false)
         RefChip(ch.ref, onClick = { vm.openScripture(ch.ref) })
-        Hint("RVR 1960")
     }
-    ErgosCard(padding = 18.dp) {
-        Eyebrow("Su historia, tu llamado", icon = ErgosIcons.Sparkle, color = th.accent)
-        Body(ch.text + extra)
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SpacedCaps("↘↘  Su historia, tu llamado", th.accent, 12.sp, center = false)
+        Text(ch.text + extra, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = Cormorant, fontWeight = FontWeight.Medium, fontSize = 23.sp, lineHeight = 33.sp), color = Ergos.Ink)
     }
     if (th.motto.isNotEmpty()) {
         ErgosCard(padding = 18.dp) {
@@ -434,8 +435,8 @@ private fun CharacterSection(vm: DonesViewModel, texts: PdfTexts) {
                     Image(bitmap = icon, contentDescription = null, colorFilter = ColorFilter.tint(th.accent), modifier = Modifier.size(56.dp))
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Eyebrow("Su lema", color = th.accent)
-                    Text("«${th.motto}»", style = MaterialTheme.typography.titleLarge.copy(fontStyle = FontStyle.Italic), color = Ergos.Ink)
+                    SpacedCaps("Su lema", th.accent, 12.sp, center = false)
+                    PosterItalic("«${th.motto}»", Ergos.Ink, 26.sp, center = false)
                 }
             }
         }
@@ -471,11 +472,22 @@ private fun BattleSection(vm: DonesViewModel) {
     // rojo oscuro y todo el texto se desliza por encima.
     val deepRed = Color(0xFF2A0618)
     val shape = RoundedCornerShape(16.dp)
+    val rose = Color(0xFFFFB8C2)
+    val roseHi = Color(0xFFFFE3E7)
+    val alarm = Color(0xFFFF6B76)
+    // La tira se recorre entera: mientras bajas, avanza más lento que el texto, de modo que al llegar
+    // al final del texto se ve justo el final de la tira (sin estirarla ni recortarla).
+    var boxTop by remember { mutableStateOf(0f) }
+    var boxH by remember { mutableStateOf(1f) }
+    val viewH = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val imgH = if (art != null) maxWidth * (art.height.toFloat() / art.width.toFloat()) else 0.dp
+        val imgHpx = with(LocalDensity.current) { if (art != null) (maxWidth * (art.height.toFloat() / art.width.toFloat())).toPx() else 0f }
+        val travel = (boxH - imgHpx).coerceAtLeast(0f)
+        val progress = if (boxH > viewH) ((viewH * .15f - boxTop) / (boxH - viewH * .85f)).coerceIn(0f, 1f) else 0f
         Box(
             Modifier
                 .fillMaxWidth()
+                .onGloballyPositioned { boxTop = it.positionInWindow().y; boxH = it.size.height.toFloat() }
                 .clip(shape)
                 .background(deepRed)
                 .border(1.5.dp, Ergos.Negative.copy(alpha = .7f), shape),
@@ -485,40 +497,76 @@ private fun BattleSection(vm: DonesViewModel) {
                     bitmap = art,
                     contentDescription = null,
                     contentScale = ContentScale.FillWidth,
-                    modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
-                )
-                Box(
-                    Modifier
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .height(imgH)
-                        .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent, deepRed))),
+                        .align(Alignment.TopCenter)
+                        .graphicsLayer { translationY = travel * progress },
                 )
+                // Velo para que el texto se lea siempre sobre la imagen.
+                Box(Modifier.matchParentSize().background(Color(0xFF1A0410).copy(alpha = .35f)))
             }
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = imgH * .5f + 12.dp, bottom = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 28.dp, bottom = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(18.dp),
             ) {
-                Eyebrow("Advertencia", icon = ErgosIcons.Shield, color = Ergos.Negative)
-                SectionIntro("La batalla por tus dones", b?.intro.orEmpty())
+                SpacedCaps("N.º 06  ·  Advertencia", roseHi, 12.sp)
+                PosterItalic("Prepárate para", roseHi, 30.sp)
+                SwordsTitle({ PosterName("La batalla", 56.sp, RoseText) })
+                SpacedCaps("Por tus dones", alarm, 13.sp)
+                // Espacio para que se vea la escultura antes del texto.
+                Spacer(Modifier.height(220.dp))
+                Text(
+                    b?.intro.orEmpty(),
+                    style = MaterialTheme.typography.bodyLarge.copy(fontFamily = Cormorant, fontWeight = FontWeight.Medium, fontSize = 23.sp, lineHeight = 32.sp, shadow = Shadow(Color.Black, Offset(0f, 3f), 6f)),
+                    color = Ergos.Ink,
+                    textAlign = TextAlign.Center,
+                )
                 doms.forEach { s ->
                     val g = b?.gifts?.get(s.gift.code) ?: return@forEach
-                    ErgosCard(background = Color(0xFF2A0F1C), border = Ergos.Negative.copy(alpha = .7f), padding = 18.dp) {
-                        Text(s.gift.name, style = MaterialTheme.typography.titleLarge, color = Ergos.Ink)
-                        Eyebrow("La mentira", icon = ErgosIcons.Close, color = Ergos.Negative)
-                        Text("«${g.lie}»", style = MaterialTheme.typography.headlineSmall, color = Ergos.Ink)
-                        Body(g.attack, color = Ergos.Ink2)
-                        Eyebrow("La verdad", icon = ErgosIcons.Check, color = Ergos.Positive)
-                        Body(g.truth)
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color(0xFF2A0712).copy(alpha = .82f))
+                            .border(1.5.dp, alarm.copy(alpha = .6f), RoundedCornerShape(14.dp))
+                            .padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                            SwordIcon(20.dp, rose, -90f)
+                            Spacer(Modifier.width(10.dp))
+                            SpacedCaps(s.gift.name, roseHi, 15.sp)
+                            Spacer(Modifier.width(10.dp))
+                            SwordIcon(20.dp, rose, 90f)
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(ErgosIcons.Close, contentDescription = null, tint = alarm, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            SpacedCaps("La mentira", alarm, 12.sp, center = false)
+                        }
+                        PosterItalic("«${g.lie}»", Ergos.Ink, 28.sp, center = false)
+                        Body(g.attack, color = Color(0xFFE7A9B3))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            SwordIcon(18.dp, roseHi)
+                            Spacer(Modifier.width(8.dp))
+                            SpacedCaps("La verdad", roseHi, 12.sp, center = false)
+                        }
+                        Text(g.truth, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = Cormorant, fontWeight = FontWeight.Medium, fontSize = 23.sp, lineHeight = 32.sp), color = Ergos.Ink)
                         if (g.ref.isNotBlank()) RefChip(g.ref, onClick = { vm.openScripture(g.ref) })
-                        Eyebrow("Cómo resistir", icon = ErgosIcons.Shield)
-                        Body(g.defense)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(ErgosIcons.Shield, contentDescription = null, tint = roseHi, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            SpacedCaps("Cómo resistir", roseHi, 12.sp, center = false)
+                        }
+                        Body(g.defense, color = Ergos.Ink2)
                     }
                 }
                 if (b != null) {
-                    Body(b.closing, center = true, color = Ergos.Ink2)
-                    if (b.closingRef.isNotBlank()) Hint(b.closingRef, center = true, modifier = Modifier.fillMaxWidth())
+                    PosterItalic(b.closing, Ergos.Ink, 24.sp)
+                    if (b.closingRef.isNotBlank()) SpacedCaps("${b.closingRef}  ·  RVR1960", rose, 12.sp)
                 }
             }
         }
