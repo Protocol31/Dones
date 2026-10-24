@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -46,6 +48,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
@@ -63,15 +66,11 @@ import androidx.compose.ui.unit.dp
 /** Altura mínima de los botones: 64 dp, más que el mínimo de Android (48 dp). */
 val BigTouch = 64.dp
 
-/** Resplandor violeta suave arriba, como en Ergos. */
-private val NightGlow = Brush.radialGradient(
-    colors = listOf(Ergos.Violet.copy(alpha = 0.22f), Color.Transparent),
-    center = Offset(0f, 0f),
-    radius = 1100f,
-)
+private val ButtonShape = CutCornerShape(14.dp)
+private val CardShape = StoneShape
 
-private val ButtonShape = RoundedCornerShape(14.dp)
-private val CardShape = RoundedCornerShape(12.dp)
+/** Piedra oscura para tarjetas: la textura media con un velo negro. */
+private val CardTint = Color.Black.copy(alpha = .38f)
 
 /** Esqueleto común: una sola tarea por pantalla, con desplazamiento si la letra es muy grande. */
 @Composable
@@ -89,7 +88,7 @@ fun Screen(
         Column(
             Modifier
                 .fillMaxSize()
-                .background(NightGlow)
+                .stoneBackdrop()
                 .safeDrawingPadding(),
         ) {
             if (!typing) top?.invoke()
@@ -106,11 +105,7 @@ fun Screen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .drawBehind {
-                            // Línea fina que separa los botones del contenido.
-                            drawLine(Ergos.Line, Offset(0f, 0f), Offset(size.width, 0f), 1.dp.toPx())
-                        }
-                        .background(Ergos.Night.copy(alpha = .55f))
+                        .stone(RectangleShape, tint = Color.Black.copy(alpha = .45f), bevel = 2.dp, elevation = 0.dp)
                         .padding(horizontal = 24.dp, vertical = 14.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     content = bottom,
@@ -167,7 +162,7 @@ fun Eyebrow(text: String, icon: ImageVector? = null, color: Color = Ergos.Accent
 
 /** Línea con rombo al centro y dos puntos: el separador de Ergos. */
 @Composable
-fun Ornament(modifier: Modifier = Modifier, color: Color = Ergos.Violet, width: Dp = 200.dp) {
+fun Ornament(modifier: Modifier = Modifier, color: Color = Ergos.Gold, width: Dp = 200.dp) {
     Canvas(modifier.width(width).height(14.dp)) {
         val s = size.width / 240f
         val y = size.height / 2f
@@ -262,19 +257,20 @@ fun ProgressHeader(label: String, fraction: Float, icon: ImageVector? = null, co
             Eyebrow(label, icon = icon, color = Ergos.Gold, modifier = Modifier.weight(1f))
             if (count != null) Text(count, style = MaterialTheme.typography.labelMedium, color = Ergos.Ink2)
         }
+        // Ranura tallada en la piedra que se llena de poción violeta.
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .background(Ergos.Line),
+                .height(18.dp)
+                .stone(CutCornerShape(6.dp), dark = true, inset = true, bevel = 2.dp, elevation = 0.dp)
+                .padding(3.5.dp),
         ) {
             Box(
                 Modifier
                     .fillMaxWidth(fraction.coerceIn(0f, 1f))
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(Brush.horizontalGradient(listOf(Ergos.Gold, Ergos.GoldHi))),
+                    .fillMaxHeight()
+                    .clip(CutCornerShape(3.dp))
+                    .background(PotionBrush),
             )
         }
     }
@@ -295,9 +291,8 @@ fun ErgosCard(
 ) {
     val base = modifier
         .fillMaxWidth()
-        .clip(CardShape)
-        .background(background)
-        .border(1.dp, border, CardShape)
+        .stone(CardShape, tint = if (background == Ergos.Surface) CardTint else background.copy(alpha = .6f))
+        .then(if (border != Ergos.Line) Modifier.border(1.5.dp, border, CardShape) else Modifier)
     Box(if (onClick != null) base.clickable(role = Role.Button, onClick = onClick) else base) {
         if (ornament) CornerOrnament()
         Column(Modifier.padding(padding), verticalArrangement = Arrangement.spacedBy(10.dp), content = content)
@@ -313,14 +308,12 @@ fun DoorCard(
     subtitle: String? = null,
     highlighted: Boolean = false,
 ) {
-    val border = if (highlighted) Ergos.AccentText else Ergos.Violet.copy(alpha = .45f)
     Box(
         Modifier
             .fillMaxWidth()
             .heightIn(min = 84.dp)
-            .clip(CardShape)
-            .background(if (highlighted) Ergos.Surface2 else Ergos.Surface)
-            .border(if (highlighted) 2.dp else 1.5.dp, border, CardShape)
+            .stone(CardShape, tint = if (highlighted) Ergos.VioletDeep.copy(alpha = .45f) else CardTint)
+            .then(if (highlighted) Modifier.border(2.dp, Ergos.AccentText, CardShape) else Modifier)
             .clickable(role = Role.Button, onClick = onClick),
     ) {
         if (highlighted) CornerOrnament(30.dp)
@@ -329,11 +322,14 @@ fun DoorCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // Cuadro tallado en la piedra, relleno de poción.
             Box(
                 Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(Brush.verticalGradient(listOf(Ergos.ButtonTop, Ergos.ButtonBottom))),
+                    .size(58.dp)
+                    .stone(CutCornerShape(9.dp), dark = true, inset = true, bevel = 2.dp, elevation = 0.dp)
+                    .padding(5.dp)
+                    .clip(CutCornerShape(5.dp))
+                    .background(PotionBrush),
                 contentAlignment = Alignment.Center,
             ) { Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(30.dp)) }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -352,9 +348,7 @@ fun RefChip(text: String, onClick: (() -> Unit)? = null) {
     Row(
         Modifier
             .heightIn(min = 48.dp)
-            .clip(RoundedCornerShape(50))
-            .background(Ergos.VioletDeep.copy(alpha = .6f))
-            .border(1.dp, Ergos.Violet.copy(alpha = if (onClick != null) .8f else .5f), RoundedCornerShape(50))
+            .stone(StoneShapeSmall, tint = Ergos.VioletDeep.copy(alpha = .4f), bevel = 2.dp, elevation = 3.dp)
             .then(if (onClick != null) Modifier.clickable(onClickLabel = "Leer el pasaje", role = Role.Button, onClick = onClick) else Modifier)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -394,28 +388,22 @@ fun PrimaryButton(
     icon: ImageVector? = null,
     trailing: ImageVector? = null,
 ) {
-    val fill = if (enabled) Brush.verticalGradient(listOf(Ergos.ButtonTop, Ergos.ButtonBottom))
-    else Brush.verticalGradient(listOf(Ergos.Surface2, Ergos.Surface2))
+    // Losa de piedra con la poción dentro de la ranura.
     Box(
         Modifier
             .fillMaxWidth()
             .heightIn(min = BigTouch)
-            .then(if (enabled) Modifier.shadow(14.dp, ButtonShape, ambientColor = Ergos.Violet, spotColor = Ergos.Violet) else Modifier)
-            .clip(ButtonShape)
-            .background(fill)
+            .stone(ButtonShape, bevel = 3.dp, elevation = if (enabled) 8.dp else 2.dp)
+            .padding(5.dp)
+            .clip(CutCornerShape(9.dp))
+            .then(if (enabled) Modifier.background(PotionBrush) else Modifier.background(Color(0xFF1E1C1A)))
             .drawBehind {
-                // Brillo fino arriba, como el botón principal de Ergos.
-                if (enabled) drawRoundRect(
-                    Color.White.copy(alpha = .28f),
-                    topLeft = Offset(0f, 0f),
-                    size = Size(size.width, size.height),
-                    cornerRadius = CornerRadius(14.dp.toPx()),
-                    style = Stroke(1.dp.toPx()),
-                    alpha = .6f,
+                if (enabled) drawRect(
+                    Brush.verticalGradient(listOf(Color.White.copy(alpha = .30f), Color.Transparent), endY = size.height * .5f),
                 )
             }
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = 15.dp, vertical = 7.dp),
         contentAlignment = Alignment.Center,
     ) { ButtonContent(text, icon, trailing, if (enabled) Color.White else Ergos.Muted) }
 }
@@ -426,9 +414,7 @@ fun SecondaryButton(text: String, onClick: () -> Unit, icon: ImageVector? = null
         Modifier
             .fillMaxWidth()
             .heightIn(min = BigTouch)
-            .clip(ButtonShape)
-            .background(Ergos.Surface.copy(alpha = 0.7f))
-            .border(BorderStroke(1.dp, Ergos.LineStrong), ButtonShape)
+            .stone(ButtonShape, bevel = 3.dp, tint = Color.Black.copy(alpha = .15f))
             .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = 20.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center,
@@ -442,9 +428,13 @@ fun ChoiceButton(text: String, selected: Boolean, onClick: () -> Unit) {
         Modifier
             .fillMaxWidth()
             .heightIn(min = BigTouch)
-            .clip(ButtonShape)
-            .background(if (selected) Ergos.VioletDeep else Ergos.Surface.copy(alpha = 0.7f))
-            .border(if (selected) 2.dp else 1.dp, if (selected) Ergos.Gold else Ergos.LineStrong, ButtonShape)
+            .stone(
+                ButtonShape,
+                inset = selected,
+                bevel = 3.dp,
+                tint = if (selected) Ergos.VioletDeep.copy(alpha = .62f) else Color.Black.copy(alpha = .15f),
+            )
+            .then(if (selected) Modifier.border(2.dp, Ergos.VioletHi, ButtonShape) else Modifier)
             .semantics {
                 this.selected = selected
                 role = Role.RadioButton
@@ -454,15 +444,15 @@ fun ChoiceButton(text: String, selected: Boolean, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        // Hueco redondo tallado; al elegirlo se llena de poción con ✓ (no solo el color).
         Box(
             Modifier
-                .size(30.dp)
-                .clip(CircleShape)
-                .background(if (selected) Ergos.Gold else Color.Transparent)
-                .border(2.dp, if (selected) Ergos.Gold else Ergos.LineStrong, CircleShape),
+                .size(32.dp)
+                .stone(CircleShape, dark = true, inset = true, bevel = 2.dp, elevation = 0.dp)
+                .then(if (selected) Modifier.padding(4.dp).clip(CircleShape).background(PotionBrush) else Modifier),
             contentAlignment = Alignment.Center,
         ) {
-            if (selected) Icon(ErgosIcons.Check, contentDescription = null, tint = Ergos.Night, modifier = Modifier.size(20.dp))
+            if (selected) Icon(ErgosIcons.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
         }
         Text(text, style = MaterialTheme.typography.labelLarge, color = Ergos.Ink, modifier = Modifier.weight(1f))
     }
@@ -533,7 +523,7 @@ fun StepDots(current: Int, total: Int) {
                 Modifier
                     .size(if (i + 1 == current) 12.dp else 9.dp)
                     .clip(CircleShape)
-                    .background(if (i + 1 <= current) Ergos.Gold else Ergos.Line),
+                    .background(if (i + 1 <= current) Ergos.Violet else Ergos.Line),
             )
         }
     }

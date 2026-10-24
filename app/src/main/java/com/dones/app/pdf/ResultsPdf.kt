@@ -96,7 +96,12 @@ internal object ResultsPdf {
         var page: PdfDocument.Page? = null
         var y = 0f
 
-        /** Fondo con textura y marco dorado; [frame] = false cuando la hoja lo dibuja al final (hoja 5). */
+        fun footer(red: Boolean) = pen.shadowed(
+            "${Church.footer}  ·  Página $pageNo de $totalPages", W / 2, H - 50f, pen.geist, 7f,
+            if (red) Red.MUTED else Ergos.MUTED, Align.CENTER,
+        )
+
+        /** Fondo de piedra y marco tallado; [frame] = false cuando la hoja lo dibuja al final (hoja 5). */
         fun newPage(red: Boolean = false, frame: Boolean = true) {
             page?.let { doc.finishPage(it) }
             pageNo++
@@ -105,11 +110,8 @@ internal object ResultsPdf {
             pen.canvas = p.canvas
             pen.paper(W, H)
             if (red) redBackground(pen)
-            if (frame) pen.goldFrame(W, H)
-            pen.text(
-                "${Church.footer}  ·  Página $pageNo de $totalPages", W / 2, H - 50f, pen.geist, 7f,
-                pen.solid(if (red) Red.MUTED else Ergos.MUTED), Align.CENTER,
-            )
+            if (frame) pen.stoneFrame(W, H)
+            if (frame) footer(red)
             y = 52f
         }
 
@@ -120,7 +122,7 @@ internal object ResultsPdf {
         fun pageHead(title: String, sub: String?) {
             runningHead()
             y = 98f
-            pen.frakturText(title, W / 2, y, pen.fitFraktur(title, 30f, W - 2 * M), pen.gold(y - 24f, y + 6f), Align.CENTER)
+            pen.carvedFraktur(title, W / 2, y, pen.fitFraktur(title, 30f, W - 2 * M), Align.CENTER)
             y += 14f
             pen.ornament(W / 2, y, 90f)
             y += 20f
@@ -143,9 +145,9 @@ internal object ResultsPdf {
             W / 2, y, pen.geistSemi, 6.8f, pen.solid(Ergos.ACCENT), Align.CENTER, 2.2f,
         )
         y += 28f
-        pen.frakturText("Mis dones espirituales", W / 2, y, 30f, pen.gold(y - 24f, y + 6f), Align.CENTER)
+        pen.carvedFraktur("Mis dones espirituales", W / 2, y, 30f, Align.CENTER)
         y += 27f
-        pen.frakturText(name, W / 2, y, pen.fitFraktur(name, 21f, W - 2 * M), pen.solid(Ergos.INK), Align.CENTER)
+        pen.carvedFraktur(name, W / 2, y, pen.fitFraktur(name, 21f, W - 2 * M), Align.CENTER)
         y += 16f
         pen.text(
             listOf(info?.churchName ?: Church.NAME, LocalDate.now().format(spanishDate)).joinToString("  ·  "),
@@ -184,7 +186,8 @@ internal object ResultsPdf {
         // ---------------------------------------------------------------- Hoja 5: personaje bíblico
         newPage(frame = false)
         character(context, pen, texts, result, content)
-        pen.goldFrame(W, H)
+        pen.stoneFrame(W, H)
+        footer(false)
 
         // ---------------------------------------------------------------- Hoja 6: la batalla por tus dones
         if (battleText != null) {
@@ -239,18 +242,19 @@ internal object ResultsPdf {
         if (!draw) return h
 
         val c = pen.canvas
-        rrect(pen, l, top, r, top + h, 10f, pen.solid(if (tier == 0) Ergos.SURFACE2 else Ergos.SURFACE, .92f))
-        rrect(pen, l, top, r, top + h, 10f, pen.solid(if (tier == 0) Ergos.VIOLET else Ergos.LINE_STRONG, .6f, .8f))
-        rrect(pen, l, top, l + 54f, top + h, 10f, vertical(pen.solid(Ergos.VIOLET), top, top + h, intArrayOf(Ergos.withAlpha(Ergos.VIOLET_HI, .35f), Ergos.withAlpha(Ergos.VIOLET, .05f))))
+        pen.slab(l, top, r, top + h, 10f, if (tier == 0) .44f else .36f, if (tier == 0) Ergos.VIOLET else null)
+        // Ranura vertical que separa el número
+        c.drawLine(l + 54f, top + 10f, l + 54f, top + h - 10f, pen.solid(0xFF000000.toInt(), .65f, 1.2f))
+        c.drawLine(l + 55.2f, top + 10f, l + 55.2f, top + h - 10f, pen.solid(Ergos.GOLD_HI, .22f, .6f))
         val dx = l + 27f
         val dy = top + 30f * k
-        pen.diamond(dx, dy, 17f, pen.solid(Ergos.NIGHT, .5f))
-        pen.diamond(dx, dy, 17f, pen.sheen(dy - 17f, dy + 17f, 1.1f))
-        pen.text("${s.rank}", dx, dy + 6f, pen.corBold, 18f, pen.sheen(dy - 10f, dy + 7f), Align.CENTER)
+        pen.diamond(dx, dy, 17f, pen.solid(0xFF000000.toInt(), .55f))
+        pen.diamond(dx, dy, 17f, pen.gold(dy - 17f, dy + 17f, 1.1f))
+        pen.carved("${s.rank}", dx, dy + 6f, pen.corBold, 18f, Align.CENTER)
 
         var yy = top + 26f * k
-        pen.text(s.gift.name, tx, yy + 2f * k, pen.corBold, 21f * k, pen.sheen(yy - 16f * k, yy + 4f * k))
-        pen.text("${s.percent} %", r - 16f, yy, pen.geistSemi, 11f * k, pen.solid(Ergos.LAV_HI), Align.RIGHT)
+        pen.carved(s.gift.name, tx, yy + 2f * k, pen.corBold, 21f * k)
+        pen.text("${s.percent} %", r - 16f, yy, pen.geistSemi, 11f * k, pen.solid(Ergos.ACCENT), Align.RIGHT)
         yy += 8f * k
         def.forEach { yy += 14f * k; pen.text(it, tx, yy - 3f * k, pen.corMed, 11.5f * k, pen.solid(Ergos.INK2)) }
         yy += 6f * k
@@ -262,8 +266,7 @@ internal object ResultsPdf {
             var px = tx
             for (t in d.traits) {
                 val w = pen.measure(t, pen.geistMed, 8.2f * k) + 16f
-                rrect(pen, px, yy, px + w, yy + 16f * k, 8f * k, pen.solid(Ergos.VIOLET, .2f))
-                rrect(pen, px, yy, px + w, yy + 16f * k, 8f * k, pen.solid(Ergos.VIOLET_HI, .45f, .6f))
+                pen.slab(px, yy, px + w, yy + 16f * k, 5f, .5f, null, inset = true)
                 pen.text(t, px + 8f, yy + 11f * k, pen.geistMed, 8.2f * k, pen.solid(Ergos.INK))
                 px += w + 6f
             }
@@ -351,10 +354,11 @@ internal object ResultsPdf {
                     else -> intArrayOf(Ergos.OTHER_HI, Ergos.OTHER_LO)
                 }
                 val fill = vertical(pen.solid(Ergos.VIOLET), cy - 4.5f, cy + 4.5f, colors)
-                val empty = pen.solid(Ergos.LINE, .9f, .8f)
+                val empty = pen.solid(0xFF000000.toInt(), .55f)
                 for (i in 0 until pips) {
                     val x = bx + i * (pw + gap)
                     rrect(pen, x, cy - 4.2f, x + pw, cy + 4.2f, 2.5f, if (i < filled) fill else empty)
+                    if (i >= filled) rrect(pen, x, cy - 4.2f, x + pw, cy + 4.2f, 2.5f, pen.solid(Ergos.GOLD_HI, .22f, .6f))
                 }
                 pen.text("${s.raw}", W - M, cy + 3.5f, pen.geistSemi, 9.5f, pen.solid(if (tier == 2) Ergos.INK2 else Ergos.INK), Align.RIGHT)
                 y += row
@@ -362,8 +366,7 @@ internal object ResultsPdf {
         }
 
         // Explicación al pie de la hoja
-        rrect(pen, M, boxTop, W - M, BOTTOM, 10f, pen.solid(Ergos.DEEP, .55f))
-        rrect(pen, M, boxTop, W - M, BOTTOM, 10f, pen.sheen(boxTop, BOTTOM, .7f))
+        pen.slab(M, boxTop, W - M, BOTTOM, 10f, .45f)
         label(pen, "Cómo leer tu curva", M + 18f, boxTop + 18f)
         var yy = boxTop + 32f
         lines.forEach { pen.text(it, M + 18f, yy, pen.geist, 9f, pen.solid(Ergos.INK)); yy += 12.5f }
@@ -386,10 +389,9 @@ internal object ResultsPdf {
             (if (bib.isNotEmpty()) 12f * k + bib.size * 11.8f * k else 0f) + (if (refs.isNotEmpty()) 14f * k else 0f) + 12f * k
         if (!draw) return h
 
-        rrect(pen, l, top, r, top + h, 10f, pen.solid(Ergos.SURFACE2, .92f))
-        rrect(pen, l, top, r, top + h, 10f, pen.solid(Ergos.VIOLET, .55f, .8f))
+        pen.slab(l, top, r, top + h, 10f, .45f, Ergos.VIOLET)
         var yy = top + 26f * k
-        pen.text(x.ministry.name, tx, yy, pen.corBold, nameS, pen.sheen(yy - 16f, yy + 4f))
+        pen.carved(x.ministry.name, tx, yy, pen.corBold, nameS)
         yy += 8f * k
         var px = tx
         label(pen, "Por tus dones", px, yy + 10f * k, Ergos.MUTED)
@@ -410,7 +412,7 @@ internal object ResultsPdf {
             label(pen, "En la Biblia", tx, yy + 4f * k)
             yy += 8f * k
             bib.forEach { yy += 11.8f * k; pen.text(it, tx + 14f, yy - 2f, pen.geist, 8.8f * k, pen.solid(Ergos.INK2)) }
-            pen.canvas.drawLine(tx + 4f, bt + 10f * k, tx + 4f, yy + 1f, pen.sheen(bt, yy, 1.2f))
+            pen.canvas.drawLine(tx + 4f, bt + 10f * k, tx + 4f, yy + 1f, pen.gold(bt, yy, 1.2f))
         }
         if (refs.isNotEmpty()) {
             yy += 14f * k
@@ -486,53 +488,29 @@ internal object ResultsPdf {
         }, pen.solid(color))
     }
 
-    /** Ícono del personaje dentro de un sol de rayos (assets/iconos/<código>.png teñido con el color del tema). */
+    /** Ícono del personaje dentro de un sol de rayos tallado (assets/iconos/<código>.png teñido con el color del tema). */
     private fun emblem(pen: Pen, code: String, th: Theme, cx: Float, cy: Float, r: Float) {
         val c = pen.canvas
         for (i in 0 until 36) {
             val a = (i / 36.0 * 2 * Math.PI).toFloat()
             val r0 = r * 1.05f
             val r1 = r * if (i % 2 == 1) 1.25f else 1.45f
-            c.drawLine(cx + r0 * kotlin.math.cos(a), cy + r0 * kotlin.math.sin(a), cx + r1 * kotlin.math.cos(a), cy + r1 * kotlin.math.sin(a), pen.solid(th.accent, if (i % 2 == 1) .45f else .85f, .8f))
+            c.drawLine(cx + r0 * kotlin.math.cos(a), cy + r0 * kotlin.math.sin(a), cx + r1 * kotlin.math.cos(a), cy + r1 * kotlin.math.sin(a), pen.solid(Ergos.GOLD, if (i % 2 == 1) .45f else .85f, .9f))
         }
-        c.drawCircle(cx, cy, r * .92f, pen.solid(deep(th.accent, .3f), .8f))
-        c.drawCircle(cx, cy, r * .92f, pen.solid(th.accent, .7f, .7f))
+        c.drawCircle(cx + 1f, cy + 1.6f, r * .92f, pen.solid(0xFF000000.toInt(), .5f))
+        c.drawCircle(cx, cy, r * .92f, pen.solid(Ergos.NIGHT, .88f))
+        c.drawCircle(cx, cy, r * .92f, pen.gold(cy - r, cy + r, 1.4f))
         pen.asset("iconos/$code.png")?.let { icon ->
             val s = r * .78f
             c.drawBitmap(icon, Rect(0, 0, icon.width, icon.height), RectF(cx - s, cy - s, cx + s, cy + s), Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
                 colorFilter = android.graphics.PorterDuffColorFilter(th.accent, android.graphics.PorterDuff.Mode.SRC_IN)
             })
         }
-        star(pen, cx - r * 1.9f, cy - r * .9f, 5f, th.accent)
-        star(pen, cx + r * 1.9f, cy - r * .9f, 5f, th.accent)
+        star(pen, cx - r * 1.9f, cy - r * .9f, 5f, Ergos.GOLD)
+        star(pen, cx + r * 1.9f, cy - r * .9f, 5f, Ergos.GOLD)
     }
 
-    /** Píldoras con borde del color del tema, centradas en x. */
-    private fun chips(pen: Pen, words: List<String>, x: Float, y: Float, color: Int) {
-        if (words.isEmpty()) return
-        val ws = words.map { pen.measure(it, pen.geistSemi, 7f, 1.6f) + 18f }
-        var px = x - (ws.sum() + 6f * (ws.size - 1)) / 2
-        words.forEachIndexed { i, w ->
-            rrect(pen, px, y, px + ws[i], y + 17f, 8.5f, pen.solid(color, .9f, .7f))
-            pen.text(w, px + ws[i] / 2, y + 11.6f, pen.geistSemi, 7f, pen.solid(color), Align.CENTER, 1.6f)
-            px += ws[i] + 6f
-        }
-    }
-
-    /** Código de barras decorativo, como en los afiches. */
-    private fun barcode(pen: Pen, x: Float, y: Float, w: Float, h: Float, paint: Paint) {
-        val widths = floatArrayOf(1f, .5f, 1.5f, .5f, 2f, .8f)
-        val gaps = floatArrayOf(1.2f, 2f, 1f, 2.5f)
-        var xx = x
-        var k = 0
-        while (xx < x + w) {
-            val bw = widths[k % widths.size]
-            k++
-            pen.canvas.drawRect(xx, y, xx + bw, y + h, paint)
-            xx += bw + gaps[k % gaps.size]
-        }
-    }
-
+    /** Hoja 5: la escultura ocupa toda la hoja y el texto va tallado sobre la piedra de abajo. */
     private fun character(context: Context, pen: Pen, texts: PdfTexts, result: HoutsResult, content: HoutsContent) {
         val c = pen.canvas
         val top = result.dominant.firstOrNull() ?: result.ranking.firstOrNull() ?: return
@@ -540,68 +518,50 @@ internal object ResultsPdf {
         val ch = texts.gifts[code]?.character ?: return
         val th = theme(context, code)
         val number = (content.gifts.indexOfFirst { it.code == code } + 1).coerceAtLeast(1)
+        val es = Locale("es")
+        val black = 0xFF000000.toInt()
 
-        // Ilustración a sangre en la mitad de arriba. Si la imagen es horizontal se usa entera;
-        // si es la carta vertical, se recorta dentro del marco (sin la placa del nombre).
-        val artTop = 22f
-        val ib = artTop + (W - 44f) * 4f / 5f // ventana 5:4, la medida de las ilustraciones horizontales
-        val img = assetImage(context, "personajes", code, 1400)
-        c.save()
-        c.clipRect(22f, 22f, W - 22f, H - 22f)
+        // Escultura a sangre (la ilustración es 3:4 y la hoja un poco más angosta: se pierde un poco a los lados)
+        val img = assetImage(context, "esculturas", code, 1800)
         if (img != null) {
-            val src = if (img.width > img.height) RectF(0f, 0f, img.width.toFloat(), img.height.toFloat())
-            else RectF(img.width * 44f / 720f, img.height * 56f / 1220f, img.width * 676f / 720f, img.height * 1010f / 1220f)
-            val dst = RectF(22f, artTop, W - 22f, ib)
-            val s = max(dst.width() / src.width(), dst.height() / src.height())
-            val iw = dst.width() / s
-            val ih = dst.height() / s
-            val sx = src.left + (src.width() - iw) / 2
-            val sy = src.top + (src.height() - ih) * .12f
-            c.drawBitmap(img, Rect(sx.roundToInt(), sy.roundToInt(), (sx + iw).roundToInt(), (sy + ih).roundToInt()), dst, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
-        } else {
-            c.drawRect(22f, artTop, W - 22f, ib, Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                shader = RadialGradient(W / 2, 260f, 320f, intArrayOf(deep(th.accent, .45f), Ergos.NIGHT2), null, Shader.TileMode.CLAMP)
-            })
+            val s = max(W / img.width, H / img.height)
+            val iw = W / s
+            val ih = H / s
+            val sx = ((img.width - iw) / 2f).coerceAtLeast(0f)
+            val src = Rect(sx.roundToInt(), 0, (sx + iw).roundToInt().coerceAtMost(img.width), ih.roundToInt().coerceAtMost(img.height))
+            c.drawBitmap(img, src, RectF(0f, 0f, W, H), Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
         }
-        // Degradados para que el texto se lea sobre la ilustración
-        c.drawRect(0f, ib - 230f, W, ib + 1f, Paint().apply {
-            shader = LinearGradient(0f, ib - 230f, 0f, ib, intArrayOf(Ergos.withAlpha(Ergos.NIGHT, 0f), Ergos.withAlpha(Ergos.NIGHT, .85f), 0xFF0F0B1E.toInt()), floatArrayOf(0f, .7f, 1f), Shader.TileMode.CLAMP)
+        // La piedra de la hoja sube desde abajo, cada vez más opaca, para que el texto se lea
+        val y0 = H * .46f
+        val y1 = H * .70f
+        pen.asset("pdf/fondo.jpg")?.let { paper ->
+            val n = 24
+            val dst = RectF(0f, 0f, W, H)
+            val whole = Rect(0, 0, paper.width, paper.height)
+            for (i in 0 until n) {
+                val ya = y0 + (y1 - y0) * i / n
+                val yb = if (i == n - 1) H else y0 + (y1 - y0) * (i + 1) / n + .6f
+                c.save()
+                c.clipRect(0f, ya, W, yb)
+                c.drawBitmap(paper, whole, dst, Paint(Paint.FILTER_BITMAP_FLAG).apply { alpha = (255 * .92f * (i + 1) / n).roundToInt() })
+                c.restore()
+            }
+        }
+        c.drawRect(0f, y0, W, H, Paint().apply {
+            shader = LinearGradient(0f, y0, 0f, y1, Ergos.withAlpha(Ergos.NIGHT, 0f), Ergos.withAlpha(Ergos.NIGHT, .38f), Shader.TileMode.CLAMP)
         })
-        c.drawRect(0f, artTop, W, artTop + 190f, Paint().apply {
-            shader = LinearGradient(0f, artTop, 0f, artTop + 190f, Ergos.withAlpha(Ergos.NIGHT, .85f), Ergos.withAlpha(Ergos.NIGHT, 0f), Shader.TileMode.CLAMP)
+        c.drawRect(0f, y1, W, H, pen.solid(Ergos.NIGHT, .38f))
+        c.drawRect(0f, 0f, W, 150f, Paint().apply {
+            shader = LinearGradient(0f, 0f, 0f, 150f, Ergos.withAlpha(Ergos.NIGHT, .78f), Ergos.withAlpha(Ergos.NIGHT, 0f), Shader.TileMode.CLAMP)
         })
-        c.restore()
 
         // Rótulos tipo ficha
-        val es = Locale("es")
-        pen.text("N.º ${"%02d".format(number)}  ·  TU PERSONAJE BÍBLICO", M, 80f, pen.geistSemi, 7f, pen.solid(Ergos.CREAM), Align.LEFT, 2.2f)
-        pen.text(ch.ref.uppercase(es), W - M, 80f, pen.geistSemi, 7f, pen.solid(Ergos.CREAM), Align.RIGHT, 2.2f)
-        c.drawLine(M, 88f, W - M, 88f, pen.solid(Ergos.CREAM, .5f, .5f))
-        pen.text("ERES COMO", M, 110f, pen.geistSemi, 9f, pen.solid(th.accent), Align.LEFT, 4f)
-        val size = pen.fitFraktur(ch.name, 92f, W - 2 * M)
-        val ny = 110f + size * .82f
-        pen.frakturText(ch.name, M + 3f, ny + 3f, size, pen.solid(0xFF000000.toInt(), .55f))
-        pen.frakturText(ch.name, M, ny, size, pen.gold(116f, ny))
+        pen.shadowed("N.º ${"%02d".format(number)}  ·  TU PERSONAJE BÍBLICO", 92f, 74f, pen.geistSemi, 7.2f, Ergos.CREAM, Align.LEFT, 2.2f)
+        pen.shadowed(ch.ref.uppercase(es), W - 92f, 74f, pen.geistSemi, 7.2f, Ergos.CREAM, Align.RIGHT, 2.2f)
+        c.drawLine(92f, 82f, W - 92f, 82f, pen.solid(black, .6f, 1.4f))
+        c.drawLine(92f, 83.2f, W - 92f, 83.2f, pen.solid(Ergos.GOLD_HI, .35f, .6f))
 
-        // Cita sobre el degradado
-        val quote = pen.wrap("«${ch.quote}»", pen.corMed, 16f, W - 2 * M - 40f)
-        var y = ib - 40f - (quote.size - 1) * 19f
-        quote.forEach { pen.text(it, W / 2, y, pen.corMed, 16f, pen.solid(Ergos.CREAM), Align.CENTER); y += 19f }
-        barcode(pen, M, ib - 22f, 70f, 9f, pen.solid(Ergos.CREAM, .55f))
-        run {
-            val x = W - M - 9f
-            val yb = ib - 22f
-            val p = pen.solid(Ergos.CREAM, .55f, .6f)
-            c.drawRect(x, yb, x + 9f, yb + 9f, p); c.drawLine(x, yb, x + 9f, yb + 9f, p); c.drawLine(x + 9f, yb, x, yb + 9f, p)
-        }
-
-        // Separador
-        y = ib + 14f
-        c.drawLine(M, y, W - M, y, pen.gold(y - 1f, y + 1f, .7f))
-        pen.diamond(W / 2, y, 4f, pen.gold(y - 4f, y + 4f))
-        y += 26f
-
-        // Columna izquierda: su historia; derecha: ícono, palabras y frase
+        // Textos de abajo; si no caben, la letra se achica de a poquito
         val lw = 300f
         val rx = M + lw + 24f
         val rw = W - M - rx
@@ -611,45 +571,112 @@ internal object ResultsPdf {
             1 -> " Además, Dios puso en ti el don de ${others[0]}: juntos forman tu manera única de servir."
             else -> " Además, Dios puso en ti los dones de ${others.dropLast(1).joinToString(", ")} y ${others.last()}: juntos forman tu manera única de servir."
         }
-        pen.text("SU HISTORIA, TU LLAMADO", M, y, pen.geistSemi, 7f, pen.solid(th.accent), Align.LEFT, 2f)
         val note = pen.wrap(
             "Este resultado es un punto de partida para la oración y la experimentación. " +
                 "Confírmalo con personas que te conocen, con tu pastor y con los líderes de tu iglesia.",
             pen.geist, 7.6f, W - 2 * M - 60f,
         )
         val noteTop = BOTTOM - note.size * 10f + 4f
-        val pillsMax = noteTop - 22f - 14f
-        var bs = 12.3f
+        val nameSize = pen.fitFraktur(ch.name, 76f, W - 2 * M)
+        val quoteWidth = W - 2 * M - 30f
+        var qs = 15.5f
+        var bs = 11.8f
+        var quote = pen.wrap("«${ch.quote}»", pen.corMed, qs, quoteWidth)
         var body = pen.wrap(ch.text + extra, pen.corMed, bs, lw)
-        while (bs > 10f && y + 18f + body.size * bs * 1.25f + 12f > pillsMax) {
-            bs -= .3f
+        val motto = if (th.motto.isEmpty()) emptyList() else pen.wrap("«${th.motto}»", pen.italic, 13f, rw)
+        var start = H * .45f
+        fun tail(): Float {
+            val nameY = start + 16f + nameSize * .88f
+            val quoteY = nameY + 52f
+            val refY = quoteY + (quote.size - 1) * qs * 1.22f + 15f
+            val histY = refY + 26f
+            val bodyEnd = histY + 15f + (body.size - 1) * bs * 1.26f
+            val mottoEnd = histY + 80f + (motto.size - 1) * 15f
+            return max(bodyEnd, mottoEnd) + 14f + 22f
+        }
+        while (tail() > noteTop - 8f && (qs > 11.5f || bs > 9f)) {
+            qs = max(11.5f, qs - .3f)
+            bs = max(9f, bs - .3f)
+            quote = pen.wrap("«${ch.quote}»", pen.corMed, qs, quoteWidth)
             body = pen.wrap(ch.text + extra, pen.corMed, bs, lw)
         }
-        var yy = y + 18f
-        body.forEach { pen.text(it, M, yy, pen.corMed, bs, pen.solid(Ergos.INK)); yy += bs * 1.25f }
+        while (tail() > noteTop - 8f && start > H * .40f) start -= 4f
 
-        emblem(pen, code, th, rx + rw / 2, y + 36f, 25f)
-        chips(pen, th.words.take(2), rx + rw / 2, y + 80f, th.accent)
-        chips(pen, th.words.drop(2), rx + rw / 2, y + 101f, th.accent)
-        var my = y + 140f
-        if (th.motto.isNotEmpty()) pen.wrap("«${th.motto}»", pen.corBold, 13f, rw).forEach {
-            pen.text(it, rx + rw / 2, my, pen.corBold, 13f, pen.solid(Ergos.CREAM), Align.CENTER); my += 15f
+        // "Eres como" y el nombre tallado
+        val eresY = start + 16f
+        val eresW = pen.measure("Eres como", pen.italic, 21f)
+        pen.shadowed("Eres como", W / 2, eresY, pen.italic, 21f, Ergos.CREAM, Align.CENTER)
+        for (s in listOf(-1f, 1f)) {
+            val xa = W / 2 + s * (eresW / 2 + 14f)
+            val xb = W / 2 + s * (eresW / 2 + 60f)
+            c.drawLine(xa, eresY - 5f, xb, eresY - 5f, pen.solid(black, .6f, 1.2f))
+            c.drawLine(xa, eresY - 3.9f, xb, eresY - 3.9f, pen.solid(Ergos.GOLD_HI, .4f, .6f))
+        }
+        val nameY = eresY + nameSize * .88f
+        pen.carvedFraktur(ch.name, W / 2, nameY, nameSize, Align.CENTER)
+
+        // Tres palabras unidas por líneas
+        val wordsY = nameY + 24f
+        if (th.words.isNotEmpty()) {
+            val ws = th.words.take(3).map { it.uppercase(es) }
+            var sp = 2.4f
+            val link = 56f
+            fun total() = ws.sumOf { pen.measure(it, pen.geistSemi, 8.2f, sp).toDouble() }.toFloat() + link * (ws.size - 1)
+            while (total() > W - 2 * M && sp > .6f) sp -= .4f
+            var px = W / 2 - total() / 2
+            ws.forEachIndexed { i, t ->
+                pen.shadowed(t, px, wordsY, pen.geistSemi, 8.2f, Ergos.CREAM, Align.LEFT, sp)
+                px += pen.measure(t, pen.geistSemi, 8.2f, sp)
+                if (i < ws.size - 1) {
+                    c.drawLine(px + 9f, wordsY - 3f, px + link - 9f, wordsY - 3f, pen.solid(black, .6f, 1.2f))
+                    c.drawLine(px + 9f, wordsY - 1.9f, px + link - 9f, wordsY - 1.9f, pen.solid(th.accent, .85f, .7f))
+                    pen.diamond(px + link / 2, wordsY - 3f, 2.2f, pen.solid(th.accent))
+                    px += link
+                }
+            }
         }
 
-        // Píldoras con los dones dominantes
-        val py = minOf(max(yy, my) + 6f, pillsMax)
+        // El versículo, tal cual, con su cita
+        var y = nameY + 52f
+        quote.forEach { pen.shadowed(it, W / 2, y, pen.corMed, qs, Ergos.CREAM, Align.CENTER); y += qs * 1.22f }
+        y -= qs * 1.22f
+        y += 15f
+        pen.shadowed("—  ${ch.ref}  ·  RVR1960", W / 2, y, pen.geistSemi, 7.4f, Ergos.ACCENT, Align.CENTER, 1.6f)
+        y += 26f
+
+        // Su historia (izquierda) · emblema y lema (derecha)
+        val histY = y
+        pen.carved("SU HISTORIA, TU LLAMADO", M, histY, pen.geistSemi, 7.4f, Align.LEFT, 2f)
+        var yy = histY + 15f
+        body.forEach { pen.shadowed(it, M, yy, pen.corMed, bs, Ergos.INK); yy += bs * 1.26f }
+        val bodyEnd = yy - bs * 1.26f
+        val gx = M + lw + 11.5f
+        c.drawLine(gx, histY - 6f, gx, bodyEnd + 4f, pen.solid(black, .6f, 1.2f))
+        c.drawLine(gx + 1.2f, histY - 6f, gx + 1.2f, bodyEnd + 4f, pen.solid(Ergos.GOLD_HI, .3f, .6f))
+        emblem(pen, code, th, rx + rw / 2, histY + 30f, 22f)
+        var my = histY + 80f
+        motto.forEach { pen.shadowed(it, rx + rw / 2, my, pen.italic, 13f, Ergos.CREAM, Align.CENTER); my += 15f }
+
+        // Píldoras de piedra con los dones dominantes
+        val py = max(bodyEnd, my - 15f) + 14f
         val items = result.dominant.map { it.gift.name }
-        val ws = items.map { pen.measure(it, pen.geistSemi, 9f) + 22f }
-        var px = W / 2 - (ws.sum() + 8f * (items.size - 1)) / 2
-        items.forEachIndexed { i, t ->
-            rrect(pen, px, py, px + ws[i], py + 22f, 11f, pen.solid(deep(th.accent), .85f))
-            rrect(pen, px, py, px + ws[i], py + 22f, 11f, pen.gold(py, py + 22f, .8f))
-            pen.text(t, px + ws[i] / 2, py + 14.5f, pen.geistSemi, 9f, pen.solid(Ergos.INK), Align.CENTER)
-            px += ws[i] + 8f
+        var ps = 9f
+        fun pillsW() = items.sumOf { (pen.measure(it, pen.geistSemi, ps) + 22f).toDouble() }.toFloat() + 8f * (items.size - 1)
+        val label = "TUS DONES DOMINANTES"
+        fun labelW() = pen.measure(label, pen.geistSemi, 7f, 2f) + 16f
+        while (labelW() + pillsW() > W - 2 * M && ps > 7.2f) ps -= .4f
+        var px = W / 2 - (labelW() + pillsW()) / 2
+        pen.carved(label, px, py + 14.2f, pen.geistSemi, 7f, Align.LEFT, 2f)
+        px += labelW()
+        for (t in items) {
+            val w = pen.measure(t, pen.geistSemi, ps) + 22f
+            pen.slab(px, py, px + w, py + 22f, 6f, .72f, Ergos.VIOLET_HI)
+            pen.text(t, px + w / 2, py + 14.5f, pen.geistSemi, ps, pen.solid(Ergos.INK), Align.CENTER)
+            px += w + 8f
         }
 
         var ny2 = noteTop
-        note.forEach { pen.text(it, W / 2, ny2, pen.geist, 7.6f, pen.solid(Ergos.MUTED), Align.CENTER); ny2 += 10f }
+        note.forEach { pen.shadowed(it, W / 2, ny2, pen.geist, 7.6f, Ergos.MUTED, Align.CENTER); ny2 += 10f }
     }
 
     // ------------------------------------------------------------------ Hoja 6: la batalla por tus dones

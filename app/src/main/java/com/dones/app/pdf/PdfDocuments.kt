@@ -52,7 +52,7 @@ object Church {
 }
 
 /**
- * PDFs generados en el teléfono con el diseño de Ergos: noche violeta, lavanda y florituras.
+ * PDFs generados en el teléfono: piedra tallada, letras en relieve y la poción violeta en las gráficas.
  * Mis dones: A4 vertical (595 × 842 pt). Certificado: A4 horizontal (842 × 595 pt).
  */
 object PdfDocuments {
@@ -82,9 +82,9 @@ object PdfDocuments {
         pen.canvas = page.canvas
         val c = pen.canvas
 
-        // Fondo con textura y el marco dorado de las cartas
+        // Fondo de piedra y el marco con las esquinas talladas
         pen.paper(W, H)
-        pen.goldFrame(W, H)
+        pen.stoneFrame(W, H)
 
         // Logo de la iglesia
         val logoW = 96f
@@ -93,9 +93,9 @@ object PdfDocuments {
 
         // Título
         y += 44f
-        pen.text("CERTIFICADO", W / 2, y, pen.corBold, 40f, pen.gold(y - 34f, y + 4f), Align.CENTER, 9f)
+        pen.carved("CERTIFICADO", W / 2, y, pen.corBold, 40f, Align.CENTER, 9f)
         y += 20f
-        pen.text("DE PARTICIPACIÓN", W / 2, y, pen.geistSemi, 9.5f, pen.solid(Ergos.ACCENT), Align.CENTER, 4.5f)
+        pen.shadowed("DE PARTICIPACIÓN", W / 2, y, pen.geistSemi, 9.5f, Ergos.ACCENT, Align.CENTER, 4.5f)
         y += 14f
         pen.ornament(W / 2, y, 130f)
 
@@ -104,21 +104,17 @@ object PdfDocuments {
         pen.text("Se otorga con alegría y gratitud a", W / 2, y, pen.corMed, 16f, pen.solid(Ergos.INK2), Align.CENTER)
         val ns = pen.fitFraktur(name, 48f, W - 220f)
         y += ns + 10f
-        pen.frakturText(name, W / 2 + 1.5f, y + 2f, ns, pen.solid(Ergos.VIOLET_LO, .8f), Align.CENTER)
-        val namePaint = pen.solid(Ergos.INK).apply {
-            shader = LinearGradient(0f, y - ns, 0f, y + 6f, intArrayOf(Ergos.WHITE, Ergos.LAV_PALE, Ergos.VIOLET_HI), floatArrayOf(0f, .5f, 1f), Shader.TileMode.CLAMP)
-        }
-        pen.frakturText(name, W / 2, y, ns, namePaint, Align.CENTER)
+        pen.carvedFraktur(name, W / 2, y, ns, Align.CENTER)
         y += 14f
         run {
             val half = max(160f, pen.measureFraktur(name, ns) / 2 + 20f)
-            val p = pen.sheen(y - 6f, y + 6f, .9f)
+            val p = pen.gold(y - 6f, y + 6f, .9f)
             val sw = Path().apply {
                 moveTo(W / 2 - half, y); cubicTo(W / 2 - half * .5f, y - 5f, W / 2 - 30f, y + 5f, W / 2 - 8f, y)
                 moveTo(W / 2 + 8f, y); cubicTo(W / 2 + 30f, y + 5f, W / 2 + half * .5f, y - 5f, W / 2 + half, y)
             }
             c.drawPath(sw, p)
-            pen.diamond(W / 2, y, 4f, pen.sheen(y - 4f, y + 4f))
+            pen.diamond(W / 2, y, 4f, pen.gold(y - 4f, y + 4f))
             listOf(-1f, 1f).forEach { s -> c.drawPath(spiral(W / 2 + s * (half + 5f), y - 3f, 4.5f, 1.3f, s, PI.toFloat() * .5f), p) }
         }
 
@@ -128,7 +124,7 @@ object PdfDocuments {
         y += 20f
         pen.text("dando un paso para conocer los dones que Dios le confió para servir a Su iglesia.", W / 2, y, pen.corMed, 15.5f, pen.solid(Ergos.INK), Align.CENTER)
         y += 32f
-        pen.text("¡Felicitaciones!", W / 2, y, pen.corBold, 24f, pen.sheen(y - 20f, y + 4f), Align.CENTER)
+        pen.carved("¡Felicitaciones!", W / 2, y, pen.corBold, 24f, Align.CENTER)
         y += 20f
         pen.text("«Cada uno según el don que ha recibido, minístrelo a los otros,", W / 2, y, pen.corMed, 12.5f, pen.solid(Ergos.ACCENT), Align.CENTER)
         y += 15f
@@ -139,7 +135,7 @@ object PdfDocuments {
         val leftX = 200f
         pen.text("FECHA", leftX, by + 4f, pen.geistSemi, 7.5f, pen.solid(Ergos.LAV), Align.CENTER, 2.5f)
         pen.text(date.format(spanishDate), leftX, by + 22f, pen.corSemi, 14f, pen.solid(Ergos.INK), Align.CENTER)
-        c.drawLine(leftX - 60f, by + 30f, leftX + 60f, by + 30f, pen.sheen(by, by + 40f, .6f))
+        c.drawLine(leftX - 60f, by + 30f, leftX + 60f, by + 30f, pen.gold(by, by + 40f, .8f))
         pen.text(info.churchName, leftX, by + 44f, pen.corMed, 11f, pen.solid(Ergos.MUTED), Align.CENTER)
 
         pen.seal(W / 2, by + 18f, 38f)
@@ -148,8 +144,9 @@ object PdfDocuments {
         val qx = W - 200f - qrSize / 2
         val qy = by - 16f
         val box = RectF(qx - 3f, qy - 3f, qx + qrSize + 3f, qy + qrSize + 3f)
+        c.drawRoundRect(RectF(box.left + 1.5f, box.top + 2f, box.right + 1.5f, box.bottom + 2f), 4f, 4f, pen.solid(0xFF000000.toInt(), .45f))
         c.drawRoundRect(box, 4f, 4f, pen.solid(Ergos.INK))
-        c.drawRoundRect(box, 4f, 4f, pen.sheen(qy, qy + qrSize, 1.2f))
+        c.drawRoundRect(box, 4f, 4f, pen.gold(qy, qy + qrSize, 1.2f))
         pen.qr(Church.VERIFY_URL + code, qx, qy, qrSize)
         pen.text("VERIFICA ESTE CERTIFICADO", W - 200f, qy + qrSize + 16f, pen.geistSemi, 6.5f, pen.solid(Ergos.LAV), Align.CENTER, 1.6f)
         pen.text(code, W - 200f, qy + qrSize + 28f, pen.geistSemi, 9f, pen.solid(Ergos.INK), Align.CENTER, 1.2f)
@@ -166,13 +163,13 @@ object PdfDocuments {
 // ------------------------------------------------------------------ Herramientas de dibujo
 
 internal object Ergos {
-    const val NIGHT = 0xFF0D0919.toInt()
-    const val NIGHT2 = 0xFF1A1033.toInt()
-    const val SURFACE = 0xFF171226.toInt()
-    const val SURFACE2 = 0xFF211A3A.toInt()
-    const val LINE = 0xFF3A2F5A.toInt()
-    const val LINE_STRONG = 0xFF6B58A3.toInt()
-    const val DEEP = 0xFF2A1458.toInt()
+    const val NIGHT = 0xFF0E0D10.toInt()
+    const val NIGHT2 = 0xFF1B1A1E.toInt()
+    const val SURFACE = 0xFF1A191D.toInt()
+    const val SURFACE2 = 0xFF25232A.toInt()
+    const val LINE = 0xFF5A5649.toInt()
+    const val LINE_STRONG = 0xFF8A8372.toInt()
+    const val DEEP = 0xFF241E33.toInt()
     const val VIOLET = 0xFF9450FF.toInt()
     const val VIOLET_HI = 0xFFB58BFF.toInt()
     const val ACCENT = 0xFFC4A2FF.toInt()
@@ -185,13 +182,14 @@ internal object Ergos {
     const val WHITE = 0xFFFFFFFF.toInt()
     const val OTHER_HI = 0xFF8E7BC4.toInt()
     const val OTHER_LO = 0xFF5B4A8E.toInt()
-    const val GOLD = 0xFFD9B877.toInt()
-    const val GOLD_HI = 0xFFF6E3B4.toInt()
-    const val GOLD_LO = 0xFF9C7744.toInt()
-    const val CREAM = 0xFFEFE3C8.toInt()
-    const val INK = 0xFFF6F6FB.toInt()
-    const val INK2 = 0xFFDCDBE8.toInt()
-    const val MUTED = 0xFFB3AFCC.toInt()
+    /** Arenisca y hueso: lo que antes era oro. */
+    const val GOLD = 0xFFD8C79F.toInt()
+    const val GOLD_HI = 0xFFEADFC0.toInt()
+    const val GOLD_LO = 0xFF8E8368.toInt()
+    const val CREAM = 0xFFF3EDE0.toInt()
+    const val INK = 0xFFF3EDE0.toInt()
+    const val INK2 = 0xFFD9D2C0.toInt()
+    const val MUTED = 0xFFBDB6A2.toInt()
 
     fun withAlpha(color: Int, a: Float): Int = (color and 0x00FFFFFF) or ((a * 255).roundToInt().coerceIn(0, 255) shl 24)
 }
@@ -224,6 +222,8 @@ internal class Pen(private val context: Context) {
     val geistMed = font(R.font.geist_medium)
     val geistSemi = font(R.font.geist_semibold)
     val fraktur = font(R.font.unifraktur_maguntia)
+    /** "Eres como" de la hoja del personaje. */
+    val italic = font(R.font.cormorant_semibold_italic)
     /** Solo para la S y la A mayúsculas: en Maguntia parecen G y U. */
     val rocker = font(R.font.new_rocker)
 
@@ -291,8 +291,8 @@ internal class Pen(private val context: Context) {
         if (img != null) fill(img, w, h) else background(w, h, w / 2, h * .4f, w * .9f)
     }
 
-    /** Marco dorado de la carta de Lidia, ajustado a la hoja. */
-    fun goldFrame(w: Float, h: Float) {
+    /** Marco de piedra con las esquinas talladas, ajustado a la hoja. */
+    fun stoneFrame(w: Float, h: Float) {
         val img = asset(if (w > h) "pdf/marco-horizontal.png" else "pdf/marco.png")
         if (img != null) fill(img, w, h) else frame(w, h, 16f, 1.2f, 21f)
     }
@@ -300,6 +300,45 @@ internal class Pen(private val context: Context) {
     /** Lavanda con degradado vertical entre y0 e y1. */
     fun sheen(y0: Float, y1: Float, stroke: Float = 0f) = solid(Ergos.LAV, 1f, stroke).apply {
         shader = LinearGradient(0f, y0, 0f, y1, intArrayOf(Ergos.LAV_HI, Ergos.LAV, Ergos.LAV_LO), floatArrayOf(0f, .55f, 1f), Shader.TileMode.CLAMP)
+    }
+
+    /** Relieve: sombra negra abajo a la derecha, luz de hueso arriba a la izquierda y relleno de arenisca. */
+    private fun relief(size: Float) = (size / 30f).coerceIn(.45f, 1.8f)
+
+    fun carved(s: String, x: Float, y: Float, face: Typeface, size: Float, align: Align = Align.LEFT, spacing: Float = 0f) {
+        val k = relief(size)
+        text(s, x + 1.2f * k, y + 1.6f * k, face, size, solid(0xFF000000.toInt(), .7f), align, spacing)
+        text(s, x - .8f * k, y - .8f * k, face, size, solid(Ergos.GOLD_HI, .25f), align, spacing)
+        text(s, x, y, face, size, gold(y - size * .75f, y + size * .2f), align, spacing)
+    }
+
+    fun carvedFraktur(s: String, x: Float, y: Float, size: Float, align: Align = Align.LEFT) {
+        val k = relief(size)
+        frakturText(s, x + 1.2f * k, y + 1.6f * k, size, solid(0xFF000000.toInt(), .7f), align)
+        frakturText(s, x - .8f * k, y - .8f * k, size, solid(Ergos.GOLD_HI, .25f), align)
+        frakturText(s, x, y, size, gold(y - size * .75f, y + size * .2f), align)
+    }
+
+    /** Texto con una sombra suave para que se lea sobre la ilustración. */
+    fun shadowed(s: String, x: Float, y: Float, face: Typeface, size: Float, color: Int, align: Align = Align.LEFT, spacing: Float = 0f) {
+        text(s, x + .7f, y + 1f, face, size, solid(0xFF000000.toInt(), .75f), align, spacing)
+        text(s, x, y, face, size, solid(color), align, spacing)
+    }
+
+    /** Losa de piedra con las esquinas cortadas: sombra, cuerpo oscuro y bisel (luz arriba a la izquierda). */
+    fun slab(l: Float, t: Float, r: Float, b: Float, cut: Float = 8f, strength: Float = .55f, border: Int? = null, inset: Boolean = false) {
+        val path = Path().apply {
+            moveTo(l + cut, t); lineTo(r - cut, t); lineTo(r, t + cut); lineTo(r, b - cut)
+            lineTo(r - cut, b); lineTo(l + cut, b); lineTo(l, b - cut); lineTo(l, t + cut); close()
+        }
+        if (!inset) canvas.drawPath(Path(path).apply { offset(1.2f, 2f) }, solid(0xFF000000.toInt(), .35f))
+        canvas.drawPath(path, solid(0xFF000000.toInt(), strength))
+        val hi = solid(Ergos.GOLD_HI, if (inset) .12f else .32f, .9f)
+        val lo = solid(0xFF000000.toInt(), .75f, .9f)
+        // Aristas: luz en las de arriba y la izquierda, sombra en las de abajo y la derecha
+        canvas.drawPath(Path().apply { moveTo(l, b - cut); lineTo(l, t + cut); lineTo(l + cut, t); lineTo(r - cut, t) }, if (inset) lo else hi)
+        canvas.drawPath(Path().apply { moveTo(r - cut, t); lineTo(r, t + cut); lineTo(r, b - cut); lineTo(r - cut, b); lineTo(l + cut, b) }, if (inset) hi else lo)
+        if (border != null) canvas.drawPath(path, solid(border, .6f, .8f))
     }
 
     fun measure(text: String, face: Typeface, size: Float, spacing: Float = 0f): Float {
@@ -441,23 +480,28 @@ internal class Pen(private val context: Context) {
         canvas.save()
         canvas.translate(x, y)
         canvas.scale(s, s)
-        canvas.drawPath(logoPath, sheen(0f, ChurchLogo.LOGO_H))
+        // Tallado: sombra, luz y arenisca (los desplazamientos están en unidades del logo)
+        val k = 1.6f / s.coerceAtLeast(.1f) * (width / 96f).coerceIn(.5f, 1.4f)
+        canvas.save(); canvas.translate(.8f * k, 1.1f * k); canvas.drawPath(logoPath, solid(0xFF000000.toInt(), .7f)); canvas.restore()
+        canvas.save(); canvas.translate(-.5f * k, -.5f * k); canvas.drawPath(logoPath, solid(Ergos.GOLD_HI, .25f)); canvas.restore()
+        canvas.drawPath(logoPath, gold(0f, ChurchLogo.LOGO_H))
         canvas.restore()
     }
 
     /** Sello circular con el emblema y el texto alrededor. */
     fun seal(cx: Float, cy: Float, r: Float) {
         val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            shader = RadialGradient(cx, cy - 10f, r * 1.2f, intArrayOf(Ergos.DEEP, Ergos.NIGHT), null, Shader.TileMode.CLAMP)
+            shader = RadialGradient(cx, cy - 10f, r * 1.2f, intArrayOf(0xFF3A3830.toInt(), Ergos.NIGHT), null, Shader.TileMode.CLAMP)
         }
+        canvas.drawCircle(cx + 1.5f, cy + 2.5f, r, solid(0xFF000000.toInt(), .4f))
         canvas.drawCircle(cx, cy, r, fill)
-        canvas.drawCircle(cx, cy, r, sheen(cy - r, cy + r, 1.6f))
-        canvas.drawCircle(cx, cy, r - 4f, sheen(cy - r, cy + r, .6f))
-        canvas.drawCircle(cx, cy, r - 15f, sheen(cy - r, cy + r, .6f))
+        canvas.drawCircle(cx, cy, r, gold(cy - r, cy + r, 1.6f))
+        canvas.drawCircle(cx, cy, r - 4f, gold(cy - r, cy + r, .6f))
+        canvas.drawCircle(cx, cy, r - 15f, gold(cy - r, cy + r, .6f))
         // Texto en el anillo, centrado arriba
         val ring = "LLAMADOS  ·  SAN ANDRÉS  ·  DONES ESPIRITUALES  ·"
         val rr = r - 12.5f
-        val tp = sheen(cy - r, cy + r).apply { typeface = geistSemi; textSize = 6.2f; letterSpacing = .08f }
+        val tp = gold(cy - r, cy + r).apply { typeface = geistSemi; textSize = 6.2f; letterSpacing = .08f }
         val circle = Path().apply { addCircle(cx, cy, rr, Path.Direction.CW) }
         val length = (2 * PI * rr).toFloat()
         val tw = tp.measureText(ring)
@@ -470,7 +514,7 @@ internal class Pen(private val context: Context) {
         canvas.translate(cx - 17f, cy - 182f * es / 2f)
         canvas.scale(es, es)
         canvas.translate(-40f, -6f)
-        canvas.drawPath(emblemPath, sheen(0f, 200f))
+        canvas.drawPath(emblemPath, gold(0f, 200f))
         canvas.restore()
     }
 

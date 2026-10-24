@@ -164,6 +164,7 @@ fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
                     placeholder = { Text("Escribe aquí", style = MaterialTheme.typography.bodyLarge) },
                     textStyle = MaterialTheme.typography.bodyLarge,
                     colors = ergosFieldColors(null),
+                    shape = StoneShapeSmall,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Hint("Solo tú lo ves. Queda guardado en este teléfono.")
@@ -190,6 +191,7 @@ private fun BlankField(value: String, onValueChange: (String) -> Unit, label: St
         textStyle = MaterialTheme.typography.bodyLarge,
         trailingIcon = if (state != null) ({ StatusDot(state) }) else null,
         colors = ergosFieldColors(state),
+        shape = StoneShapeSmall,
         keyboardOptions = KeyboardOptions(imeAction = if (last) ImeAction.Done else ImeAction.Next),
         keyboardActions = KeyboardActions(
             onNext = { focus.moveFocus(FocusDirection.Down) },
@@ -225,8 +227,8 @@ internal fun ergosFieldColors(correct: Boolean?) = when (correct) {
         focusedLabelColor = Ergos.AccentText,
         unfocusedLabelColor = Ergos.Muted,
         cursorColor = Ergos.VioletHi,
-        focusedContainerColor = Ergos.Night.copy(alpha = .5f),
-        unfocusedContainerColor = Ergos.Night.copy(alpha = .5f),
+        focusedContainerColor = Color.Black.copy(alpha = .5f),
+        unfocusedContainerColor = Color.Black.copy(alpha = .5f),
     )
     else -> {
         val c = if (correct) Ergos.Positive else Ergos.Negative
