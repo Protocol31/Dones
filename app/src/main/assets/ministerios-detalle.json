@@ -1,0 +1,214 @@
+{
+  "ministries": {
+    "Ujieres": {
+      "what": "Los ujieres reciben a las personas en la puerta, las ayudan a encontrar asiento, reparten el boletín y guían la procesión de la comunión. Su servicio callado permite que el culto fluya con orden y que nadie se sienta perdido.",
+      "you": "Tu disposición a servir y tu atención a los detalles hacen que cada persona se sienta esperada y acompañada desde que cruza la puerta.",
+      "refs": [
+        "Sal 84:10",
+        "1 Cr 9:22-27",
+        "1 Co 14:40"
+      ],
+      "bible": "Los porteros levitas del templo en Jerusalén custodiaban las entradas y abrían las puertas cada mañana (1 Cr 9:22-27); el salmista prefería estar a la puerta de la casa de Dios (Sal 84:10)."
+    },
+    "Equipo de bienvenida": {
+      "what": "El equipo de bienvenida saluda a quienes llegan, en especial a los que vienen por primera vez, les explica cómo es el culto y les presenta a otros. Una sonrisa a tiempo puede ser la razón por la que alguien vuelve.",
+      "you": "Tu hospitalidad hace que el visitante se sienta en casa desde el primer minuto, y tu calidez abre puertas que un letrero nunca abriría.",
+      "refs": [
+        "Ro 15:7",
+        "Heb 13:2",
+        "1 P 4:9"
+      ],
+      "bible": "Abraham corrió a recibir a tres desconocidos junto al encinar de Mamre (Gn 18:1-8), y Lidia abrió su casa a Pablo y sus compañeros en Filipos (Hch 16:14-15)."
+    },
+    "Música (tocar, cantar, sonido, proyector, diapositivas, adoración)": {
+      "what": "El ministerio de música guía a la congregación en la alabanza: canta, toca instrumentos, opera el sonido y proyecta las letras. Su trabajo ayuda a que todos puedan unir su voz y su corazón en la adoración a Dios.",
+      "you": "Tus dones de servicio y de ánimo ayudan a que la congregación cante con alegría y a que cada detalle técnico sirva a la adoración.",
+      "refs": [
+        "Col 3:16",
+        "Ef 5:19",
+        "Sal 150:1-6"
+      ],
+      "bible": "David organizó a los levitas cantores y músicos para el templo en Jerusalén (1 Cr 25:1-7), y en la dedicación del templo de Salomón la gloria de Dios llenó la casa mientras alababan (2 Cr 5:12-14)."
+    },
+    "Lector laico": {
+      "what": "El lector laico proclama en voz alta las lecturas de la Escritura durante la liturgia. Leer con claridad y reverencia permite que la Palabra de Dios llegue viva a cada persona presente.",
+      "you": "Tu don de enseñar y de animar hace que la Escritura se escuche con claridad y sentido, de modo que la Palabra toque los corazones.",
+      "refs": [
+        "Neh 8:8",
+        "1 Ti 4:13",
+        "Lc 4:16-20"
+      ],
+      "bible": "Esdras leyó la ley ante todo el pueblo en la plaza frente a la puerta de las Aguas, en Jerusalén (Neh 8:1-8), y Jesús leyó al profeta Isaías en la sinagoga de Nazaret (Lc 4:16-20)."
+    },
+    "Escuela dominical": {
+      "what": "La escuela dominical enseña a niños la fe cristiana con historias bíblicas, oraciones, cantos y actividades adaptadas a su edad. Es una siembra paciente que acompaña a las familias y forma discípulos desde pequeños.",
+      "you": "Tu don de enseñar y tu corazón de pastor ayudan a que los niños conozcan a Jesús y se sientan queridos y seguros en su iglesia.",
+      "refs": [
+        "Dt 6:6-7",
+        "Pr 22:6",
+        "2 Ti 3:14-15"
+      ],
+      "bible": "En Listra, Timoteo aprendió las Escrituras desde niño gracias a su abuela Loida y su madre Eunice (Hch 16:1; 2 Ti 1:5; 3:15), una fe transmitida de generación en generación."
+    },
+    "Grupo de jóvenes": {
+      "what": "El grupo de jóvenes acompaña a los jóvenes en sus preguntas de fe, vocación y vida, con encuentros, estudio y amistad. Ofrece un espacio seguro donde crecer en Cristo y aprender a servir a otros.",
+      "you": "Tu don de enseñar y de animar da a los jóvenes un adulto confiable que escucha, orienta y les ayuda a descubrir su lugar en el Reino.",
+      "refs": [
+        "1 Ti 4:12",
+        "Sal 119:9",
+        "Ec 12:1"
+      ],
+      "bible": "En Babilonia, Daniel y sus amigos se mantuvieron fieles a Dios siendo jóvenes (Dn 1:3-17), y Pablo formó al joven Timoteo como a un hijo en la fe (1 Ti 1:2; 4:12)."
+    },
+    "Grupo de adolescentes": {
+      "what": "El grupo de adolescentes acompaña a chicos y chicas en una etapa de grandes cambios, con actividades, conversación y enseñanza bíblica. Ayuda a que su fe se vuelva propia y no solo heredada.",
+      "you": "Tu paciencia de pastor y tu don de animar ayudan a los adolescentes a sentirse escuchados y a dar sus primeros pasos firmes con Cristo.",
+      "refs": [
+        "Lc 2:52",
+        "1 S 3:10",
+        "Sal 71:17"
+      ],
+      "bible": "El joven Samuel aprendió a escuchar la voz de Dios en el santuario de Silo, guiado por Elí (1 S 3:1-10), y Jesús a los doce años dialogó con los maestros en el templo de Jerusalén (Lc 2:41-52)."
+    },
+    "Sala cuna": {
+      "what": "La sala cuna cuida a bebés y niños pequeños durante el culto, en un ambiente seguro, limpio y cariñoso. Así los padres pueden participar con tranquilidad y los más pequeños conocen la iglesia como un lugar de amor.",
+      "you": "Tu misericordia y tu disposición a ayudar dan a los pequeños un cuidado tierno y a sus padres la paz de saber que están en buenas manos.",
+      "refs": [
+        "Mr 10:14",
+        "Sal 127:3",
+        "Mt 18:10"
+      ],
+      "bible": "Junto al Nilo, en Egipto, Jocabed y su hija María protegieron al pequeño Moisés (Éx 2:1-10), y Ana cuidó de Samuel antes de presentarlo en Silo (1 S 1:22-28)."
+    },
+    "Cuidar a los niños": {
+      "what": "Este ministerio acompaña a los niños durante actividades, reuniones y eventos de la iglesia, cuidándolos con atención y alegría. Permite que las familias participen plenamente y que los niños se sientan parte de la comunidad.",
+      "you": "Tu servicio y tu compasión hacen que los niños se sientan seguros y valorados, reflejando el amor con que Jesús los recibía.",
+      "refs": [
+        "Mt 19:14",
+        "Mr 9:36-37",
+        "Mt 18:5"
+      ],
+      "bible": "En Judea, al otro lado del Jordán, Jesús reprendió a los discípulos y tomó a los niños en sus brazos para bendecirlos (Mr 10:1, 13-16); en Belén, Noemí crió con amor a su nieto Obed (Rt 4:16)."
+    },
+    "Grupo del altar": {
+      "what": "El grupo del altar prepara la mesa para la Santa Comunión: lava y plancha los lienzos, dispone los vasos sagrados, el pan y el vino. Su trabajo reverente y discreto hace posible que la Eucaristía se celebre con dignidad.",
+      "you": "Tu espíritu de servicio y tu cuidado por los detalles convierten cada lienzo y cada cáliz en una ofrenda silenciosa de amor a Dios.",
+      "refs": [
+        "1 Cr 9:28-32",
+        "Lc 22:8-13",
+        "Éx 40:22-25"
+      ],
+      "bible": "En el templo de Jerusalén, algunos levitas tenían a su cargo los utensilios del culto y los panes de la proposición (1 Cr 9:28-32), y Pedro y Juan prepararon la Pascua en el aposento alto (Lc 22:8-13)."
+    },
+    "Flores": {
+      "what": "El ministerio de flores adorna el templo con arreglos que acompañan el año litúrgico y las fiestas. La belleza creada por Dios ayuda a la congregación a elevar la mirada y a preparar el corazón para adorar.",
+      "you": "Tu servicio y tu sensibilidad para la belleza hacen del templo un espacio acogedor que habla de la gloria de Dios sin palabras.",
+      "refs": [
+        "Sal 96:6",
+        "Mt 6:28-29",
+        "1 R 6:29"
+      ],
+      "bible": "Bezaleel y Aholiab embellecieron el tabernáculo en el desierto de Sinaí (Éx 31:1-6), y Salomón talló botones de flores en las paredes del templo de Jerusalén (1 R 6:18, 29)."
+    },
+    "Poner las mesas": {
+      "what": "Este equipo prepara y ordena las mesas para almuerzos, celebraciones y encuentros de la iglesia. Un espacio bien dispuesto invita a compartir y hace que la comunión fraterna se viva alrededor de la mesa.",
+      "you": "Tu disposición a servir y a ayudar prepara el lugar donde la comunidad se encuentra, conversa y se cuida mutuamente.",
+      "refs": [
+        "Hch 6:2-3",
+        "Hch 2:46",
+        "Mr 14:15"
+      ],
+      "bible": "En Jerusalén, la iglesia eligió a siete hombres de buen testimonio para servir a las mesas (Hch 6:1-6), y Jesús celebró la última cena en un aposento alto ya dispuesto (Mr 14:15)."
+    },
+    "Equipo de limpieza": {
+      "what": "El equipo de limpieza mantiene el templo y los salones limpios, ordenados y listos para recibir a todos. Es un servicio humilde que honra a Dios y muestra cariño por la comunidad y por quienes nos visitan.",
+      "you": "Tu espíritu de servicio y de ayuda cuida la casa de Dios con esmero, para que cada persona encuentre un lugar digno y acogedor.",
+      "refs": [
+        "2 Cr 29:15-16",
+        "Col 3:23",
+        "1 Co 14:40"
+      ],
+      "bible": "Bajo el rey Ezequías, los levitas purificaron el templo de Jerusalén y sacaron la inmundicia al torrente de Cedrón (2 Cr 29:15-17); Nehemías mandó limpiar sus cámaras (Neh 13:9)."
+    },
+    "Equipo de refrigerio": {
+      "what": "El equipo de refrigerio prepara el té, el café y algo para compartir después del culto. Ese momento sencillo es clave para conversar, conocer a los nuevos y fortalecer los lazos de la familia de la iglesia.",
+      "you": "Tu hospitalidad y tu servicio transforman una taza de té en un espacio de encuentro donde nadie queda solo.",
+      "refs": [
+        "Ro 12:13",
+        "Hch 2:46",
+        "Mt 10:42"
+      ],
+      "bible": "Marta servía a Jesús y a sus discípulos en su casa de Betania (Lc 10:38-40; Jn 12:2), y el mismo Jesús resucitado preparó pan y pescado junto al mar de Tiberíades (Jn 21:9-13)."
+    },
+    "Cocineros/as": {
+      "what": "Los cocineros y cocineras preparan las comidas para almuerzos, celebraciones y actividades de la iglesia. Alimentar a otros es una forma concreta de amor que reúne a la comunidad y acoge a los que llegan.",
+      "you": "Tu hospitalidad y tu servicio hacen de cada comida un gesto de cariño que alimenta el cuerpo y fortalece la comunión.",
+      "refs": [
+        "Gn 18:6-8",
+        "1 P 4:9-10",
+        "Hch 2:46"
+      ],
+      "bible": "Abraham y Sara prepararon panes y un becerro para sus huéspedes en Mamre (Gn 18:6-8), y la viuda de Sarepta compartió su última harina y aceite con Elías (1 R 17:10-16)."
+    },
+    "Contar la ofrenda": {
+      "what": "Este equipo cuenta, registra y deposita las ofrendas de la congregación con transparencia y en parejas. Su trabajo fiel protege la confianza de la comunidad y asegura que los recursos sirvan a la misión.",
+      "you": "Tu don de administración y tu generosidad garantizan que cada ofrenda se cuide con honestidad y orden, para gloria de Dios.",
+      "refs": [
+        "1 Co 4:2",
+        "2 Co 8:20-21",
+        "2 R 12:10-11"
+      ],
+      "bible": "En tiempos del rey Joás, el secretario del rey y el sumo sacerdote contaban el dinero del arca en el templo de Jerusalén (2 R 12:9-11), y Pablo envió a Tito para administrar con honradez la ofrenda (2 Co 8:16-21)."
+    },
+    "Líderes de mesa para Alfa": {
+      "what": "Los líderes de mesa acogen a los participantes del curso Alfa, facilitan la conversación tras cada charla y acompañan sus preguntas sobre la fe. Escuchar sin juzgar abre el camino para que muchos conozcan a Jesús.",
+      "you": "Tu corazón evangelista, tu hospitalidad y tu cuidado pastoral crean una mesa donde las preguntas son bienvenidas y la fe puede nacer.",
+      "refs": [
+        "1 P 3:15",
+        "Mt 28:19-20",
+        "Col 4:5-6"
+      ],
+      "bible": "En el camino de Jerusalén a Gaza, Felipe escuchó y explicó las Escrituras al etíope (Hch 8:26-38), y en Éfeso Priscila y Aquila recibieron a Apolos y le enseñaron con paciencia (Hch 18:24-26)."
+    },
+    "Visitas a los visitantes": {
+      "what": "Este ministerio contacta y visita a quienes llegaron por primera vez a la iglesia, para agradecerles, conocerlos y responder sus dudas. Un gesto personal puede convertir una visita ocasional en un nuevo hogar espiritual.",
+      "you": "Tu don evangelista y tu hospitalidad hacen que el recién llegado se sienta buscado y valorado, y tu ánimo le ayuda a dar el siguiente paso.",
+      "refs": [
+        "Mt 25:35",
+        "Ro 12:13",
+        "3 Jn 5-8"
+      ],
+      "bible": "En Jerusalén, Bernabé tomó a Saulo, recién convertido, y lo presentó a los apóstoles (Hch 9:26-27); luego fue a buscarlo a Tarso para traerlo a Antioquía (Hch 11:25-26)."
+    },
+    "Visitas a hospitales y personas con discapacidad": {
+      "what": "Este ministerio visita a enfermos, hospitalizados y personas con discapacidad para acompañarlos, orar con ellos y llevarles la comunión. Su presencia recuerda que nadie está olvidado por Dios ni por su iglesia.",
+      "you": "Tu misericordia, tu oración y tu palabra de ánimo llevan consuelo y esperanza a quienes atraviesan el dolor o la soledad.",
+      "refs": [
+        "Stg 5:14-15",
+        "Mt 25:36",
+        "2 Co 1:3-4"
+      ],
+      "bible": "Jesús se acercó al paralítico junto al estanque de Betesda en Jerusalén (Jn 5:1-9), y Pedro y Juan levantaron al cojo en la puerta del templo llamada la Hermosa (Hch 3:1-8)."
+    },
+    "Equipos de oración para liberación espiritual": {
+      "what": "Estos equipos oran con personas que enfrentan opresión o ataduras espirituales, siempre bajo la guía pastoral y con prudencia. Interceden con fe para que experimenten la libertad y la paz que Cristo ofrece.",
+      "you": "Tu discernimiento, tu fe y tu perseverancia en la oración ayudan a otros a encontrar libertad en Cristo con humildad y amor.",
+      "refs": [
+        "Ef 6:12",
+        "Mr 9:29",
+        "Stg 5:16"
+      ],
+      "bible": "En la región de los gadarenos Jesús liberó al endemoniado (Mr 5:1-15), y en Filipos Pablo, en el nombre de Jesucristo, liberó a una joven con espíritu de adivinación (Hch 16:16-18)."
+    },
+    "Líderes de grupos de estudio bíblico": {
+      "what": "Los líderes de estudio bíblico guían a pequeños grupos en la lectura y reflexión de la Escritura, fomentando preguntas y aplicación práctica. Estos grupos forman discípulos maduros y tejen amistades profundas.",
+      "you": "Tu enseñanza, tu cuidado pastoral, tu conocimiento y tu sabiduría ayudan a otros a comprender la Palabra y vivirla cada día.",
+      "refs": [
+        "Hch 17:11",
+        "2 Ti 2:15",
+        "Hch 2:42"
+      ],
+      "bible": "En Berea, los creyentes escudriñaban cada día las Escrituras (Hch 17:10-11), y en Éfeso Pablo enseñó diariamente en la escuela de Tiranno durante dos años (Hch 19:9-10)."
+    }
+  }
+}

@@ -1,0 +1,371 @@
+package com.dones.app.ui
+
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.unit.sp
+import androidx.compose.material3.TextField
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
+import com.dones.app.DonesViewModel
+import com.dones.core.Blanks
+import com.dones.core.LessonGate
+import com.dones.core.ParticipantView
+import kotlinx.coroutines.delay
+
+/** Ícono de cada parte del curso, para reconocerla de un vistazo. */
+fun sectionIcon(section: String): ImageVector = when {
+    section.startsWith("I.") -> ErgosIcons.Church
+    section.startsWith("II.") -> ErgosIcons.Book
+    section.startsWith("III.") -> ErgosIcons.Cross
+    section.startsWith("IV.") -> ErgosIcons.Sparkle
+    section.startsWith("V.") -> ErgosIcons.Seal
+    section.startsWith("C ") -> ErgosIcons.Heart
+    section.startsWith("O ") -> ErgosIcons.Sparkle
+    section.startsWith("R ") -> ErgosIcons.Person
+    section.startsWith("E ") -> ErgosIcons.Calendar
+    section.startsWith("T ") -> ErgosIcons.Key
+    section == "Cuestionario" -> ErgosIcons.Bars
+    else -> ErgosIcons.People
+}
+
+// W6/W7: una página de la enseñanza. Texto, completar espacios o pregunta abierta; la persona avanza sola.
+@Composable
+fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
+    val page = v.page
+    val key = v.index
+    val fields = if (page.write) 1 else page.blanks.size
+    val values = remember(key) {
+        mutableStateListOf(*Array(fields) { i -> vm.participant.notes["$key.$i"].orEmpty() })
+    }
+    val selected = remember(key) {
+        mutableStateListOf(*vm.participant.notes["$key.0"].orEmpty().lines().filter { it in page.choices }.toTypedArray())
+    }
+    // Una página de espacios ya revisada se muestra con su corrección al volver a ella.
+    var checked by remember(key) { mutableStateOf(page.blanks.isNotEmpty() && "$key.0" in vm.participant.notes) }
+    val mustCheck = page.blanks.isNotEmpty() && !checked
+    // No se avanza sin responder.
+    val answered = LessonGate.canContinue(page, values, selected)
+    val total = vm.lesson.pages.size
+    Screen(
+        bottom = {
+            if (!answered) LessonGate.hint(page)?.let { Hint(it) }
+            PageNav(
+                progress = (key + 1) / total.toFloat(),
+                label = "Página ${key + 1} de $total",
+                onPrevious = if (key > 0) vm::previousPage else null,
+                nextLabel = if (mustCheck) "Revisar" else "Siguiente",
+                nextEnabled = answered,
+                onNext = {
+                    if (mustCheck) {
+                        vm.saveNotes(key, values.toList()); checked = true
+                    } else {
+                        if (page.write || page.blanks.isNotEmpty()) vm.saveNotes(key, values.toList())
+                        if (page.choices.isNotEmpty()) vm.saveNotes(key, listOf(selected.joinToString("\n")))
+                        vm.nextPage()
+                    }
+                },
+            )
+        },
+    ) {
+        // Arriba, como en el mockup: la sección en versalitas doradas, el título gótico y el adorno.
+        Eyebrow(page.section)
+        page.title?.let {
+            Title(it)
+            Ornament(width = 64.dp)
+        }
+        page.ref?.let { r -> RefChip(r, onClick = { vm.openScripture(r) }) }
+        Text(
+            lessonText(page.text, page.blanks, values, checked),
+            style = MaterialTheme.typography.bodyLarge,
+            color = Ergos.Ink,
+        )
+
+        if (page.blanks.isNotEmpty()) {
+            ErgosCard(ornament = true) {
+                Eyebrow(if (fields > 1) "Completa los espacios" else "Completa el espacio", icon = ErgosIcons.Pencil)
+                page.blanks.forEachIndexed { i, expected ->
+                    BlankField(
+                        value = values[i],
+                        onValueChange = { values[i] = it },
+                        label = if (fields > 1) "Espacio ${i + 1}" else "Tu respuesta",
+                        expected = expected,
+                        checked = checked,
+                        last = i == page.blanks.lastIndex,
+                    )
+                }
+                if (mustCheck) {
+                    Hint("Escribe lo que crees y toca «Revisar mis respuestas».")
+                } else {
+                    val right = page.blanks.indices.count { Blanks.isCorrect(page.blanks[it], values[it]) }
+                    Hint(
+                        if (right == fields) "¡Muy bien! Puedes seguir."
+                        else "Acertaste $right de $fields. Puedes corregir lo que escribiste y seguir.",
+                    )
+                }
+            }
+        }
+
+        if (page.choices.isNotEmpty()) {
+            Eyebrow(
+                when (page.pick) {
+                    1 -> "Elige una"
+                    0 -> "Elige las que quieras"
+                    else -> "Elige ${page.pick}"
+                },
+                icon = ErgosIcons.Choose,
+            )
+            page.choices.forEach { choice ->
+                ChoiceButton(choice, selected = choice in selected, onClick = {
+                    when {
+                        choice in selected -> selected.remove(choice)
+                        page.pick == 1 -> { selected.clear(); selected.add(choice) }
+                        page.pick == 0 || selected.size < page.pick -> selected.add(choice)
+                    }
+                })
+            }
+            if (page.pick > 1 && selected.size == page.pick) Hint("Ya elegiste ${page.pick}. Toca uno para quitarlo.")
+        }
+
+        if (page.write) {
+            ErgosCard {
+                Eyebrow("Escribe tu respuesta", icon = ErgosIcons.Pencil)
+                TextField(
+                    value = values[0],
+                    onValueChange = { values[0] = it },
+                    minLines = 4,
+                    placeholder = { Text("Escribe aquí", style = MaterialTheme.typography.bodyLarge) },
+                    textStyle = MaterialTheme.typography.bodyLarge,
+                    colors = ergosFieldColors(null),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Hint("Solo tú lo ves. Queda guardado en este teléfono.")
+            }
+        }
+    }
+}
+
+/**
+ * Un espacio para completar. Después de revisar sigue siendo editable:
+ * borde y respuesta en verde si acertó, en rojo si no (y cambia en vivo si lo corrige).
+ */
+@Composable
+private fun BlankField(value: String, onValueChange: (String) -> Unit, label: String, expected: String, checked: Boolean, last: Boolean) {
+    // «Siguiente» del teclado salta al próximo espacio; en el último, «Listo» cierra el teclado.
+    val focus = LocalFocusManager.current
+    val ok = Blanks.isCorrect(expected, value)
+    val state: Boolean? = if (checked) ok else null
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = true,
+        label = { Text(label) },
+        textStyle = MaterialTheme.typography.bodyLarge,
+        trailingIcon = if (state != null) ({ StatusDot(state) }) else null,
+        colors = ergosFieldColors(state),
+        keyboardOptions = KeyboardOptions(imeAction = if (last) ImeAction.Done else ImeAction.Next),
+        keyboardActions = KeyboardActions(
+            onNext = { focus.moveFocus(FocusDirection.Down) },
+            onDone = { focus.clearFocus() },
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    )
+    if (state != null) {
+        val color = if (state) Ergos.Positive else Ergos.Negative
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(
+                if (state) ErgosIcons.Check else ErgosIcons.Close,
+                contentDescription = null, tint = color, modifier = Modifier.size(22.dp),
+            )
+            Text(
+                buildAnnotatedString {
+                    append(if (state) "¡Correcto! " else "Respuesta: ")
+                    withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { append(Blanks.display(expected)) }
+                },
+                color = color,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+    }
+}
+
+/** Colores del campo: sin caja, solo una línea abajo; violeta normal, verde si acertó, rojo si no. */
+@Composable
+internal fun ergosFieldColors(correct: Boolean?): androidx.compose.material3.TextFieldColors {
+    val c = when (correct) { null -> Ergos.VioletHi; true -> Ergos.Positive; false -> Ergos.Negative }
+    return androidx.compose.material3.TextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        disabledContainerColor = Color.Transparent,
+        focusedIndicatorColor = c,
+        unfocusedIndicatorColor = if (correct == null) Ergos.Muted else c,
+        focusedLabelColor = if (correct == null) Ergos.AccentText else c,
+        unfocusedLabelColor = if (correct == null) Ergos.Muted else c,
+        cursorColor = c,
+        focusedTextColor = Ergos.Ink,
+        unfocusedTextColor = Ergos.Ink,
+    )
+}
+
+/**
+ * El texto de la página con sus espacios: "(1) ______" mientras están vacíos y,
+ * cuando la persona escribe, su respuesta subrayada en el mismo lugar
+ * (en verde o rojo después de revisar).
+ */
+private fun lessonText(text: String, blanks: List<String>, values: List<String>, checked: Boolean): AnnotatedString {
+    val parts = text.split(Blanks.MARK)
+    val numbered = blanks.size > 1
+    return buildAnnotatedString {
+        parts.forEachIndexed { i, part ->
+            append(part)
+            if (i == parts.lastIndex) return@forEachIndexed
+            val typed = values.getOrNull(i)?.trim().orEmpty()
+            if (typed.isEmpty() || i >= blanks.size) {
+                withStyle(SpanStyle(color = Ergos.Muted)) { append(if (numbered) "(${i + 1}) ______" else "______") }
+            } else {
+                val color: Color = when {
+                    !checked -> Ergos.AccentText
+                    Blanks.isCorrect(blanks[i], typed) -> Ergos.Positive
+                    else -> Ergos.Negative
+                }
+                withStyle(SpanStyle(color = color, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline)) {
+                    append(typed)
+                }
+            }
+        }
+    }
+}
+
+// W8: una afirmación por pantalla. Al tocar se marca, pausa breve y pasa sola a la siguiente.
+@Composable
+fun QuestionScreen(vm: DonesViewModel, q: ParticipantView.Question, inQuiz: Boolean = false) {
+    // Respuesta recién tocada: se ve marcada un momento antes de avanzar.
+    var pending by remember(q.item.n) { mutableStateOf<Int?>(null) }
+    LaunchedEffect(pending) {
+        val value = pending ?: return@LaunchedEffect
+        delay(350)
+        vm.answer(q.item.n, value)
+    }
+    val selected = pending ?: q.currentAnswer
+    Screen(
+        bottom = {
+            val prev = q.previousItem
+            PageNav(
+                onPrevious = when {
+                    prev != null -> ({ vm.goBackTo(prev) })
+                    !inQuiz -> vm::previousPage
+                    else -> null
+                },
+                label = "Bloque ${q.block} de ${q.totalBlocks}",
+            )
+        },
+    ) {
+        // Mockup: «PREGUNTA 6 DE 25» con una línea fina, la pregunta en cursiva y la afirmación grande en serif.
+        Eyebrow("Pregunta ${q.positionInBlock} de ${q.blockSize}")
+        Box(Modifier.fillMaxWidth().height(2.dp).background(Ergos.Line.copy(alpha = .7f))) {
+            Box(Modifier.fillMaxWidth(q.positionInBlock / q.blockSize.toFloat()).height(2.dp).background(Ergos.Violet))
+        }
+        Text(vm.content.prompt, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = CormorantItalic, fontStyle = FontStyle.Italic, fontWeight = FontWeight.SemiBold, fontSize = 21.sp), color = Ergos.AccentText)
+        Text(q.item.text, style = MaterialTheme.typography.headlineSmall.copy(fontSize = 31.sp, lineHeight = 40.sp), color = Ergos.Ink)
+        Spacer(Modifier.height(4.dp))
+        vm.content.scale.forEach { option ->
+            RadioOption(
+                text = option.label,
+                selected = selected == option.value,
+                onClick = { if (pending == null) pending = option.value },
+            )
+        }
+    }
+}
+
+/** Opción con un círculo (mockup): vacío, o lleno de violeta al elegirla; texto grande en serif. */
+@Composable
+private fun RadioOption(text: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = BigTouch)
+            .clip(RoundedCornerShape(12.dp))
+            .semantics { this.selected = selected; role = Role.RadioButton }
+            .clickable(onClick = onClick)
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(18.dp),
+    ) {
+        Box(
+            Modifier.size(28.dp).border(2.dp, if (selected) Ergos.VioletHi else Ergos.Muted, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (selected) Box(Modifier.size(14.dp).clip(CircleShape).background(Ergos.VioletHi))
+        }
+        Text(text, style = MaterialTheme.typography.headlineSmall.copy(fontSize = 27.sp, fontWeight = FontWeight.Medium), color = if (selected) Color.White else Ergos.Ink)
+    }
+}
+
+// W10
+@Composable
+fun BlockDoneScreen(vm: DonesViewModel, v: ParticipantView.BlockDone, inQuiz: Boolean = false) {
+    val finished = v.isLastBlock
+    Screen(
+        bottom = {
+            PrimaryButton(
+                if (finished) "Ver mis resultados" else "Continuar",
+                icon = if (finished) ErgosIcons.Sparkle else null,
+                trailing = ErgosIcons.ChevronRight,
+                onClick = if (inQuiz) vm::quizContinue else vm::nextPage,
+            )
+            BackLink("Revisar mi última respuesta", onClick = { vm.backFromBlockDone(v.block) })
+        },
+    ) {
+        CenteredMessage(
+            title = "¡Bloque ${v.block} terminado!",
+            body = if (finished) "Respondiste las ${v.total} afirmaciones. Tus dones están listos."
+            else if (inQuiz) "Llevas ${v.answered} de ${v.total} afirmaciones. Sigue con el próximo bloque."
+            else "Llevas ${v.answered} de ${v.total} afirmaciones. La lección continúa.",
+            icon = if (finished) ErgosIcons.Sparkle else ErgosIcons.Check,
+        )
+    }
+}

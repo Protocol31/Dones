@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Llamados · Descargar</title>
+<meta name="description" content="Descarga Llamados, la app para descubrir tus dones y tu ministerio. Iglesia Anglicana San Andrés.">
+<link rel="icon" href="img/emblema.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Geist:wght@400;500;600&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night: #0d0a14; --ink: #f3eefb; --ink2: #c9bfdc; --muted: #8f84a6;
+    --violet: #7c3aed; --violet-hi: #a78bfa; --gold: #d9b46a; --line: rgba(167,139,250,.22);
+    --serif: "Cormorant Garamond", Georgia, serif; --sans: "Geist", system-ui, sans-serif;
+    --gothic: "UnifrakturMaguntia", var(--serif);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; color: var(--ink); font-family: var(--serif); font-size: 21px; line-height: 1.45;
+    background: radial-gradient(120% 60% at 50% 0%, #2a1650 0%, var(--night) 60%) fixed, var(--night);
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 0 22px 64px; }
+  a { color: var(--violet-hi); }
+  .caps { font-family: var(--sans); font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+  .ornament { display: flex; align-items: center; gap: 10px; justify-content: center; margin: 14px auto; width: 140px; }
+  .ornament::before, .ornament::after { content: ""; flex: 1; height: 1px; background: var(--gold); opacity: .75; }
+  .ornament i { width: 8px; height: 8px; background: var(--gold); transform: rotate(45deg); }
+
+  header { text-align: center; padding: 48px 0 8px; }
+  header img { width: 64px; height: auto; opacity: .95; }
+  h1 { font-family: var(--gothic); font-weight: 400; font-size: clamp(60px, 16vw, 92px); line-height: 1; margin: 10px 0 6px; text-shadow: 0 3px 8px rgba(0,0,0,.6); }
+  .lead { font-style: italic; color: var(--ink2); font-size: 24px; margin: 8px 0 0; }
+
+  .download { text-align: center; margin: 34px 0 10px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 12px; padding: 20px 34px; min-height: 64px; border-radius: 16px;
+    background: linear-gradient(#8b5cf6, #6d28d9); color: #fff; text-decoration: none;
+    font-family: var(--sans); font-weight: 600; font-size: 20px; box-shadow: 0 10px 30px rgba(124,58,237,.35);
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn svg { width: 24px; height: 24px; }
+  .note { font-family: var(--sans); font-size: 15px; color: var(--muted); margin-top: 12px; }
+  .qr { display: none; margin: 26px auto 0; text-align: center; }
+  .qr div { display: inline-block; padding: 12px; background: #fff; border-radius: 12px; }
+  .qr p { font-family: var(--sans); font-size: 15px; color: var(--ink2); }
+  @media (hover: hover) and (min-width: 900px) { .qr { display: block; } }
+
+  .shots { display: flex; gap: 14px; overflow-x: auto; padding: 26px 22px 6px; margin: 30px -22px 0; scroll-snap-type: x mandatory; }
+  .shots img { width: 190px; flex: none; border-radius: 18px; border: 1px solid var(--line); scroll-snap-align: center; }
+
+  section { margin-top: 56px; }
+  h2 { font-family: var(--gothic); font-weight: 400; font-size: 44px; line-height: 1.1; margin: 6px 0 0; }
+  .steps { list-style: none; padding: 0; margin: 26px 0 0; counter-reset: s; }
+  .steps li { position: relative; padding: 0 0 30px 64px; counter-increment: s; }
+  .steps li::before {
+    content: counter(s); position: absolute; left: 0; top: 0; width: 44px; height: 44px; border-radius: 50%;
+    border: 1.5px solid var(--gold); color: var(--gold); display: grid; place-items: center; font-family: var(--sans); font-weight: 600; font-size: 18px;
+  }
+  .steps li:not(:last-child)::after { content: ""; position: absolute; left: 22px; top: 50px; bottom: 8px; width: 1px; background: var(--line); }
+  .steps h3 { font-family: var(--serif); font-weight: 600; font-size: 27px; margin: 4px 0 4px; }
+  .steps p { margin: 0 0 10px; color: var(--ink2); }
+
+  /* Mini pantalla del aviso de Android */
+  .dialog {
+    font-family: var(--sans); font-size: 15px; line-height: 1.4; color: #1f1b24; background: #f4eff8;
+    border-radius: 22px; padding: 18px 20px 12px; max-width: 330px; margin: 12px 0 4px; box-shadow: 0 8px 26px rgba(0,0,0,.4);
+  }
+  .dialog b { display: block; font-size: 17px; margin-bottom: 6px; }
+  .dialog .row { display: flex; justify-content: flex-end; gap: 22px; margin-top: 12px; font-weight: 600; color: #6750a4; }
+  .dialog .row span.hl { outline: 2px solid var(--gold); outline-offset: 5px; border-radius: 6px; }
+  .dialog .switch { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .dialog .switch i { width: 40px; height: 22px; border-radius: 11px; background: #6750a4; position: relative; outline: 2px solid var(--gold); outline-offset: 4px; }
+  .dialog .switch i::after { content: ""; position: absolute; right: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; }
+
+  .faq details { border-bottom: 1px solid var(--line); padding: 6px 0; }
+  .faq summary { cursor: pointer; list-style: none; font-weight: 600; font-size: 23px; padding: 12px 34px 12px 0; position: relative; min-height: 48px; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; position: absolute; right: 4px; top: 8px; color: var(--violet-hi); font-family: var(--sans); font-size: 26px; }
+  .faq details[open] summary::after { content: "–"; }
+  .faq p { margin: 0 0 14px; color: var(--ink2); }
+
+  .center { text-align: center; }
+  footer { text-align: center; margin-top: 64px; color: var(--muted); font-style: italic; font-size: 18px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="img/emblema.svg" alt="">
+    <h1>Llamados</h1>
+    <div class="caps">Descubriendo mi ministerio</div>
+    <div class="ornament"><i></i></div>
+    <p class="lead">Descubre los dones que Dios puso en ti y dónde puedes servir.</p>
+  </header>
+
+  <div class="download">
+    <a class="btn" id="dl" href="https://github.com/Protocol31/Dones/releases/download/demo/dones-demo.apk">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+      Descargar para Android
+    </a>
+    <div class="note">Versión de prueba · Pesa unos 65 MB, mejor con wifi · No funciona en iPhone</div>
+    <div class="qr"><div id="qr"></div><p>¿Estás en el computador? Escanea con la cámara de tu celular.</p></div>
+  </div>
+
+  <div class="shots" aria-label="Así se ve la app">
+    <img src="img/perfiles.jpg" alt="Pantalla de inicio: ¿Quién va a responder hoy?" loading="lazy">
+    <img src="img/leccion.jpg" alt="Una página de la lección" loading="lazy">
+    <img src="img/cuestionario.jpg" alt="Una pregunta del cuestionario" loading="lazy">
+    <img src="img/personaje.jpg" alt="Tu personaje bíblico" loading="lazy">
+  </div>
+
+  <section id="instalar">
+    <div class="caps center">Paso a paso</div>
+    <h2 class="center">Cómo instalarla</h2>
+    <div class="ornament"><i></i></div>
+    <ol class="steps">
+      <li>
+        <h3>Toca «Descargar para Android»</h3>
+        <p>Hazlo desde tu celular. Si el navegador pregunta si quieres descargar el archivo, toca <b>Descargar</b>. Espera a que termine (aparece arriba, en las notificaciones).</p>
+      </li>
+      <li>
+        <h3>Abre el archivo descargado</h3>
+        <p>Toca la notificación «Descarga completa», o busca <b>dones-demo.apk</b> en la app <b>Archivos</b> → <b>Descargas</b>.</p>
+      </li>
+      <li>
+        <h3>Permite la instalación</h3>
+        <p>La primera vez, Android te avisa que no puede instalar apps desde ese lugar. Es normal: la app no viene de la Play Store.</p>
+        <div class="dialog">
+          <b>Por tu seguridad, no puedes instalar apps desconocidas desde esta fuente.</b>
+          <div class="row"><span>Cancelar</span><span class="hl">Configuración</span></div>
+        </div>
+        <p>Toca <b>Configuración</b>, activa <b>Permitir desde esta fuente</b> y vuelve atrás con la flecha.</p>
+        <div class="dialog">
+          <div class="switch"><span>Permitir desde esta fuente</span><i></i></div>
+        </div>
+      </li>
+      <li>
+        <h3>Toca «Instalar»</h3>
+        <p>Si aparece un aviso de <b>Play Protect</b> diciendo que la app es desconocida, toca <b>Más detalles</b> y luego <b>Instalar de todas formas</b>. Sale porque la app todavía no está en la Play Store.</p>
+        <div class="dialog">
+          <b>App no segura bloqueada</b>
+          Play Protect no reconoce al desarrollador de esta app…
+          <div class="row"><span>Aceptar</span><span class="hl">Más detalles</span></div>
+        </div>
+      </li>
+      <li>
+        <h3>¡Listo! Abre Llamados</h3>
+        <p>La encontrarás junto a tus otras apps. Elige <b>Soy una persona nueva</b>, escribe tu nombre y comienza la lección.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section id="actualizar">
+    <div class="caps center">Nuevas versiones</div>
+    <h2 class="center">Cómo actualizarla</h2>
+    <div class="ornament"><i></i></div>
+    <p>Cuando te avisen que hay una versión nueva, vuelve a esta página y repite los pasos 1, 2 y 4. Se instala encima de la anterior y <b>no se borran tus respuestas ni tus perfiles</b>.</p>
+    <p>Si prefieres que el celular te avise solo, instala la app gratuita <a href="https://github.com/ImranR98/Obtainium" rel="noopener">Obtainium</a> y agrega este enlace: <b>github.com/Protocol31/Dones</b>.</p>
+  </section>
+
+  <section class="faq" id="preguntas">
+    <div class="caps center">Dudas</div>
+    <h2 class="center">Preguntas frecuentes</h2>
+    <div class="ornament"><i></i></div>
+    <details><summary>¿Es segura?</summary><p>Sí. La hizo la iglesia para el curso. Android muestra avisos porque no viene de la Play Store, no porque tenga algo malo.</p></details>
+    <details><summary>¿Dónde quedan mis datos?</summary><p>Solo en tu celular. Tu nombre, tus respuestas y tus resultados no se envían a internet. Si desinstalas la app, se borran.</p></details>
+    <details><summary>¿Funciona en iPhone?</summary><p>Por ahora no, solo en celulares Android.</p></details>
+    <details><summary>Me dice «App no instalada»</summary><p>Revisa que tengas espacio libre (unos 150 MB) y que la descarga haya terminado completa. Si ya tenías una versión muy antigua, desinstálala primero (ojo: eso borra tus respuestas guardadas).</p></details>
+    <details><summary>No encuentro el archivo descargado</summary><p>Abre la app <b>Archivos</b> (o <b>Mis archivos</b>) y entra a <b>Descargas</b>. También puedes abrir Chrome → menú ⋮ → <b>Descargas</b>.</p></details>
+    <details><summary>¿Pueden usarla varias personas en el mismo celular?</summary><p>Sí. Al abrirla, cada persona elige su nombre o toca <b>Agregar a otra persona</b>.</p></details>
+  </section>
+
+  <footer>Iglesia Anglicana San Andrés</footer>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  try { new QRCode(document.getElementById("qr"), { text: location.href.split("#")[0], width: 168, height: 168 }); } catch (e) {}
+</script>
+</body>
+</html>
