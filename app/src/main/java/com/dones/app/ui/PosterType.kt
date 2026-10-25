@@ -54,10 +54,10 @@ val RoseText = Brush.verticalGradient(listOf(Color(0xFFFFE3E7), Color(0xFFFFB8C2
 
 private val Carve = Shadow(Color.Black.copy(alpha = .75f), Offset(3f, 4f), 6f)
 
-/** Texto con la letra del logo; la S y la A mayúsculas van en una letra que se lee bien (como en el PDF). */
+/** Texto con la letra del logo; la S, la A y la X (que en gótica parece una «r») van en una letra que se lee bien (como en el PDF). */
 fun frakturString(s: String): AnnotatedString = buildAnnotatedString {
     for (ch in s) {
-        if (ch == 'S' || ch == 'A') withStyle(SpanStyle(fontFamily = Rocker, fontSize = .93.em)) { append(ch) } else append(ch)
+        if (ch in "SAxX") withStyle(SpanStyle(fontFamily = Rocker, fontSize = .93.em)) { append(ch) } else append(ch)
     }
 }
 

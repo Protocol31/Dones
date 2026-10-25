@@ -225,11 +225,11 @@ internal class Pen(private val context: Context) {
     val geistMed = font(R.font.geist_medium)
     val geistSemi = font(R.font.geist_semibold)
     val fraktur = font(R.font.unifraktur_maguntia)
-    /** Solo para la S y la A mayúsculas: en Maguntia parecen G y U. */
+    /** Solo para la S, la A y la X: en Maguntia parecen G, U y «r» (así «Experiencias» se leía «Erperiencias»). */
     val rocker = font(R.font.new_rocker)
 
     private fun frakturRuns(s: String, size: Float) =
-        s.map { ch -> if (ch == 'S' || ch == 'A') Triple(ch.toString(), rocker, size * .93f) else Triple(ch.toString(), fraktur, size) }
+        s.map { ch -> if (ch in "SAxX") Triple(ch.toString(), rocker, size * .93f) else Triple(ch.toString(), fraktur, size) }
 
     fun measureFraktur(s: String, size: Float): Float = frakturRuns(s, size).sumOf { (t, f, z) -> measure(t, f, z).toDouble() }.toFloat()
 
