@@ -200,6 +200,12 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
     // Las preguntas y sus portadas («Bloque 1 de 5…») viven en la pestaña Cuestionario, no en Lecciones.
     private fun isLessonPage(i: Int) = lesson.pages.getOrNull(i)?.let { it.houtsBlock == null && it.section != "Cuestionario" } ?: true
 
+    /** Cuántas páginas de enseñanza hay (sin las del cuestionario), para el contador «Página X de N». */
+    val lessonPageCount: Int get() = lesson.pages.indices.count { isLessonPage(it) }
+
+    /** Número de la página de enseñanza en [index], contando solo las de enseñanza. */
+    fun lessonPageNumber(index: Int): Int = lesson.pages.indices.count { it <= index && isLessonPage(it) }
+
     /** Si la persona quedó en una página de preguntas (versión anterior), se muestra la siguiente de enseñanza. */
     private fun lessonDisplayIndex(i: Int): Int {
         var t = i

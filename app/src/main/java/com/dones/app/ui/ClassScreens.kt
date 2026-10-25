@@ -89,13 +89,14 @@ fun LessonScreen(vm: DonesViewModel, v: ParticipantView.LessonStep) {
     val mustCheck = page.blanks.isNotEmpty() && !checked
     // No se avanza sin responder.
     val answered = LessonGate.canContinue(page, values, selected)
-    val total = vm.lesson.pages.size
+    val total = vm.lessonPageCount
+    val number = vm.lessonPageNumber(key)
     Screen(
         bottom = {
             if (!answered) LessonGate.hint(page)?.let { Hint(it) }
             PageNav(
-                progress = (key + 1) / total.toFloat(),
-                label = "Página ${key + 1} de $total",
+                progress = number / total.toFloat(),
+                label = "Página $number de $total",
                 onPrevious = if (key > 0) vm::previousPage else null,
                 nextLabel = if (mustCheck) "Revisar" else "Siguiente",
                 nextEnabled = answered,
