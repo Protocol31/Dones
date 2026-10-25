@@ -197,7 +197,8 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
             ParticipantFlow.view(content, lesson, if (i == participant.page) participant else participant.copy(page = i), null)
         }
 
-    private fun isLessonPage(i: Int) = lesson.pages.getOrNull(i)?.houtsBlock == null
+    // Las preguntas y sus portadas («Bloque 1 de 5…») viven en la pestaña Cuestionario, no en Lecciones.
+    private fun isLessonPage(i: Int) = lesson.pages.getOrNull(i)?.let { it.houtsBlock == null && it.section != "Cuestionario" } ?: true
 
     /** Si la persona quedó en una página de preguntas (versión anterior), se muestra la siguiente de enseñanza. */
     private fun lessonDisplayIndex(i: Int): Int {
