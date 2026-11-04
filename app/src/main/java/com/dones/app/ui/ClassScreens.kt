@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -301,6 +302,8 @@ fun QuestionScreen(vm: DonesViewModel, q: ParticipantView.Question, inQuiz: Bool
                     else -> null
                 },
                 label = "Bloque ${q.block} de ${q.totalBlocks}",
+                // Revisando una pregunta ya respondida: se puede avanzar de una en una.
+                onNext = if (inQuiz && q.currentAnswer != null) ({ vm.quizNext(q.item.n) }) else null,
             )
         },
     ) {
@@ -319,7 +322,29 @@ fun QuestionScreen(vm: DonesViewModel, q: ParticipantView.Question, inQuiz: Bool
                 onClick = { if (pending == null) pending = option.value },
             )
         }
+        // Atajos para revisar: ir a la primera o a la última pregunta.
+        if (inQuiz && vm.quizAnswered > 1) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                if (q.item.n != vm.quizFirstItem) QuizJump("Ir a la primera", vm::quizGoFirst) else Spacer(Modifier.width(1.dp))
+                if (vm.quizComplete && q.item.n != vm.quizLastItem) QuizJump("Ir a la última", vm::quizGoLast)
+                else if (!vm.quizComplete && q.currentAnswer != null) QuizJump("Seguir donde iba", vm::quizGoLast)
+            }
+        }
     }
+}
+
+@Composable
+private fun QuizJump(text: String, onClick: () -> Unit) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+        color = Ergos.AccentText,
+        modifier = Modifier
+            .heightIn(min = 48.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 12.dp),
+    )
 }
 
 /** Opción con un círculo (mockup): vacío, o lleno de violeta al elegirla; texto grande en serif. */

@@ -270,6 +270,8 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
         HoutsScorer.visibleItems(content, participant.maritalStatus).sortedWith(compareBy({ it.block }, { it.n }))
 
     val quizTotal: Int get() = quizItems().size
+    val quizFirstItem: Int? get() = quizItems().firstOrNull()?.n
+    val quizLastItem: Int? get() = quizItems().lastOrNull()?.n
     val quizAnswered: Int get() = quizItems().count { it.n in participant.answers }
 
     /** Los resultados se abren solo cuando respondió todas las afirmaciones que le tocan. */
@@ -315,12 +317,32 @@ class DonesViewModel(app: Application) : AndroidViewModel(app) {
     fun answer(item: Int, value: Int) {
         val now = SystemClock.elapsedRealtime()
         val elapsed = if (reviewItem == null) now - questionShownAt else 0L // corregir no cuenta como tiempo de lectura
+        // Si ya estaba todo respondido y se está revisando, corregir una respuesta sigue con la próxima pregunta (no salta al final).
+        val reviewingAll = reviewItem != null && quizComplete
         update { it.answer(item, value, elapsed) }
-        reviewItem = null
+        reviewItem = if (reviewingAll) quizItems().firstOrNull { it.n > item }?.n else null
         questionShownAt = now
         // Si con esta respuesta quedó completo su bloque, se muestra "¡Bloque terminado!".
         val block = content.item(item).block
-        if (quizItems().none { it.block == block && it.n !in participant.answers }) quizPause = block
+        if (!reviewingAll && quizItems().none { it.block == block && it.n !in participant.answers }) quizPause = block
+    }
+
+    /** Revisando: pasa a la pregunta siguiente (si no hay más, vuelve al punto donde iba o a los resultados). */
+    fun quizNext(item: Int) {
+        reviewItem = quizItems().firstOrNull { it.n > item }?.n
+        questionShownAt = SystemClock.elapsedRealtime()
+    }
+
+    /** Salta a la primera pregunta para revisar. */
+    fun quizGoFirst() {
+        quizPause = null
+        reviewItem = quizItems().firstOrNull()?.n
+    }
+
+    /** Salta a la última pregunta respondida (si falta responder, al punto donde ibas). */
+    fun quizGoLast() {
+        quizPause = null
+        reviewItem = if (quizComplete) quizItems().lastOrNull()?.n else null
     }
 
     fun goBackTo(item: Int) { reviewItem = item }
